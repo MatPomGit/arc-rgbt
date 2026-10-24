@@ -1,0 +1,114 @@
+version: 1
+updated: "2026-10-24"
+purpose: "Canonical machine-readable scientific status for arc-rgbt and Research Autopilot."
+repository:
+  canonical_branch: main
+  source_revision_at_onboarding: "9d9809589d4dbd0601230e1604f8fc0d0e0434b1"
+  software_version_source: pyproject.toml
+  software_version: 0.1.0
+  architecture: multi_study_rgb_thermal_research_platform
+  shared_code_root: src/arc_rgbt
+  experiment_root: experiments
+  research_programme: RESEARCH.md
+  implementation_roadmap: ROADMAP.md
+  documentation: docs/index.md
+  plan: AUTOPILOT_PLAN.md
+research_phase: software_reference_and_synthetic_validation
+evidence_state:
+  software_unit_and_integration_tests: operator_reported_pass_on_specific_pr_shas
+  E00: deterministic_synthetic_resolution_sweep_only
+  E01: hand_constructed_labelled_quality_fusion_comparison_only
+  E02: simulated_timestamp_and_analytical_geometric_iou_only
+  P01: research_work_package_not_empirically_confirmed
+  P02: research_work_package_not_empirically_confirmed
+  P03: research_work_package_not_empirically_confirmed
+  independent_sensor_dataset: not_yet_verified
+  hardware_rgb_thermal_measurement: not_yet_verified
+  embedded_mcu_power_or_latency: not_measured
+  manuscripts_submitted: not_claimed
+verification_history:
+  - source: owner_provided_andromeda_validation_transcript
+    verified_code_sha: c2fc01d090ddd48a98019246b1ff606c1721bd59
+    outcome: PASS
+    tests_passed: 131
+    covers: [E00, E01, E02, P01, ruff, cli, artifact_integrity]
+    caveat: "Evidence applies to that PR SHA, not automatically to a later merge commit."
+  - source: owner_provided_andromeda_validation_transcript
+    verified_code_sha: 7c8c33538f2a2a6201b377f449fa4fc463340107
+    outcome: PASS
+    tests_passed: 136
+    docs_regression_tests_passed: 5
+    mkdocs_strict: PASS
+    caveat: "Docs validation applies to that PR SHA; HTML was generated locally."
+publication_portfolio:
+  status: concepts_not_submitted
+  lines:
+    - id: P01
+      title: Detection Limits of Low-Cost RGB-Thermal Sensors
+      evidence: E00
+      gate: independent_labelled_real_data_and_uncertainty
+    - id: P02
+      title: Adaptive and Temporal RGB-Thermal Fusion
+      evidence: [E01, E02]
+      gate: non_oracle_quality_estimator_exposure_timestamps_and_holdout
+    - id: P03
+      title: Resource-Efficient Embedded RGB-Thermal Detection
+      evidence: host_reference_only
+      gate: measured_ram_flash_latency_energy_on_named_device
+current_blockers:
+  - id: B01_REAL_DATA
+    status: pending
+    exit_condition: "Verify licence, complete independent annotations, scene/device split and native sensor provenance."
+  - id: B02_CALIBRATION_TIMING
+    status: pending
+    exit_condition: "Calibrated RGB-to-thermal mapping, measured exposure clock alignment and independent residuals."
+  - id: B03_HARDWARE
+    status: pending
+    exit_condition: "Specify a target MCU and measure memory, latency and energy on device before P03 claims."
+next_actions:
+  - order: 1
+    id: A01_PROTOCOL
+    action: "Freeze research questions, negative controls and independent P01/P02 outcome definitions."
+    procedure: RESEARCH.md
+    done_when: "Predeclared primary/secondary endpoints and split policy have reviewable versions."
+  - order: 2
+    id: A02_DATA
+    action: "Identify and verify openly usable RGB/LWIR or NIR datasets; document modality, timing, licence and annotations."
+    procedure: REPRODUCIBILITY.md
+    done_when: "Dataset inventory and provenance are complete without committing raw data."
+  - order: 3
+    id: A03_P02
+    action: "Measure synchronization and registration quality independently; build baseline and ablation matrix."
+    procedure: research/protocols/P02-pairing-registration.md
+    done_when: "Measured timing/calibration evidence and out-of-sample evaluation are available."
+  - order: 4
+    id: A04_P01
+    action: "Repeat E00-derived hypotheses on measured low-resolution labelled scenes."
+    procedure: experiments/E00/README.md
+    done_when: "Independent real-data evidence and uncertainty estimates separate from simulation."
+  - order: 5
+    id: A05_P03
+    action: "Define hardware constraints and run instrumented on-device baselines after host reference."
+    procedure: embedded/README.md
+    done_when: "Named-device RAM, flash, latency and energy traces meet predeclared measurement rules."
+  - order: 6
+    id: A06_PUBLICATION
+    action: "Evaluate P01/P02/P03 readiness and journal suitability only after evidence gates pass."
+    procedure: docs/experiments/publications.md
+    done_when: "Each claim is backed by immutable evidence and independently reviewed method/results."
+ai_handoff:
+  read_first: [AGENTS.md, PROJECT_STATE.yaml, AUTOPILOT_PLAN.md, RESEARCH.md, REPRODUCIBILITY.md]
+  never_infer:
+    - physical_sensor_performance_from_synthetic_E00_E01_E02
+    - calibrated_probabilities_from_quality_weight_multiplication
+    - detection_accuracy_from_analytical_bbox_iou
+    - mcu_performance_from_host_only_profiling
+    - publication_acceptance_from_repository_scaffolding
+portfolio_control:
+  schema_version: 1
+  manager: MatPomGit/research-autopilot
+  registry: registry/projects.json
+  state_authority: this_file_and_referenced_scientific_protocols
+  registration_status: proposed_in_separate_research_autopilot_pr
+  operational_cost_policy: zero_paid_apis_self_hosted_or_local
+  source_of_truth: PROJECT_STATE.yaml
