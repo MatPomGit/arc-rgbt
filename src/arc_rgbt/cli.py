@@ -121,8 +121,10 @@ def _demo(argv: list[str]) -> int:
         for name, image in (("rgb_native", degraded_rgb),
                             ("thermal_native", degraded_thermal), ("fused", fused)):
             preview = (np.clip(image, 0, 1) * 255).astype(np.uint8)
-            if not cv2.imwrite(str(staging / f"{name}.png"), preview):
-                raise OSError(f"Could not save preview for {name}")
+            ok, encoded = cv2.imencode(".png", preview)
+            if not ok:
+                raise OSError(f"Could not encode preview for {name}")
+            (staging / f"{name}.png").write_bytes(encoded.tobytes())
         save_json(staging / "sensor.json", geometry(Camera(80, 60, 17.0, 3.1), 20, 0.6, 1.7))
         ys, xs = np.nonzero(fused >= 0.5)
         if not len(xs):
