@@ -50,6 +50,22 @@ The documentation site is built **locally** and not automatically
 deployed to GitHub Pages. Installation uses free Python dependencies;
 for an air-gapped machine use an approved, local wheelhouse.
 
+## Unified entry point and synthetic preview
+
+After installation, run the local diagnostic and a complete, self-contained example:
+
+```bash
+arc-rgbt --help
+arc-rgbt doctor
+arc-rgbt demo --output reports/demo
+```
+
+Open `reports/demo/index.html` in a browser for side-by-side native-resolution RGB-like, thermal-like and fused previews, the labelled evaluation report and CPU timing. The demo generates all arrays locally and never contacts a service. The target directory must not already exist, preventing accidental overwrites; select a new `--output` for another run.
+
+The `arc-rgbt` command also forwards the original tool options: `sensor`, `degrade`, `fuse`, `bench`, `edge`, `e00`, `e01`, `e02`, `sync` and `register`. For example: `arc-rgbt fuse --help`.
+
+**Scientific limitation:** the demo contains one synthetic rectangle and a fixed-threshold localization heuristic. Its placeholder prediction score is not a calibrated probability. The resulting benchmark metrics do not establish detector, camera or embedded-hardware performance. Host CPU timings are environment-dependent.
+
 ## Quick start (no external data)
 
 ```bash
