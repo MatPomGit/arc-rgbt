@@ -216,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         module = importlib.import_module(f"arc_rgbt.{TOOLS[name][0]}")
         module.main(rest)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError) as exc:
         parser.exit(1, f"arc-rgbt {name}: {type(exc).__name__}: {exc}\n")
     return 0
 
