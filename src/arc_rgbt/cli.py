@@ -11,6 +11,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from arc_rgbt import __version__
+
 TOOLS = {
     "sensor": ("sensorlab", "Camera geometry and native pixel footprint"),
     "degrade": ("degradesim", "Synthetic native-resolution degradation"),
@@ -37,7 +39,7 @@ def _parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     commands = parser.add_argument_group("commands")
-    commands.add_argument("--version", action="version", version="arc-rgbt 0.1.0")
+    commands.add_argument("--version", action="version", version=f"arc-rgbt {__version__}")
     commands.add_argument("command", nargs="?", help="doctor, demo, " + ", ".join(TOOLS))
     return parser
 
