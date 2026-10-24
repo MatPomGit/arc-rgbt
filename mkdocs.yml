@@ -8,6 +8,7 @@ copyright: Apache-2.0
 
 theme:
   name: material
+  font: false  # keep the generated site free of remote Google Fonts
   language: en
   features:
     - navigation.tabs
