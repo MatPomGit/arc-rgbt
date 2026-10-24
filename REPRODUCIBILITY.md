@@ -9,3 +9,17 @@
 7. For actual publications, provide dataset version/licence, calibrated measurement chain, split policy, model weights with hashes, external independent evaluation and confidence intervals. These steps are not yet implemented.
 
 No pre-generated synthetic performance table or fabricated validation logs are committed to the repository.
+
+
+## Data integrity and interpretation
+
+DegradeSim rejects inputs outside normalized [0,1] rather than silently turning
+raw integer intensities into saturated unit pixels. Record upstream physical
+calibration and normalization separately. The horizontal blur is a source-pixel
+one-dimensional uniform exposure kernel, not a calibrated physical motion model.
+
+E00 reports both rounded annotation areas and continuous native-pixel footprints.
+For P01, compare `fraction_objects_subpixel_axis` across resolutions while
+treating threshold-localization scores solely as synthetic sanity checks.
+The P01 analysis refuses CSV/manifest metric mismatches, including precision and
+recall, to avoid accidentally summarizing inconsistent artifacts.

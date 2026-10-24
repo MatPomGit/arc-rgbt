@@ -14,34 +14,44 @@ from arc_rgbt.fusionlab import _iou
 
 
 def evaluate(frames: list[dict], iou_threshold: float = 0.5) -> dict:
-    if not 0 < iou_threshold <= 1:
+    if (isinstance(iou_threshold, bool) or not isinstance(iou_threshold, (int, float))
+            or not math.isfinite(iou_threshold) or not 0 < iou_threshold <= 1):
         raise ValueError("Invalid IoU threshold")
     tp = fp = fn = 0
     if not isinstance(frames, list):
         raise ValueError("frames must be a list")
+    seen_ids: set[str | int] = set()
     for frame in frames:
         if not isinstance(frame, dict):
             raise ValueError("Each frame must be a mapping")
         exact_keys(frame, {"id", "ground_truth", "predictions"})
+        frame_id = frame["id"]
+        if (isinstance(frame_id, bool) or not isinstance(frame_id, (str, int))
+                or frame_id == "" or frame_id in seen_ids):
+            raise ValueError("Frame IDs must be unique, nonempty strings or integers")
+        seen_ids.add(frame_id)
         truth, predictions = frame["ground_truth"], frame["predictions"]
         if not isinstance(truth, list) or not isinstance(predictions, list):
             raise ValueError("Ground truth and predictions must be lists")
-        for box in [*truth, *predictions]:
-            if not isinstance(box, dict) or set(box) - {"label", "bbox", "score"}:
-                raise ValueError("Invalid annotation schema")
-            coords = box.get("bbox")
-            if (not isinstance(box.get("label"), str) or not box["label"]
-                    or not isinstance(coords, list) or len(coords) != 4
-                    or any(isinstance(v, bool) or not isinstance(v, (int, float))
-                           or not math.isfinite(v) for v in coords)
-                    or min(coords[2:]) <= 0):
-                raise ValueError("Invalid labelled bounding box")
+        for boxes, required in ((truth, {"label", "bbox"}),
+                                (predictions, {"label", "bbox", "score"})):
+            for box in boxes:
+                if not isinstance(box, dict) or set(box) != required:
+                    raise ValueError("Invalid annotation schema")
+                coords = box["bbox"]
+                if (not isinstance(box["label"], str) or not box["label"]
+                        or not isinstance(coords, list) or len(coords) != 4
+                        or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                               or not math.isfinite(v) for v in coords)
+                        or min(coords[2:]) <= 0):
+                    raise ValueError("Invalid labelled bounding box")
+                if "score" in required:
+                    score = box["score"]
+                    if (isinstance(score, bool) or not isinstance(score, (int, float))
+                            or not math.isfinite(score) or not 0 <= score <= 1):
+                        raise ValueError("Prediction confidence must be finite within [0,1]")
         used: set[int] = set()
         for pred in sorted(predictions, key=lambda box: -box["score"]):
-            if not 0 <= pred["score"] <= 1:
-                raise ValueError("Prediction confidence out of bounds")
-            if len(pred["bbox"]) != 4 or min(pred["bbox"][2:]) <= 0:
-                raise ValueError("Invalid prediction bounding box")
             matches = [(j, _iou(pred["bbox"], box["bbox"])) for j, box in enumerate(truth)
                        if j not in used and box["label"] == pred["label"]]
             j, overlap = max(matches, key=lambda item: item[1], default=(-1, -1))
@@ -59,7 +69,11 @@ def evaluate(frames: list[dict], iou_threshold: float = 0.5) -> dict:
 
 
 def report(dataset: dict, dest: str | Path, source_path: str | Path | None = None) -> dict:
+    if not isinstance(dataset, dict):
+        raise ValueError("Dataset must be a mapping")
     exact_keys(dataset, {"data_origin", "frames", "config"})
+    if not isinstance(dataset["config"], dict) or not isinstance(dataset["frames"], list):
+        raise ValueError("Dataset config must be a mapping and frames a list")
     if dataset["data_origin"] not in ("simulated", "measured", "reference"):
         raise ValueError("Explicit data_origin required")
     if not dataset["frames"] or not any(

@@ -36,3 +36,27 @@ def test_only_negative_unannotated_frames_do_not_produce_metrics(tmp_path):
     with pytest.raises(ValueError, match="labelled ground truth"):
         report({"data_origin": "simulated", "config": {},
                 "frames": [{"id": "empty", "ground_truth": [], "predictions": []}]}, tmp_path)
+
+
+@pytest.mark.parametrize("bad_score", [None, float("nan"), float("inf"), True, -0.1, 1.1])
+def test_prediction_confidence_must_be_validated_before_sorting(bad_score):
+    frame = {"id": "1", "ground_truth": [{"label": "object", "bbox": [0, 0, 4, 4]}],
+             "predictions": [{"label": "object", "bbox": [0, 0, 4, 4],
+                              "score": bad_score}]}
+    with pytest.raises(ValueError):
+        evaluate([frame])
+
+
+def test_duplicate_frame_identifier_rejected():
+    frame = {"id": "duplicate", "ground_truth": [], "predictions": []}
+    with pytest.raises(ValueError, match="unique"):
+        evaluate([frame, frame])
+
+
+def test_missing_score_and_nonfinite_iou_rejected():
+    frame = {"id": "1", "ground_truth": [], "predictions":
+             [{"label": "object", "bbox": [0, 0, 2, 2]}]}
+    with pytest.raises(ValueError, match="schema"):
+        evaluate([frame])
+    with pytest.raises(ValueError, match="IoU"):
+        evaluate([], float("nan"))

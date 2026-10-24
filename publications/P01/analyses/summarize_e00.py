@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 from pathlib import Path
 
 
@@ -26,10 +27,24 @@ def summarize(experiment_dir: Path, output: Path) -> dict:
         native = [int(row["native_width_px"]), int(row["native_height_px"])]
         if native != entry["native_resolution_px"]:
             raise ValueError("CSV and manifest native resolution mismatch")
-        if int(row["tp"]) != entry["metrics"]["tp"]:
-            raise ValueError("CSV and manifest localization counts mismatch")
+        if entry.get("data_origin") != "simulated":
+            raise ValueError("E00 variant must have simulated origin")
+        for key, expected in entry["metrics"].items():
+            if not math.isclose(float(row[key]), float(expected), rel_tol=1e-12, abs_tol=1e-12):
+                raise ValueError(f"CSV and manifest disagree on {key}")
+        observed = entry["observability"]
+        for key in ("median_unrounded_bbox_area_native_px2", "fraction_objects_subpixel_axis"):
+            if not math.isclose(float(row[key]), float(observed[key]),
+                                rel_tol=1e-12, abs_tol=1e-12):
+                raise ValueError(f"CSV and manifest disagree on {key}")
+        fraction = float(row["fraction_objects_subpixel_axis"])
+        if not 0 <= fraction <= 1:
+            raise ValueError("Invalid subpixel axis fraction")
         table.append({"native_resolution_px": native, "recall": float(row["recall"]),
-                      "precision": float(row["precision"]), "f1": float(row["f1"])})
+                      "precision": float(row["precision"]), "f1": float(row["f1"]),
+                      "median_unrounded_bbox_area_native_px2":
+                          float(row["median_unrounded_bbox_area_native_px2"]),
+                      "fraction_objects_subpixel_axis": fraction})
     summary = {
         "publication": "P01", "experiment": "E00", "data_origin": "simulated",
         "physical_measurements": False, "code_version": manifest["provenance"]["code_version"],

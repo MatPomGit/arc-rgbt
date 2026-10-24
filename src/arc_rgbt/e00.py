@@ -6,13 +6,14 @@ import argparse
 import csv
 import html
 import json
+import math
 from pathlib import Path
 
 import cv2
 import numpy as np
 
 from arc_rgbt.bench import evaluate
-from arc_rgbt.common import exact_keys, load_yaml, provenance, save_json
+from arc_rgbt.common import exact_keys, load_yaml, positive_integer, provenance, save_json
 from arc_rgbt.degradesim import degrade
 
 NATIVE_SIZES = [(8, 8), (16, 12), (32, 24), (80, 60), (160, 120), (256, 192), (320, 240)]
@@ -61,11 +62,19 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
     exact_keys(config, {"seed", "frames", "optical_sigma_px", "noise_sigma", "threshold",
                         "min_area_px", "interpolated_preview_px"})
     seed, count = config["seed"], config["frames"]
-    if isinstance(seed, bool) or not isinstance(seed, int) or isinstance(count, bool) \
-            or not isinstance(count, int) or count <= 0:
-        raise ValueError("seed must be an integer and frames a positive integer")
-    if not 0 < config["threshold"] < 1 or config["min_area_px"] < 1:
-        raise ValueError("Invalid detector threshold or area")
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a non-negative integer")
+    positive_integer(count, "frames")
+    positive_integer(config["min_area_px"], "min_area_px")
+    threshold = config["threshold"]
+    if (isinstance(threshold, bool) or not isinstance(threshold, (int, float))
+            or not math.isfinite(threshold) or not 0 < threshold < 1):
+        raise ValueError("threshold must be finite and strictly between 0 and 1")
+    for name in ("optical_sigma_px", "noise_sigma"):
+        value = config[name]
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value < 0):
+            raise ValueError(f"{name} must be non-negative and finite")
     preview = config["interpolated_preview_px"]
     if not isinstance(preview, list) or len(preview) != 2 or any(
         not isinstance(v, int) or isinstance(v, bool) or v <= 0 for v in preview
@@ -79,6 +88,9 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
     for w, h in NATIVE_SIZES:
         frames = []
         representation = []
+        unrounded_areas = []
+        subpixel_count = 0
+        object_count = 0
         for index, (image, boxes) in enumerate(samples):
             native, record = degrade(image, width_px=w, height_px=h,
                                      optical_sigma_px=config["optical_sigma_px"],
@@ -91,6 +103,12 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
             frames.append({"id": f"scene-{index:03d}", "ground_truth": anon_truth,
                            "predictions": pred})
             representation.extend([entry["bbox"][2] * entry["bbox"][3] for entry in truth])
+            for entry in boxes:
+                _, _, bw, bh = entry["bbox"]
+                exact_width, exact_height = bw * w / 320, bh * h / 240
+                unrounded_areas.append(exact_width * exact_height)
+                subpixel_count += int(min(exact_width, exact_height) < 1)
+                object_count += 1
             if index == 0:
                 # Visualization only; cannot improve native sensor information.
                 up = cv2.resize(native, tuple(preview), interpolation=cv2.INTER_NEAREST)
@@ -99,12 +117,20 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
         row = {"native_width_px": w, "native_height_px": h,
                "interpolated_width_px": preview[0], "interpolated_height_px": preview[1],
                "median_annotation_bbox_area_native_px2": float(np.median(representation)),
+               "median_unrounded_bbox_area_native_px2": float(np.median(unrounded_areas)),
+               "fraction_objects_subpixel_axis": subpixel_count / object_count,
                **metrics}
         rows.append(row)
         per_resolution.append({"native_resolution_px": [w, h],
                                "data_origin": "simulated", "label_origin": "synthetic_geometry",
                                "detector": "class_agnostic_threshold_connected_components",
                                "metrics": metrics,
+                               "observability": {
+                                   "median_unrounded_bbox_area_native_px2":
+                                       float(np.median(unrounded_areas)),
+                                   "fraction_objects_subpixel_axis": subpixel_count / object_count,
+                                   "definition": "source_bbox_scaled_without_integer_cell_rounding",
+                               },
                                "degradation": {**record,
                                                "seed": "per_frame_seed_plus_index",
                                                "first_noise_seed": seed,
@@ -116,6 +142,7 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
                 "limitations": ["Synthetic rectangular objects, not radiometric thermograms",
                                 "Class-agnostic localization only; not person/vehicle recognition",
                                 "Annotation rounding can inflate boxes at extremely low resolution",
+                                "Subpixel-axis fractions are geometric, not empirically measured detectability",
                                 "Interpolation affects visualization only, not detection metrics",
                                 "No calibration, temporal effects or hardware measurements"]}
     save_json(destination / "manifest.json", manifest)
