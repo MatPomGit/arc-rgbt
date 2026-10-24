@@ -7,4 +7,15 @@
 - **v0.4.0 planned:** Quantization/pruning baselines and explicit RAM/flash/timing budgets, MCU adapter implementations and physical energy/latency instrumentation (P03).
 - **Pre-publication gates:** Document calibrated physical validation, independent datasets, test leakage controls, confidence intervals and independent replication. No publication claim is made by this scaffold.
 
-- **E02 analytical baseline (Draft PR):** Frame-pairing tolerance, clock offset, apparent lateral displacement and bounding-box overlap under a fixed-FOV pinhole model; no perception or sensor evaluation. Extend with calibrated real measurements and independently annotated sequences before publication.
+- **E01 / P02 quality baseline (new experimental PR):** Quality-scaled late
+  fusion on already co-registered scored boxes; deterministic four-method
+  labelled benchmarking; quality must be independently measured or declared.
+  This is a heuristic baseline, not probabilistic uncertainty calibration.
+- **Publication readiness gate for E01:** Locked real-data sequence splits,
+  independently derived quality proxies, calibrated detector scores,
+  independent scene-level confidence intervals and measured MCU costs.
+
+- **E02 analytical baseline (P02 Draft PR):** Frame-pairing tolerance, timestamp offset,
+  apparent lateral displacement and bounding-box overlap under a fixed-FOV pinhole model.
+  No perception/sensor evaluation is claimed. Extend with calibrated real measurements
+  and independent annotations before publication.

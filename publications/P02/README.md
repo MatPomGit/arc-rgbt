@@ -9,3 +9,13 @@ Status: **research planning only**, no manuscript/results claimed.
 - Analyses: create executable scripts and a dependency lockfile when empirical datasets are approved
 
 Study workspaces: `hypotheses/`, `protocol/`, `experiments/configs/`, `results/`, and `analyses/`. No empirical findings have been established for this publication package.
+
+## E01 quality-aware late fusion baseline
+
+E01 adds an **executable reference comparison**, not a validated empirical
+finding. The committed synthetic example is explanatory, deliberately small,
+and must not be reported as experimental evidence of RGB/LWIR superiority.
+
+See `experiments/E01/README.md` and the registered methodological plan in
+`publications/P02/hypotheses/README.md`. Field results, calibrated confidence,
+independent camera quality estimates and hardware metrics remain unverified.

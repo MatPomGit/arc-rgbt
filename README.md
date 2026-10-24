@@ -14,6 +14,7 @@ An open, device-independent Python research toolkit for low- and medium-resoluti
 | Bench | Reference implementation | Labelled box-level greedy IoU matching; precision, recall and F1; CSV/JSON/HTML |
 | EdgeLab | Host reference only | CPU GaussianBlur latency, Python allocation peak and optional local model file size |
 | E00 | Synthetic experiment | Seven native sensor resolutions, deterministic annotated scenes, class-agnostic localization, manifest and reports |
+| E01 (experimental) | Simulated proposal evaluation | Four controlled detection-fusion strategies with externally specified modality quality; deterministic labelled results |
 | Synchronization | Reference method | Nearest-frame RGB/LWIR timestamp pairing in a shared clock domain, with missing-frame and skew statistics |
 | Calibrated registration | Reference method | Align unequal-resolution RGB/thermal arrays using externally supplied planar homographies and valid-support masks |
 | MCU drivers, radiometry, physical calibration, temporal fusion, energy metering | **Planned** | Not implemented or validated |
@@ -67,3 +68,18 @@ arc-rgbt-register --rgb local_rgb.npy --thermal local_thermal.npy \
 The homography example is **synthetic** and must not be used as real camera
 calibration. A smaller thermal grid is not equivalent to an interpolated larger
 image. Consult [P02 acquisition protocol](research/protocols/P02-pairing-registration.md).
+
+## Experimental E01: quality-weighted late fusion
+
+The E01 baseline compares RGB-only, thermal-only, equal-quality fixed fusion
+and externally quality-weighted late fusion on **identical labelled proposals**.
+
+```bash
+arc-rgbt-e01 --dataset datasets/manifests/e01-synthetic-quality.json \
+  --output reports/E01
+```
+
+E01 does **not** infer per-frame quality, estimate object probabilities,
+train a detector or validate physical RGB/LWIR sensing. The small example is
+purposefully constructed synthetic data demonstrating method differences,
+**not a performance benchmark**. See [E01 protocol](experiments/E01/README.md).
