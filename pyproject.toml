@@ -17,6 +17,7 @@ docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.6,<10"]
 torch = ["torch>=2.3"]
 
 [project.scripts]
+arc-rgbt = "arc_rgbt.cli:main"
 sensorlab = "arc_rgbt.sensorlab:main"
 degradesim = "arc_rgbt.degradesim:main"
 fusionlab = "arc_rgbt.fusionlab:main"
