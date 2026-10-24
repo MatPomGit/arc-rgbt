@@ -1,0 +1,9 @@
+{
+  "data_origin": "simulated",
+  "config": {"dataset": "single labelled synthetic test frame", "confidence_policy": "fixed example"},
+  "frames": [{
+    "id": "synthetic-example-001",
+    "ground_truth": [{"bbox": [10, 10, 20, 20], "label": "object"}],
+    "predictions": [{"bbox": [10, 10, 20, 20], "label": "object", "score": 0.9}]
+  }]
+}

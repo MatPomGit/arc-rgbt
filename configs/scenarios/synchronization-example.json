@@ -1,0 +1,33 @@
+{
+  "data_origin": "simulated",
+  "clock_domain": "shared_monotonic_ns",
+  "tolerance_ms": 20,
+  "rgb_frames": [
+    {
+      "id": "rgb-001",
+      "timestamp_ns": 0
+    },
+    {
+      "id": "rgb-002",
+      "timestamp_ns": 33333333
+    },
+    {
+      "id": "rgb-003",
+      "timestamp_ns": 66666666
+    },
+    {
+      "id": "rgb-004",
+      "timestamp_ns": 99999999
+    }
+  ],
+  "thermal_frames": [
+    {
+      "id": "lw-001",
+      "timestamp_ns": 6000000
+    },
+    {
+      "id": "lw-002",
+      "timestamp_ns": 106000000
+    }
+  ]
+}

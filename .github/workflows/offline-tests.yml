@@ -1,0 +1,24 @@
+name: Offline unit and integration checks
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/research-platform-v0.1.0
+jobs:
+  offline:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Offline checks (preinstalled dependencies)
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$PWD/src"
+          python3 -m pytest -q
+          python3 -m ruff check src tests tools
+          python3 -m arc_rgbt.e00 --config experiments/E00/config.yaml --output /tmp/arc-rgbt-e00-${{ github.run_id }}

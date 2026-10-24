@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arc-rgbt"
+version = "0.1.0"
+description = "Hardware-independent, reproducible RGB and thermal fusion research tools"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "Apache-2.0"}
+dependencies = ["numpy>=1.26,<3", "opencv-python-headless>=4.8,<5", "scipy>=1.12,<2", "PyYAML>=6,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "ruff>=0.9,<1"]
+torch = ["torch>=2.3"]
+
+[project.scripts]
+sensorlab = "arc_rgbt.sensorlab:main"
+degradesim = "arc_rgbt.degradesim:main"
+fusionlab = "arc_rgbt.fusionlab:main"
+bench-rgbt = "arc_rgbt.bench:main"
+edgelab = "arc_rgbt.edgelab:main"
+arc-rgbt-e00 = "arc_rgbt.e00:main"
+arc-rgbt-sync = "arc_rgbt.synchronization:main"
+arc-rgbt-register = "arc_rgbt.registration:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

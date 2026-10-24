@@ -1,0 +1,4 @@
+name: generic_reference_cpu
+class: host_cpu
+note: Host profiling is not predictive of MCU speed or power.
+repeats: 10

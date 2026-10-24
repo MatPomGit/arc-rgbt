@@ -1,0 +1,3 @@
+# Agent operating contract
+
+Scope: vendor-independent open research code only. Do not mention or infer any industrial partner, products, contacts or confidential projects. Avoid network access and paid APIs. Do not download datasets/models or commit reports, weights, secrets, user data or local paths. Implement functionality rather than directories alone. Keep all benchmark claims tied to labelled evidence and explicit provenance. All automated jobs must be self-hosted and manually trusted; never enable GitHub-hosted runners. Use small commits, offline tests, pin PR HEAD during validation, report concrete failures, and leave PRs unmerged until an independent review has completed. Do not self-approve. Never represent host benchmarks as measurements on MCU.

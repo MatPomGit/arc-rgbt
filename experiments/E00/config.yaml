@@ -1,0 +1,7 @@
+seed: 410
+frames: 20
+optical_sigma_px: 0.8
+noise_sigma: 0.02
+threshold: 0.45
+min_area_px: 1
+interpolated_preview_px: [640, 480]
