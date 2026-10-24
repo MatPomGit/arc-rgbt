@@ -56,7 +56,7 @@ def test_late_fusion_rejects_invalid_score_types(invalid_score):
     {},
 ])
 def test_late_fusion_rejects_invalid_boxes(invalid):
-    with pytest.raises(ValueError, match="Detection"):
+    with pytest.raises(ValueError, match="[Dd]etection"):
         fuse_detections([invalid], [])
 
 
