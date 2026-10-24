@@ -64,15 +64,15 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--input", required=True, help="NumPy .npy array normalized to [0, 1]")
     p.add_argument("--output", default="reports/degradesim.npy")
     a = p.parse_args(argv)
-    params = load_yaml(a.config)
-    exact_keys(params, {"width_px", "height_px"},
-               {"optical_sigma_px", "noise_sigma", "motion_length_px", "seed"})
-    native, record = degrade(np.load(a.input, allow_pickle=False), **params)
     out = Path(a.output)
     if out.suffix not in ("", ".npy"):
         p.error("--output must be a .npy path or have no extension")
     if not out.suffix:
         out = out.with_suffix(".npy")
+    params = load_yaml(a.config)
+    exact_keys(params, {"width_px", "height_px"},
+               {"optical_sigma_px", "noise_sigma", "motion_length_px", "seed"})
+    native, record = degrade(np.load(a.input, allow_pickle=False), **params)
     out.parent.mkdir(parents=True, exist_ok=True)
     np.save(out, native, allow_pickle=False)
     print(save_json(str(out) + ".json", record))
