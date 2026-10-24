@@ -16,3 +16,12 @@ This changelog records implemented features only; it is not a validation certifi
 - Add quality-scaled late box fusion with explicit finite reliability weights.
 - Add E01 labelled four-arm comparison with input-provenance manifests and CSV metrics.
 - Add synthetic example, focused tests and a study protocol; no field-performance claim.
+
+## Unreleased documentation
+
+- Searchable MkDocs Material guide with explicit CLI/data contracts and
+  step-by-step E00, E01 and E02 reproduction.
+- Verifiable documentation navigation, local links, executable metadata
+  and negative regression tests for the documentation contract.
+- Manual self-hosted strict MkDocs build; no automatic public deployment.
+- This is documentation of reference/simulated methods, not new field evidence.

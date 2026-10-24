@@ -31,6 +31,25 @@ pytest -q
 ruff check src tests tools
 ```
 
+## Searchable research documentation (MkDocs)
+
+The full research guide is in [docs/](docs/index.md), with
+[getting started](docs/getting-started.md), [CLI reference](docs/reference/cli.md),
+[E00](docs/experiments/e00.md), [E01](docs/experiments/e01.md),
+[E02](docs/experiments/e02.md) and
+[evidence limits](docs/concepts/evidence.md).
+
+```bash
+python -m pip install -e '.[dev,docs]'
+python -m tools.check_docs
+python -m mkdocs build --strict --clean
+python -m mkdocs serve
+```
+
+The documentation site is built **locally** and not automatically
+deployed to GitHub Pages. Installation uses free Python dependencies;
+for an air-gapped machine use an approved, local wheelhouse.
+
 ## Quick start (no external data)
 
 ```bash

@@ -16,3 +16,5 @@ reports/**
 *.onnx
 *.tflite
 .DS_Store
+
+site/

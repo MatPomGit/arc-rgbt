@@ -1,0 +1,76 @@
+site_name: arc-rgbt
+site_description: Low-Cost RGB–Thermal Fusion Research Platform
+site_author: arc-rgbt contributors
+repo_url: https://github.com/MatPomGit/arc-rgbt
+repo_name: MatPomGit/arc-rgbt
+edit_uri: edit/main/docs/
+copyright: Apache-2.0
+
+theme:
+  name: material
+  font: false  # keep the generated site free of remote Google Fonts
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+validation:
+  nav:
+    not_found: warn
+    omitted_files: warn
+  links:
+    not_found: warn
+    anchors: warn
+    unrecognized_links: warn
+
+nav:
+  - Overview: index.md
+  - Getting started: getting-started.md
+  - Foundations:
+      - Architecture: concepts/architecture.md
+      - Evidence and limitations: concepts/evidence.md
+  - How-to guides:
+      - Sensor geometry and degradation: guides/sensors-degradation.md
+      - Fusion and benchmark: guides/fusion-benchmark.md
+      - Quality-weighted fusion: guides/quality-fusion.md
+      - Synchronization and registration: guides/synchronization-registration.md
+  - Research:
+      - E00 experiment: experiments/e00.md
+      - E01 quality-weighted fusion: experiments/e01.md
+      - E02 temporal geometry: experiments/e02.md
+      - P01–P03 programme: experiments/publications.md
+      - Reproducibility: reproducibility.md
+  - Reference:
+      - Command line tools: reference/cli.md
+      - Data contracts: reference/data-contracts.md
+  - Development: development.md
