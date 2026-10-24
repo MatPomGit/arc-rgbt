@@ -18,6 +18,26 @@ python -m ruff check src tests tools
 
 The installation command may download free Python packages if they are not cached. For isolated offline execution, install from a locally prepared wheelhouse instead. No paid API or cloud runtime is needed.
 
+## Fastest start: no input files to prepare
+
+```bash
+arc-rgbt doctor
+arc-rgbt demo --output reports/demo
+```
+
+Open `reports/demo/index.html` locally to inspect the RGB-like, thermal-like and
+fused PNGs, a labelled report and the host CPU measurement. The full source
+NumPy arrays and metadata are available in the same directory. No datasets,
+cameras, accounts or API keys are required.
+
+The demo refuses to overwrite an existing output directory. For another run,
+choose `--output reports/demo-2`. Use `arc-rgbt --help` to discover commands
+and `arc-rgbt fuse --help` (or another command) to see the original options.
+
+This demonstration contains one synthetic rectangular target and a threshold
+heuristic with an uncalibrated placeholder prediction score. Its metrics are
+**not physical sensor, detection or MCU performance evidence**.
+
 ## Produce your first synthetic data
 
 The following creates a normalized input image **without downloading any dataset**:
