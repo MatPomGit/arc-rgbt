@@ -14,6 +14,8 @@ An open, device-independent Python research toolkit for low- and medium-resoluti
 | Bench | Reference implementation | Labelled box-level greedy IoU matching; precision, recall and F1; CSV/JSON/HTML |
 | EdgeLab | Host reference only | CPU GaussianBlur latency, Python allocation peak and optional local model file size |
 | E00 | Synthetic experiment | Seven native sensor resolutions, deterministic annotated scenes, class-agnostic localization, manifest and reports |
+| Synchronization | Reference method | Nearest-frame RGB/LWIR timestamp pairing in a shared clock domain, with missing-frame and skew statistics |
+| Calibrated registration | Reference method | Align unequal-resolution RGB/thermal arrays using externally supplied planar homographies and valid-support masks |
 | MCU drivers, radiometry, physical calibration, temporal fusion, energy metering | **Planned** | Not implemented or validated |
 
 This baseline does **not** recognize people or vehicles. Its E00 synthetic annotations and algorithm-derived metrics do **not** constitute camera measurements, hardware benchmarks or generalization evidence.
@@ -43,3 +45,25 @@ arc-rgbt-e00 --config experiments/E00/config.yaml --output reports/E00
 `sample.npy` is intentionally ignored by Git. `reports/` contains generated outputs, never precomputed evidence. Every CLI supports `--help`. Running modules directly via `PYTHONPATH=src python -m arc_rgbt.<module>` is also supported.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md), [RESEARCH.md](RESEARCH.md), [REPRODUCIBILITY.md](REPRODUCIBILITY.md) and [ROADMAP.md](ROADMAP.md). The research programme has dedicated publication workspaces in `publications/P01` through `P03`.
+
+
+## Experimental P02 foundations: asynchronous acquisition and unequal image grids
+
+The five principal research tools now have two additional supporting CLI modules.
+They are **not** full cross-modal calibration, physical clock synchronization,
+motion compensation, tracking, or person/vehicle recognition systems.
+
+```bash
+arc-rgbt-sync --input configs/scenarios/synchronization-example.json \
+  --output reports/synchronization.json
+# The next command requires local .npy images whose dimensions match the
+# independently established RGB -> thermal pixel transform.
+arc-rgbt-register --rgb local_rgb.npy --thermal local_thermal.npy \
+  --homography configs/scenarios/homography-simulated-example.json \
+  --calibration-origin simulated --reference thermal \
+  --output reports/registered_pair.npz
+```
+
+The homography example is **synthetic** and must not be used as real camera
+calibration. A smaller thermal grid is not equivalent to an interpolated larger
+image. Consult [P02 acquisition protocol](research/protocols/P02-pairing-registration.md).

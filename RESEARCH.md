@@ -6,7 +6,7 @@ Hypothesis: Object pixel footprint and degradation conditions constrain localiza
 
 ## P02: Adaptive and Temporal RGB–Thermal Fusion
 
-Hypothesis: Registration-aware modality weighting may outperform fixed fusion under asynchronous sensing or camera motion. v0.1.0 implements only reference static early/late fusion. Temporal/adaptive models remain planned. See `publications/P02`.
+Hypothesis: Registration-aware modality weighting may outperform fixed fusion under asynchronous sensing or camera motion. v0.1.0 includes reference static early/late fusion and supporting timestamp-pairing/externally calibrated planar registration. Adaptive/temporal detection models remain planned. See `publications/P02`.
 
 ## P03: Resource-Efficient Embedded RGB–Thermal Detection
 

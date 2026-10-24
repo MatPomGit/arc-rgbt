@@ -22,6 +22,8 @@ fusionlab = "arc_rgbt.fusionlab:main"
 bench-rgbt = "arc_rgbt.bench:main"
 edgelab = "arc_rgbt.edgelab:main"
 arc-rgbt-e00 = "arc_rgbt.e00:main"
+arc-rgbt-sync = "arc_rgbt.synchronization:main"
+arc-rgbt-register = "arc_rgbt.registration:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

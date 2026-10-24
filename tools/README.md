@@ -9,3 +9,16 @@ All commands work with an editable installation (`pip install -e .`) and local i
 5. **EdgeLab**: `edgelab --config configs/processors/reference_cpu.yaml --input reports/native.npy --output reports/edgelab.json` (reference host CPU only)
 
 `arc-rgbt-e00 --config experiments/E00/config.yaml --output reports/E00` runs the standalone synthetic experiment. Run `--help` on each CLI for all options. Configurations and generated reports are intentionally separate. None of these tools downloads models or datasets.
+
+
+## P02 support CLIs (outside the five principal tools)
+
+- `arc-rgbt-sync --input configs/scenarios/synchronization-example.json`
+  computes per-frame time offset and unmatched-frame statistics from an
+  explicitly common monotonic nanosecond clock.
+- `arc-rgbt-register --rgb rgb.npy --thermal thermal.npy
+  --homography configs/scenarios/homography-simulated-example.json
+  --calibration-origin simulated --reference thermal` aligns different
+  native image shapes using an **externally supplied** planar transform.
+  Inputs must be compatible with the calibration; the example matrix is
+  strictly synthetic.

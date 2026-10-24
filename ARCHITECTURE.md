@@ -18,3 +18,19 @@ Every report includes `data_origin` and/or `physical_measurements`. Values disti
 ## Dependency and trust policy
 
 Required: Python 3.12+, NumPy, SciPy, OpenCV headless and PyYAML. PyTorch is optional. Tests use no model weights or network calls. Self-hosted CI requires a manual trusted dispatch; running arbitrary third-party PR code on a privileged runner is disallowed. CI does not create releases or auto-merge branches.
+
+
+## Synchronization and asymmetric geometric registration
+
+- `synchronization.pair_frames` accepts strictly ordered nanosecond acquisition
+  timestamps with verified shared monotonic-clock semantics. It makes nearest
+  unused-RGB choices for thermal frames within a stated tolerance; it is
+  **not** a clock estimator or optimal matching solver. Empty streams and
+  unmatched frames remain explicit in output.
+- `registration.align_pair` accepts externally supplied RGB-to-thermal
+  homogeneous pixel coordinates. Its planar projective model requires physical
+  calibration for a real instrument and is not a generic solution to parallax.
+  Both native resolutions, output grid, interpolation use, and valid footprint
+  are reported. A thermal image expanded onto the RGB grid remains low-information.
+- Outputs are algorithms and reference diagnostics, not empirical evidence of
+  detection sensitivity, accurate extrinsics, or successful simultaneous exposure.

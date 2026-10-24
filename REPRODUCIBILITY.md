@@ -29,3 +29,16 @@ have been verified. To run a fully negative dataset, set
 `annotation_status: complete` in the Bench JSON; otherwise it is rejected to
 avoid treating unannotated images as negatives. Mixed positive/negative legacy
 datasets remain supported, with completeness the dataset curator's responsibility.
+
+## P02 acquisition and registration traceability
+
+- Keep native images and exposure-time metadata. Express capture instants in
+  nanoseconds on one shared monotonic clock. Otherwise calibrate clock offsets
+  before pairing. Driver receipt time must not be silently treated as exposure.
+- Pairing manifest provenance is user-declared, not independently authenticated.
+- Preserve the RGB-to-thermal matrix, camera geometry, calibration origin and
+  independent reprojection residuals alongside raw data.
+- Retain the valid-support mask. Upsampling thermal measurements does not add
+  missing information. Preserve native pixel dimensions in subsequent analyses.
+- Before publication, freeze all file hashes, acquisition provenance,
+  calibration artifacts and the exact source commit.
