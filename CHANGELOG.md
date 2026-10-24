@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased (documentation)
+
+- Searchable MkDocs Material research documentation with executable examples,
+  input contracts, methodological boundaries and publication workflows.
+- Manual self-hosted strict documentation validation, with offline link/navigation checking.
+
 ## 0.1.0 (initial research baseline)
 
 - Modular installable package and five command-line tools.

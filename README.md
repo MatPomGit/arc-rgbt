@@ -30,6 +30,19 @@ pytest -q
 ruff check src tests tools
 ```
 
+## MkDocs documentation
+
+The structured, searchable research documentation lives in [`docs/`](docs/index.md) and is configured in [`mkdocs.yml`](mkdocs.yml). Generate a local site without paid services:
+
+```bash
+python -m pip install -e '.[docs]'
+python -m tools.check_docs
+python -m mkdocs build --strict
+python -m mkdocs serve
+```
+
+Documentation is not automatically published; use a local wheelhouse for an offline installation.
+
 ## Quick start (no external data)
 
 ```bash
