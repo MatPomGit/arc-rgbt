@@ -63,5 +63,7 @@ def provenance(input_paths: list[str | Path] | None = None) -> dict[str, Any]:
 def save_json(path: str | Path, data: Any) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(data, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
+    p.write_text(
+        json.dumps(data, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8"
+    )
     return p

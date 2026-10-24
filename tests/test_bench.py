@@ -24,3 +24,9 @@ def test_no_unlabelled_detection_metrics(tmp_path):
         report({"data_origin": "simulated", "config": {}, "frames": []}, tmp_path)
     with pytest.raises(ValueError):
         evaluate([], 0)
+
+
+def test_invalid_gt_bbox_is_rejected():
+    with pytest.raises(ValueError, match="Invalid labelled"):
+        evaluate([{"id": "bad", "ground_truth": [{"label": "object", "bbox": [0, 0, -1, 2]}],
+                   "predictions": []}])

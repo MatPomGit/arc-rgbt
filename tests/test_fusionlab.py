@@ -31,3 +31,10 @@ def test_late_fusion_class_match_and_unmatched():
     assert len(result) == 2
     assert 0 < result[0]["bbox"][0] < 1
     assert result[1]["label"] == "vehicle"
+
+
+def test_late_fusion_rejects_zero_threshold_and_negative_box():
+    with pytest.raises(ValueError):
+        fuse_detections([], [], threshold=0)
+    with pytest.raises(ValueError):
+        fuse_detections([{"label": "object", "bbox": [0, 0, -1, 5], "score": 0.9}], [])

@@ -123,7 +123,8 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
                                          for v in row.values()) + "</tr>" for row in rows)
     headers = "".join(f"<th>{html.escape(key)}</th>" for key in rows[0])
     document = ("<!doctype html><html lang='en'><meta charset='utf-8'>"
-                "<title>E00 synthetic resolution sweep</title><h1>E00 native thermal resolution</h1>"
+                "<title>E00 synthetic resolution sweep</title>"
+                "<h1>E00 native thermal resolution</h1>"
                 "<p>SIMULATED labelled rectangles. No physical camera data, no class recognition. "
                 "Preview interpolation does not increase sensor resolution.</p>"
                 f"<table border='1'><thead><tr>{headers}</tr></thead><tbody>{table}</tbody></table>"

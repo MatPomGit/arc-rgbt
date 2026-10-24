@@ -6,6 +6,7 @@ import argparse
 import csv
 import html
 import json
+import math
 from pathlib import Path
 
 from arc_rgbt.common import exact_keys, provenance, save_json
@@ -16,11 +17,25 @@ def evaluate(frames: list[dict], iou_threshold: float = 0.5) -> dict:
     if not 0 < iou_threshold <= 1:
         raise ValueError("Invalid IoU threshold")
     tp = fp = fn = 0
+    if not isinstance(frames, list):
+        raise ValueError("frames must be a list")
     for frame in frames:
+        if not isinstance(frame, dict):
+            raise ValueError("Each frame must be a mapping")
         exact_keys(frame, {"id", "ground_truth", "predictions"})
         truth, predictions = frame["ground_truth"], frame["predictions"]
         if not isinstance(truth, list) or not isinstance(predictions, list):
             raise ValueError("Ground truth and predictions must be lists")
+        for box in [*truth, *predictions]:
+            if not isinstance(box, dict) or set(box) - {"label", "bbox", "score"}:
+                raise ValueError("Invalid annotation schema")
+            coords = box.get("bbox")
+            if (not isinstance(box.get("label"), str) or not box["label"]
+                    or not isinstance(coords, list) or len(coords) != 4
+                    or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                           or not math.isfinite(v) for v in coords)
+                    or min(coords[2:]) <= 0):
+                raise ValueError("Invalid labelled bounding box")
         used: set[int] = set()
         for pred in sorted(predictions, key=lambda box: -box["score"]):
             if not 0 <= pred["score"] <= 1:

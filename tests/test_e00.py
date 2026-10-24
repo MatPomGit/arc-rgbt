@@ -12,6 +12,9 @@ def test_e00_real_generated_reports_and_reproducibility(tmp_path):
     assert len(a["resolutions"]) == len(NATIVE_SIZES) == 7
     assert a["physical_measurements"] is False
     assert [v["metrics"] for v in a["resolutions"]] == [v["metrics"] for v in b["resolutions"]]
+    display_only = dict(params, interpolated_preview_px=[320, 240])
+    c = run(display_only, tmp_path / "c")
+    assert [v["metrics"] for v in a["resolutions"]] == [v["metrics"] for v in c["resolutions"]]
     assert (tmp_path / "a" / "metrics.csv").exists()
     assert (tmp_path / "a" / "report.html").exists()
     assert (tmp_path / "a" / "preview_8x8.png").exists()
