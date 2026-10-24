@@ -12,8 +12,12 @@ from arc_rgbt.common import exact_keys, load_yaml, save_json
 
 
 def _pair(rgb: np.ndarray, thermal: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    if rgb.ndim != 2 or thermal.ndim != 2 or rgb.shape != thermal.shape:
-        raise ValueError("Provide two aligned grayscale images of identical native shape")
+    if (not isinstance(rgb, np.ndarray) or not isinstance(thermal, np.ndarray)
+            or rgb.ndim != 2 or thermal.ndim != 2 or rgb.shape != thermal.shape
+            or not all(np.issubdtype(x.dtype, np.number)
+                       and not np.issubdtype(x.dtype, np.complexfloating)
+                       for x in (rgb, thermal))):
+        raise ValueError("Provide two real aligned grayscale arrays of identical shape")
     if not (np.isfinite(rgb).all() and np.isfinite(thermal).all()):
         raise ValueError("Images must be finite")
     return rgb.astype(np.float32), thermal.astype(np.float32)
@@ -31,8 +35,9 @@ def register_translation(reference: np.ndarray, moving: np.ndarray) -> tuple[np.
 def fuse_images(rgb: np.ndarray, thermal: np.ndarray, method: str = "weighted",
                 thermal_weight: float = 0.5) -> np.ndarray:
     a, b = _pair(rgb, thermal)
-    if not 0 <= thermal_weight <= 1 or not np.isfinite(thermal_weight):
-        raise ValueError("thermal_weight must lie within [0,1]")
+    if (isinstance(thermal_weight, bool) or not isinstance(thermal_weight, (int, float))
+            or not np.isfinite(thermal_weight) or not 0 <= thermal_weight <= 1):
+        raise ValueError("thermal_weight must be a finite number within [0,1]")
     if method == "weighted":
         return ((1 - thermal_weight) * a + thermal_weight * b).astype(np.float32)
     if method == "gradient":
@@ -54,12 +59,22 @@ def _iou(a: list[float], b: list[float]) -> float:
 def fuse_detections(rgb_boxes: list[dict], thermal_boxes: list[dict],
                     threshold: float = 0.5) -> list[dict]:
     """Greedy class-matched confidence-weighted box fusion; inputs not mutated."""
-    if not 0 < threshold <= 1:
+    if (isinstance(threshold, bool) or not isinstance(threshold, (int, float))
+            or not np.isfinite(threshold) or not 0 < threshold <= 1):
         raise ValueError("Invalid IoU threshold")
+    if not isinstance(rgb_boxes, list) or not isinstance(thermal_boxes, list):
+        raise ValueError("Detections must be lists")
     for box in [*rgb_boxes, *thermal_boxes]:
-        if (len(box["bbox"]) != 4 or not np.isfinite(box["bbox"]).all()
-                or min(box["bbox"][2:]) <= 0 or not isinstance(box["label"], str)
-                or not np.isfinite(box["score"]) or not 0 < box["score"] <= 1):
+        if not isinstance(box, dict) or set(box) != {"bbox", "label", "score"}:
+            raise ValueError("Detection must contain bbox, label and score")
+        coords, score, label = box["bbox"], box["score"], box["label"]
+        if (not isinstance(coords, list) or len(coords) != 4
+                or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                       or not np.isfinite(v) for v in coords)
+                or min(coords[2:]) <= 0
+                or not isinstance(label, str) or not label
+                or isinstance(score, bool) or not isinstance(score, (int, float))
+                or not np.isfinite(score) or not 0 < score <= 1):
             raise ValueError("Invalid detection bbox, label or score")
     used: set[int] = set()
     output: list[dict] = []

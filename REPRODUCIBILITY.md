@@ -42,3 +42,9 @@ datasets remain supported, with completeness the dataset curator's responsibilit
   missing information. Preserve native pixel dimensions in subsequent analyses.
 - Before publication, freeze all file hashes, acquisition provenance,
   calibration artifacts and the exact source commit.
+
+When using projective RGB–thermal alignment, exclude pixels outside the
+full-support interpolation mask before computing image or detection metrics.
+Partially zero-padded boundary samples are not valid observed pixels.
+FusionLab rejects boolean or nonfinite confidence and weight fields rather
+than implicitly interpreting them as real-valued probabilities.

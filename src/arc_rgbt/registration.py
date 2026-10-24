@@ -49,10 +49,13 @@ def align_pair(
     height, width = target.shape[:2]
     aligned = cv2.warpPerspective(source, matrix, (width, height),
                                   flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-    source_valid = np.ones(source.shape[:2], dtype=np.uint8)
-    valid = cv2.warpPerspective(source_valid, matrix, (width, height),
-                                flags=cv2.INTER_NEAREST,
-                                borderMode=cv2.BORDER_CONSTANT).astype(bool)
+    # A nearest-neighbour mask can mark partially padded bilinear pixels as valid.
+    # Warp unit coverage with the SAME interpolation kernel as the image.
+    source_valid = np.ones(source.shape[:2], dtype=np.float32)
+    coverage = cv2.warpPerspective(source_valid, matrix, (width, height),
+                                   flags=cv2.INTER_LINEAR,
+                                   borderMode=cv2.BORDER_CONSTANT)
+    valid = coverage >= 1.0 - 1e-6
     if reference == "thermal":
         rgb_aligned, thermal_aligned = aligned, b.copy()
     else:
@@ -70,7 +73,7 @@ def align_pair(
             "requires independently established extrinsic calibration",
             "single homography assumes a planar scene or negligible parallax",
             "interpolation does not recover missing native thermal detail",
-            "valid_overlap_mask is nearest-neighbour source footprint only",
+            "valid_overlap_mask requires full bilinear interpolation support",
         ],
     }
     return rgb_aligned, thermal_aligned, valid, record

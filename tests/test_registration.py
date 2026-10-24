@@ -52,3 +52,21 @@ def test_nan_in_image_rejected():
     rgb[2, 1] = np.nan
     with pytest.raises(ValueError):
         align_pair(rgb, np.ones((8, 8)), np.eye(3))
+
+
+def test_fractional_translation_rejects_partial_interpolation_support():
+    rgb = np.ones((5, 5), dtype=np.float32)
+    thermal = np.ones((5, 5), dtype=np.float32)
+    h = np.array([[1, 0, 0.3], [0, 1, 0], [0, 0, 1]], dtype=np.float64)
+
+    shifted, _, mask, meta = align_pair(rgb, thermal, h, calibration_origin="simulated")
+    assert np.all(shifted[:, 0] < 1.0)
+    assert not mask[:, 0].any()
+    assert mask[:, 1:].all()
+    assert meta["valid_overlap_fraction"] == pytest.approx(0.8)
+
+    _, shifted_back, inverse_mask, _ = align_pair(
+        rgb, thermal, h, reference="rgb", calibration_origin="simulated")
+    assert np.all(shifted_back[:, -1] < 1.0)
+    assert not inverse_mask[:, -1].any()
+    assert inverse_mask[:, :-1].all()

@@ -38,3 +38,42 @@ def test_late_fusion_rejects_zero_threshold_and_negative_box():
         fuse_detections([], [], threshold=0)
     with pytest.raises(ValueError):
         fuse_detections([{"label": "object", "bbox": [0, 0, -1, 5], "score": 0.9}], [])
+
+
+@pytest.mark.parametrize("invalid_score", [True, False, None, "0.8", 0, -0.1,
+                                             float("nan"), float("inf")])
+def test_late_fusion_rejects_invalid_score_types(invalid_score):
+    box = {"label": "person", "bbox": [0, 0, 10, 10], "score": invalid_score}
+    with pytest.raises(ValueError, match="Invalid detection"):
+        fuse_detections([box], [])
+
+
+@pytest.mark.parametrize("invalid", [
+    {"label": "", "bbox": [0, 0, 4, 4], "score": 0.6},
+    {"label": "person", "bbox": [0, 0, True, 4], "score": 0.6},
+    {"label": "person", "bbox": [0, 0, 4, 4], "score": 0.6, "extra": 1},
+    {"label": "person", "bbox": [0, 0, 4, float("nan")], "score": 0.6},
+    {},
+])
+def test_late_fusion_rejects_invalid_boxes(invalid):
+    with pytest.raises(ValueError, match="Detection"):
+        fuse_detections([invalid], [])
+
+
+@pytest.mark.parametrize("threshold", [True, None, float("nan"), "0.5"])
+def test_late_fusion_rejects_invalid_threshold_types(threshold):
+    with pytest.raises(ValueError, match="IoU threshold"):
+        fuse_detections([], [], threshold=threshold)
+
+
+@pytest.mark.parametrize("weight", [True, None, "0.5", float("nan")])
+def test_image_fusion_rejects_invalid_weights(weight):
+    img = np.ones((4, 4), dtype=np.float32)
+    with pytest.raises(ValueError, match="thermal_weight"):
+        fuse_images(img, img, thermal_weight=weight)
+
+
+def test_image_fusion_rejects_non_numeric_arrays():
+    invalid = np.array([["a", "b"], ["c", "d"]])
+    with pytest.raises(ValueError, match="grayscale"):
+        fuse_images(invalid, invalid)

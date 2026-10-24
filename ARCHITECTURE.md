@@ -31,6 +31,8 @@ Required: Python 3.12+, NumPy, SciPy, OpenCV headless and PyYAML. PyTorch is opt
   homogeneous pixel coordinates. Its planar projective model requires physical
   calibration for a real instrument and is not a generic solution to parallax.
   Both native resolutions, output grid, interpolation use, and valid footprint
-  are reported. A thermal image expanded onto the RGB grid remains low-information.
+  are reported. The valid mask requires full bilinear kernel support, excluding
+  pixels mixed with zero-padded borders. A thermal image expanded onto the RGB
+  grid remains low-information.
 - Outputs are algorithms and reference diagnostics, not empirical evidence of
   detection sensitivity, accurate extrinsics, or successful simultaneous exposure.
