@@ -1,0 +1,6 @@
+width_px: 80
+height_px: 60
+optical_sigma_px: 1.2
+noise_sigma: 0.02
+motion_length_px: 3
+seed: 42

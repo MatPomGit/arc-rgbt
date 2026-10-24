@@ -1,0 +1,6 @@
+identifier: synthetic-e00
+origin: simulated
+source: deterministic generator in arc_rgbt.e00
+labels: class-agnostic boxes from generated rectangles
+license: Apache-2.0
+external_downloads: false
