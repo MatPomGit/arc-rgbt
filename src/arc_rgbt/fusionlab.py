@@ -13,11 +13,12 @@ from arc_rgbt.common import exact_keys, load_yaml, save_json
 
 def _pair(rgb: np.ndarray, thermal: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     if (not isinstance(rgb, np.ndarray) or not isinstance(thermal, np.ndarray)
-            or rgb.ndim != 2 or thermal.ndim != 2 or rgb.shape != thermal.shape
+            or rgb.ndim != 2 or thermal.ndim != 2 or not rgb.size or not thermal.size
+            or rgb.shape != thermal.shape
             or not all(np.issubdtype(x.dtype, np.number)
                        and not np.issubdtype(x.dtype, np.complexfloating)
                        for x in (rgb, thermal))):
-        raise ValueError("Provide two real aligned grayscale arrays of identical shape")
+        raise ValueError("Provide two nonempty real aligned grayscale arrays of identical shape")
     if not (np.isfinite(rgb).all() and np.isfinite(thermal).all()):
         raise ValueError("Images must be finite")
     return rgb.astype(np.float32), thermal.astype(np.float32)
@@ -25,7 +26,11 @@ def _pair(rgb: np.ndarray, thermal: np.ndarray) -> tuple[np.ndarray, np.ndarray]
 
 def register_translation(reference: np.ndarray, moving: np.ndarray) -> tuple[np.ndarray, dict]:
     a, b = _pair(reference, moving)
+    if not np.std(a) or not np.std(b):
+        raise ValueError("Translation registration requires spatial texture in both images")
     (dx, dy), response = cv2.phaseCorrelate(a, b)
+    if not np.isfinite([dx, dy, response]).all() or response <= 0:
+        raise ValueError("Translation registration has insufficient phase correlation")
     matrix = np.float32([[1, 0, -dx], [0, 1, -dy]])
     aligned = cv2.warpAffine(b, matrix, (a.shape[1], a.shape[0]))
     return aligned, {"translation_applied_px": [-dx, -dy], "phase_response": response,
@@ -120,6 +125,10 @@ def main(argv: list[str] | None = None) -> None:
         thermal, reg = register_translation(rgb, thermal)
     fused = fuse_images(rgb, thermal, method, weight)
     out = Path(a.output)
+    if out.suffix not in ("", ".npy"):
+        p.error("--output must be a .npy path or have no extension")
+    if not out.suffix:
+        out = out.with_suffix(".npy")
     out.parent.mkdir(parents=True, exist_ok=True)
     np.save(out, fused, allow_pickle=False)
     save_json(str(out) + ".json", {"method": method, "thermal_weight": weight,
