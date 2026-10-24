@@ -1,17 +1,15 @@
 name: Offline unit and integration checks
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feat/research-platform-v0.1.0
-      - feat/p02-quality-aware-e01-20261024
-      - feat/p02-e02-temporal-geometry-20261024
+
+permissions:
+  contents: read
+
 jobs:
   offline:
+    if: github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -23,6 +21,6 @@ jobs:
           export PYTHONPATH="$PWD/src"
           python3 -m pytest -q
           python3 -m ruff check src tests tools
-          python3 -m arc_rgbt.e00 --config experiments/E00/config.yaml --output /tmp/arc-rgbt-e00-${{ github.run_id }}
-          python3 -m arc_rgbt.e01 --dataset datasets/manifests/e01-synthetic-quality.json --output /tmp/arc-rgbt-e01-${{ github.run_id }}
-          python3 -m arc_rgbt.e02 --config experiments/E02/config.json --output /tmp/arc-rgbt-e02-${{ github.run_id }}
+          python3 -m arc_rgbt.e00 --config experiments/E00/config.yaml --output "$RUNNER_TEMP/arc-rgbt-e00-${{ github.run_id }}"
+          python3 -m arc_rgbt.e01 --dataset datasets/manifests/e01-synthetic-quality.json --output "$RUNNER_TEMP/arc-rgbt-e01-${{ github.run_id }}"
+          python3 -m arc_rgbt.e02 --config experiments/E02/config.json --output "$RUNNER_TEMP/arc-rgbt-e02-${{ github.run_id }}"
