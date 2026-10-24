@@ -8,4 +8,4 @@ Status: **research planning only**, no manuscript/results claimed.
 - Results: store validated, immutable result snapshots with SHA256 in publication supplements, not generated repo artifacts
 - Analyses: create executable scripts and a dependency lockfile when empirical datasets are approved
 
-No experimental findings have been established for this publication package.
+Study workspaces: `hypotheses/`, `protocol/`, `experiments/configs/`, `results/`, and `analyses/`. No empirical findings have been established for this publication package.
