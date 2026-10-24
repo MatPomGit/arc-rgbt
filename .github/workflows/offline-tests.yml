@@ -1,6 +1,9 @@
 name: Offline unit and integration checks
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feat/research-platform-v0.1.0
 jobs:
   offline:
     runs-on: [self-hosted, linux, x64]
