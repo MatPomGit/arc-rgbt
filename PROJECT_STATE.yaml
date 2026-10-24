@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-10-24
+updated: "2026-10-24"
 purpose: "Canonical machine-readable scientific status for arc-rgbt and Research Autopilot."
 repository:
   canonical_branch: main
