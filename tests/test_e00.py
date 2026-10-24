@@ -1,4 +1,7 @@
 import json
+import math
+
+import pytest
 
 from arc_rgbt.e00 import NATIVE_SIZES, run
 
@@ -36,8 +39,6 @@ def test_e00_reports_geometry_without_pixel_rounding(tmp_path):
 
 
 def test_e00_rejects_invalid_configuration_without_output(tmp_path):
-    import math
-    import pytest
     base = {"seed": 2, "frames": 2, "optical_sigma_px": 0.8,
             "noise_sigma": 0.02, "threshold": 0.45, "min_area_px": 1,
             "interpolated_preview_px": [64, 48]}
