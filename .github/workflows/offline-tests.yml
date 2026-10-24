@@ -1,0 +1,21 @@
+name: Offline unit and integration checks
+on:
+  workflow_dispatch:
+jobs:
+  offline:
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Offline checks (preinstalled dependencies)
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$PWD/src"
+          python3 -m pytest -q
+          python3 -m ruff check src tests tools
+          python3 -m arc_rgbt.e00 --config experiments/E00/config.yaml --output /tmp/arc-rgbt-e00-${{ github.run_id }}
