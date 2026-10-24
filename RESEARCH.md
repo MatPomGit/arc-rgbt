@@ -15,3 +15,12 @@ Hypothesis: Quantized multi-modal inference can offer a favorable accuracy/laten
 ## Controls
 
 Use openly licensed datasets with explicit ground truth and split-by-sequence/device where appropriate; report mean and uncertainty over predeclared random seeds; stratify by optical geometry and motion. Distinguish synthetic, host-reference and physical device data. Maintain literature references in `research/literature` and pre-register any hypothesis-changing protocol revision.
+
+## E01 methodological note
+
+Quality-scaled confidence is a heuristic and must not be described as a
+calibrated detection probability or uncertainty estimate. E01's synthetic
+example deliberately changes modality reliability, without independently
+measured quality. The publication experiment must predeclare quality
+estimators independently of test labels and compare all four methods on
+identical held-out samples and fixed IoU/threshold policies.
