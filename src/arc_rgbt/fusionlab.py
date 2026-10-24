@@ -112,6 +112,11 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--register", action="store_true")
     p.add_argument("--output", default="reports/fusionlab.npy")
     a = p.parse_args(argv)
+    out = Path(a.output)
+    if out.suffix not in ("", ".npy"):
+        p.error("--output must be a .npy path or have no extension")
+    if not out.suffix:
+        out = out.with_suffix(".npy")
     config = load_yaml(a.config) if a.config else {}
     exact_keys(config, set(), {"method", "thermal_weight", "register"})
     method = a.method or config.get("method", "weighted")
@@ -124,11 +129,6 @@ def main(argv: list[str] | None = None) -> None:
     if do_register:
         thermal, reg = register_translation(rgb, thermal)
     fused = fuse_images(rgb, thermal, method, weight)
-    out = Path(a.output)
-    if out.suffix not in ("", ".npy"):
-        p.error("--output must be a .npy path or have no extension")
-    if not out.suffix:
-        out = out.with_suffix(".npy")
     out.parent.mkdir(parents=True, exist_ok=True)
     np.save(out, fused, allow_pickle=False)
     save_json(str(out) + ".json", {"method": method, "thermal_weight": weight,
