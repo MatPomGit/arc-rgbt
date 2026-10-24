@@ -14,3 +14,8 @@
 - **Publication readiness gate for E01:** Locked real-data sequence splits,
   independently derived quality proxies, calibrated detector scores,
   independent scene-level confidence intervals and measured MCU costs.
+
+- **E02 analytical baseline (P02 Draft PR):** Frame-pairing tolerance, timestamp offset,
+  apparent lateral displacement and bounding-box overlap under a fixed-FOV pinhole model.
+  No perception/sensor evaluation is claimed. Extend with calibrated real measurements
+  and independent annotations before publication.

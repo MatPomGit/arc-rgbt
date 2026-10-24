@@ -1,0 +1,12 @@
+{
+  "rgb_fps": 30,
+  "thermal_fps": 9,
+  "frames": 10,
+  "tolerance_ms": 25,
+  "thermal_start_offsets_ms": [0, 10, 25, 50],
+  "native_thermal_sizes_px": [[8, 8], [16, 12], [32, 24], [80, 60], [160, 120], [256, 192], [320, 240]],
+  "horizontal_fov_deg": 35,
+  "target_range_m": 20,
+  "target_width_m": 0.6,
+  "lateral_speeds_m_s": [0, 3, 6]
+}
