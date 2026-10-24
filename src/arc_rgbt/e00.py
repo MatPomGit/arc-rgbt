@@ -142,7 +142,8 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
                 "limitations": ["Synthetic rectangular objects, not radiometric thermograms",
                                 "Class-agnostic localization only; not person/vehicle recognition",
                                 "Annotation rounding can inflate boxes at extremely low resolution",
-                                "Subpixel-axis fractions are geometric, not empirically measured detectability",
+                                "Subpixel-axis fractions are geometric, not empirically measured "
+                                "detectability",
                                 "Interpolation affects visualization only, not detection metrics",
                                 "No calibration, temporal effects or hardware measurements"]}
     save_json(destination / "manifest.json", manifest)

@@ -71,15 +71,23 @@ def evaluate(frames: list[dict], iou_threshold: float = 0.5) -> dict:
 def report(dataset: dict, dest: str | Path, source_path: str | Path | None = None) -> dict:
     if not isinstance(dataset, dict):
         raise ValueError("Dataset must be a mapping")
-    exact_keys(dataset, {"data_origin", "frames", "config"})
+    exact_keys(dataset, {"data_origin", "frames", "config"}, {"annotation_status"})
+    if "annotation_status" in dataset and dataset["annotation_status"] != "complete":
+        raise ValueError("annotation_status must be 'complete' when provided")
     if not isinstance(dataset["config"], dict) or not isinstance(dataset["frames"], list):
         raise ValueError("Dataset config must be a mapping and frames a list")
     if dataset["data_origin"] not in ("simulated", "measured", "reference"):
         raise ValueError("Explicit data_origin required")
-    if not dataset["frames"] or not any(
+    if not dataset["frames"]:
+        raise ValueError("Cannot compute detection metrics without labelled frames")
+    has_positives = any(
         frame.get("ground_truth") for frame in dataset["frames"] if isinstance(frame, dict)
-    ):
-        raise ValueError("Cannot compute detection metrics without labelled ground truth")
+    )
+    if not has_positives and dataset.get("annotation_status") != "complete":
+        raise ValueError(
+            "Cannot compute detection metrics without labelled ground truth "
+            "or explicitly complete negative-frame annotations"
+        )
     result = {"metrics": evaluate(dataset["frames"]), "config": dataset["config"],
               "data_origin": dataset["data_origin"],
               "provenance": provenance([source_path] if source_path else [])}

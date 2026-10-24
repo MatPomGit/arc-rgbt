@@ -60,3 +60,29 @@ def test_missing_score_and_nonfinite_iou_rejected():
         evaluate([frame])
     with pytest.raises(ValueError, match="IoU"):
         evaluate([], float("nan"))
+
+
+def test_complete_negative_frames_measure_false_positives(tmp_path):
+    dataset = {
+        "data_origin": "simulated",
+        "annotation_status": "complete",
+        "config": {"negative_frames": "verified empty annotations"},
+        "frames": [
+            {"id": "no-target-1", "ground_truth": [], "predictions": [
+                {"label": "object", "bbox": [1, 2, 3, 4], "score": 0.7}
+            ]},
+            {"id": "no-target-2", "ground_truth": [], "predictions": []},
+        ],
+    }
+    result = report(dataset, tmp_path)
+    assert result["metrics"]["tp"] == 0
+    assert result["metrics"]["fp"] == 1
+    assert result["metrics"]["fn"] == 0
+    assert result["metrics"]["frames"] == 2
+
+
+def test_incomplete_annotation_status_is_rejected(tmp_path):
+    dataset = {"data_origin": "simulated", "annotation_status": "partial",
+               "config": {}, "frames": [{"id": "1", "ground_truth": [], "predictions": []}]}
+    with pytest.raises(ValueError, match="annotation_status"):
+        report(dataset, tmp_path)

@@ -23,3 +23,9 @@ For P01, compare `fraction_objects_subpixel_axis` across resolutions while
 treating threshold-localization scores solely as synthetic sanity checks.
 The P01 analysis refuses CSV/manifest metric mismatches, including precision and
 recall, to avoid accidentally summarizing inconsistent artifacts.
+
+Negative-only frames are valid evaluation samples when their empty annotations
+have been verified. To run a fully negative dataset, set
+`annotation_status: complete` in the Bench JSON; otherwise it is rejected to
+avoid treating unannotated images as negatives. Mixed positive/negative legacy
+datasets remain supported, with completeness the dataset curator's responsibility.
