@@ -6,3 +6,5 @@
 - **v0.3.0 planned:** Adaptive/temporal fusion with ablations (P02); target-depth/sensor-motion models; AP across IoU thresholds; prediction data interchange.
 - **v0.4.0 planned:** Quantization/pruning baselines and explicit RAM/flash/timing budgets, MCU adapter implementations and physical energy/latency instrumentation (P03).
 - **Pre-publication gates:** Document calibrated physical validation, independent datasets, test leakage controls, confidence intervals and independent replication. No publication claim is made by this scaffold.
+
+- **E02 analytical baseline (Draft PR):** Frame-pairing tolerance, clock offset, apparent lateral displacement and bounding-box overlap under a fixed-FOV pinhole model; no perception or sensor evaluation. Extend with calibrated real measurements and independently annotated sequences before publication.
