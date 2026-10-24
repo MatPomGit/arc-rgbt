@@ -69,6 +69,10 @@ def main(argv: list[str] | None = None) -> None:
                {"optical_sigma_px", "noise_sigma", "motion_length_px", "seed"})
     native, record = degrade(np.load(a.input, allow_pickle=False), **params)
     out = Path(a.output)
+    if out.suffix not in ("", ".npy"):
+        p.error("--output must be a .npy path or have no extension")
+    if not out.suffix:
+        out = out.with_suffix(".npy")
     out.parent.mkdir(parents=True, exist_ok=True)
     np.save(out, native, allow_pickle=False)
     print(save_json(str(out) + ".json", record))
