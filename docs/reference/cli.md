@@ -12,6 +12,8 @@ All entry points are defined by `[project.scripts]` in `pyproject.toml`. Run any
 | `arc-rgbt-e00` | none; optionally `--config` | `reports/E00/` |
 | `arc-rgbt-sync` | `--input` | `reports/synchronization.json` |
 | `arc-rgbt-register` | `--rgb`, `--thermal`, `--homography`, `--calibration-origin` | `reports/registered_pair.npz` |
+| `arc-rgbt-e01` | `--dataset` | `reports/E01/` |
+| `arc-rgbt-e02` | `--config` | `reports/E02/` |
 
 ## Optional flags and behaviours
 
@@ -23,6 +25,8 @@ All entry points are defined by `[project.scripts]` in `pyproject.toml`. Run any
 | `arc-rgbt-register` | `--reference rgb/thermal` | Choose interpolation target grid |
 | `arc-rgbt-register` | `--calibration-origin measured/estimated/simulated` | Mandatory declaration; not independently verified |
 | `arc-rgbt-e00` | `--config`, `--output` | Seeded deterministic sweep of native resolutions |
+| `arc-rgbt-e01` | `--dataset`, `--output` | Four-method evaluation on labelled scored proposals |
+| `arc-rgbt-e02` | `--config`, `--output` | Timing and native-grid analytical overlap sweep |
 
 All `.npy` inputs use `numpy.load(..., allow_pickle=False)` in the CLI. User-controlled input files should still be treated as untrusted data; prefer isolated computation for third-party material.
 
@@ -37,6 +41,9 @@ from arc_rgbt.edgelab import profile_cpu
 from arc_rgbt.synchronization import pair_frames
 from arc_rgbt.registration import align_pair
 from arc_rgbt.e00 import run
+from arc_rgbt.e01 import run as run_e01
+from arc_rgbt.e02 import run as run_e02
+from arc_rgbt.quality_fusion import quality_fuse_detections
 ```
 
 Use [data contracts](data-contracts.md) for schemas, [guides](../getting-started.md) for runnable examples and module docstrings for function parameters.

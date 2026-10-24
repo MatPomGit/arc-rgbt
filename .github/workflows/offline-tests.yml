@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - feat/research-platform-v0.1.0
+      - feat/p02-quality-aware-e01-20261024
+      - feat/p02-e02-temporal-geometry-20261024
 jobs:
   offline:
     runs-on: [self-hosted, linux, x64]
@@ -22,3 +24,5 @@ jobs:
           python3 -m pytest -q
           python3 -m ruff check src tests tools
           python3 -m arc_rgbt.e00 --config experiments/E00/config.yaml --output /tmp/arc-rgbt-e00-${{ github.run_id }}
+          python3 -m arc_rgbt.e01 --dataset datasets/manifests/e01-synthetic-quality.json --output /tmp/arc-rgbt-e01-${{ github.run_id }}
+          python3 -m arc_rgbt.e02 --config experiments/E02/config.json --output /tmp/arc-rgbt-e02-${{ github.run_id }}

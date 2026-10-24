@@ -70,4 +70,19 @@ python publications/P01/analyses/summarize_e00.py \
 
 Expected generated artifacts include `reports/E00/manifest.json`, `metrics.csv`, `report.html` and preview images. The P01 analysis generates a separate JSON summary after cross-checking the manifest and CSV.
 
-Continue with [E00](experiments/e00.md), [all CLI flags](reference/cli.md) or [reproducibility rules](reproducibility.md).
+## Explore E01 and E02 without datasets or cameras
+
+```bash
+arc-rgbt-e01 --dataset datasets/manifests/e01-synthetic-quality.json \
+  --output reports/E01
+arc-rgbt-e02 --config experiments/E02/config.json \
+  --output reports/E02
+```
+
+E01 generates four method comparisons using **hand-authored** labelled
+proposals. E02 calculates 84 simulated timing/geometry cases; its overlap
+is not measured detector accuracy. Read [E01](experiments/e01.md) and
+[E02](experiments/e02.md) before interpreting the generated results.
+
+Continue with [E00](experiments/e00.md), [CLI options](reference/cli.md)
+and [reproducibility rules](reproducibility.md).

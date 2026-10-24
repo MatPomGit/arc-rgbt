@@ -22,7 +22,7 @@ Before review:
 
 ```bash
 python -m tools.check_docs
-python -m mkdocs build --strict
+python -m mkdocs build --strict --clean
 python -m pytest -q
 python -m ruff check src tests tools
 ```

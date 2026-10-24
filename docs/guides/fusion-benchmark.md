@@ -30,4 +30,6 @@ For `TP + FP > 0`, precision = `TP / (TP + FP)`. For `TP + FN > 0`, recall = `TP
 
 Annotation completeness matters: all-negative datasets require `"annotation_status": "complete"`; the absence of positive labels alone is not proof that a dataset is fully annotated. Predictions must have finite confidence scores in [0, 1]. Bench is **not** a mean average precision (mAP) implementation.
 
+For the E01 externally weighted detector-proposal baseline see [quality fusion](quality-fusion.md) and [E01](../experiments/e01.md).
+
 For schema details consult [data contracts](../reference/data-contracts.md) and for interpretation consult [evidence boundaries](../concepts/evidence.md).

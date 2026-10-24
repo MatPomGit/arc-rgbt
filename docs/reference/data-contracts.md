@@ -49,6 +49,45 @@ The input matrix is a JSON 3×3 **RGB-to-thermal** homogeneous pixel transform:
 
 Finite, nonsingular, well-conditioned matrices only. The explicit `--calibration-origin` describes its source. By default, output is on the **thermal** grid; `--reference rgb` inversely warps thermal data for analysis. The `valid` mask identifies full bilinear interpolation support, excluding partially padded boundaries.
 
+## E01 labelled quality-fusion input
+
+E01 requires top-level `experiment: E01`, `data_origin`
+(`simulated`, `reference` or `measured`), `quality_origin`
+(`synthetic_scenario`, `heuristic` or `measured_independent`),
+`annotation_status: complete`, `config`, and nonempty `frames`.
+
+- `config`: `iou_threshold` in (0, 1] and
+  `min_effective_score` in [0, 1].
+- Each frame: unique `id`, `ground_truth`, `rgb_predictions`,
+  `thermal_predictions`, and `quality: {rgb, thermal}`.
+- Each prediction: a nonempty `label`, positive-size
+  `bbox: [x,y,width,height]` and a finite score in (0, 1].
+  Both modalities must use a **common coordinate grid**.
+- `quality.rgb` and `quality.thermal`: externally declared finite
+  values in [0, 1], not calibrated detection probabilities.
+- The output contains `manifest.json` and four-method `metrics.csv`.
+
+See [E01](../experiments/e01.md).
+
+## E02 timing and geometry scenario
+
+The strict JSON schema requires `rgb_fps`, `thermal_fps` (positive,
+at most 240); `frames` (integer 1 to 500); `tolerance_ms` (0 to
+1000); nonempty `thermal_start_offsets_ms` (0 to 1000);
+`native_thermal_sizes_px` (unique integer width/height pairs,
+1 to 8192); `horizontal_fov_deg` (greater than 0, at most 179);
+positive `target_range_m`, `target_width_m`; and nonnegative
+`lateral_speeds_m_s` (at most 100).
+
+Each configuration list is bounded, with a maximum 10,000 combinations.
+`geometry.csv` contains per-grid overlap summaries. `manifest.json`
+declares `data_origin: simulated`,
+`metric_origin: analytical_geometry`, and
+`physical_measurements: false`. Missing pairs yield `null` overlap
+statistics rather than a measured-zero detection score.
+
+See [E02](../experiments/e02.md).
+
 ## Image arrays and geometry
 
 - DegradeSim: grayscale or RGB/RGBA numeric finite arrays, intensity in `[0,1]`, with positive target width/height.

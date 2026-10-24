@@ -16,6 +16,8 @@
 | Bench | Greedy labelled IoU matching and P/R/F1 reports | Not mAP, tracking or a real-world detection benchmark |
 | EdgeLab | Host OpenCV latency and Python allocation statistics | **Not** MCU RAM, flash, power or model inference |
 | E00 / P01 | Seeded synthetic resolution sweep and auditable summary | **Not** person/vehicle recognition |
+| E01 | Four-arm labelled detection fusion comparison | Synthetic quality weights, not real-world detection evidence |
+| E02 | Timing and lateral-shift analytical geometry on native grids | Geometric overlap is not detector IoU or pixel-resolution performance |
 | P02 groundwork | Timestamp matching and projective registration | Requires shared clocks and external homography |
 
 ## Research integrity
@@ -29,6 +31,8 @@ The code runs locally, without cloud APIs or pretrained-model downloads. Python 
 
 - [Installation and first experiment](getting-started.md)
 - [E00 methodology and outputs](experiments/e00.md)
+- [E01 labelled quality fusion](experiments/e01.md)
+- [E02 timing/skew geometry](experiments/e02.md)
 - [Frame pairing and planar registration](guides/synchronization-registration.md)
 - [CLI and JSON contracts](reference/cli.md)
 - [Publication readiness and traceability](reproducibility.md)

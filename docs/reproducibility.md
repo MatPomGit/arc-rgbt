@@ -11,6 +11,8 @@ python -m pytest -q
 python -m ruff check src tests tools
 python -m tools.check_docs
 arc-rgbt-e00 --config experiments/E00/config.yaml --output reports/E00
+arc-rgbt-e01 --dataset datasets/manifests/e01-synthetic-quality.json --output reports/E01
+arc-rgbt-e02 --config experiments/E02/config.json --output reports/E02
 python publications/P01/analyses/summarize_e00.py \
   --experiment-dir reports/E00 --output reports/P01/e00_summary.json
 ```
@@ -42,6 +44,8 @@ python -m mkdocs serve
 ## Interpretation rules
 
 - Simulated E00 output is a *software verification artifact*, not field performance.
+- E01 uses hand-authored scored proposals and uncalibrated quality multipliers; F1 is not a real-world performance claim.
+- E02 calculates continuous idealized rectangle overlap, not measured detector IoU or any actual resolution-dependent detection limit.
 - Report zero-denominator metric conventions and missing labels explicitly.
 - Use all-negative ground truth only when completeness is verified and declared.
 - Keep only pixels under the valid interpolation support mask after projective registration.

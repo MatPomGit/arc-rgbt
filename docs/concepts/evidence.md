@@ -8,6 +8,8 @@ This project distinguishes **software correctness**, **simulation behaviour**, *
 | DegradeSim images | Deterministic effects of the specified image transformation | LWIR radiometric accuracy |
 | E00 detection metrics | Class-agnostic threshold localization on seeded synthetic rectangles | Classification accuracy for persons or vehicles |
 | P01 summary | Consistency of manifest and metrics CSV and hashed artifacts | Statistical generalization to real sensors |
+| E01 comparison | Four methods on the same hand-authored detection proposals | Calibrated scores or real detector performance |
+| E02 geometry | Timestamp pairing and idealized lateral overlap of rectangles | Measured detector IoU or native-resolution detection sensitivity |
 | Sync statistics | Timestamp-nearest pairing under a user-declared shared clock | Physical clock synchronization or exposure simultaneity |
 | Registration masks | Full interpolation support after a supplied homography | Extrinsic calibration accuracy or parallax correction |
 | EdgeLab reports | Latency of host OpenCV GaussianBlur and Python allocation peak | MCU inference, flash/RAM budget, device power |
@@ -23,6 +25,6 @@ This project distinguishes **software correctness**, **simulation behaviour**, *
 
 ## Current non-goals
 
-The v0.1.0 baseline does not supply a trained person/vehicle detector, NIR/LWIR sensor drivers, an end-to-end calibrated RGB–thermal device, physical energy instrumentation, globally optimal time assignment or adaptive/temporal fusion.
+The software does not supply a trained person/vehicle detector, NIR/LWIR sensor drivers, an end-to-end calibrated RGB–thermal device, physical energy instrumentation, globally optimal time assignment or learned adaptive/temporal fusion. E01 is an externally weighted heuristic and E02 computes ideal analytical geometry.
 
 See [E00](../experiments/e00.md), [research programme](../experiments/publications.md) and [reproducibility](../reproducibility.md).

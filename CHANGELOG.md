@@ -1,11 +1,5 @@
 # Changelog
 
-## Unreleased (documentation)
-
-- Searchable MkDocs Material research documentation with executable examples,
-  input contracts, methodological boundaries and publication workflows.
-- Manual self-hosted strict documentation validation, with offline link/navigation checking.
-
 ## 0.1.0 (initial research baseline)
 
 - Modular installable package and five command-line tools.
@@ -16,3 +10,18 @@
 - Dedicated P01/P02/P03 publication workspaces and offline test suite.
 
 This changelog records implemented features only; it is not a validation certificate or a Git tag.
+
+## Unreleased (experimental P02 branch)
+
+- Add quality-scaled late box fusion with explicit finite reliability weights.
+- Add E01 labelled four-arm comparison with input-provenance manifests and CSV metrics.
+- Add synthetic example, focused tests and a study protocol; no field-performance claim.
+
+## Unreleased documentation
+
+- Searchable MkDocs Material guide with explicit CLI/data contracts and
+  step-by-step E00, E01 and E02 reproduction.
+- Verifiable documentation navigation, local links, executable metadata
+  and negative regression tests for the documentation contract.
+- Manual self-hosted strict MkDocs build; no automatic public deployment.
+- This is documentation of reference/simulated methods, not new field evidence.

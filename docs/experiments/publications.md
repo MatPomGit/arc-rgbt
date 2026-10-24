@@ -5,7 +5,7 @@ The project structures three publication lines without claiming results not esta
 | Workstream | Question | Present maturity |
 | --- | --- | --- |
 | **P01**: detection limits | How do resolution and target footprint constrain object localization? | E00 executable synthetic baseline and audit-ready summary; empirical validation pending |
-| **P02**: adaptive and temporal fusion | What is the effect of synchronization errors, calibration and modality fusion? | Timestamp-pairing and projective-registration **reference primitives only** |
+| **P02**: adaptive and temporal fusion | What is the effect of synchronization errors, calibration and modality fusion? | Pairing/registration references, E01 quality-weighted proposal fusion, E02 analytical skew sweep; **no field evidence** |
 | **P03**: embedded efficiency | What are latency, memory, energy and accuracy trade-offs on constrained targets? | Host-only OpenCV reference profiler; **no MCU measurements** |
 
 ## P01 analysis pathway
@@ -19,7 +19,7 @@ The project structures three publication lines without claiming results not esta
 
 The research protocol calls for verified shared-clock exposure instants, independently calibrated RGB→thermal mapping, valid overlap masks, split-by-sequence evaluation, and uncertainty quantified at the acquisition/scene level.
 
-The existing CLI tools intentionally lack physical clock calibration, tracking, global sequence assignment and learned adaptive fusion. See [synchronization and registration](../guides/synchronization-registration.md).
+The available CLI tools intentionally lack physical clock calibration, tracking, global sequence assignment and learned adaptive fusion. Quality weights in E01 are supplied externally, and the overlap metric in E02 is not detector accuracy. See [synchronization and registration](../guides/synchronization-registration.md), [E01](e01.md) and [E02](e02.md).
 
 ## P03 measurement pathway
 

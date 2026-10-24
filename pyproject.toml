@@ -25,6 +25,8 @@ edgelab = "arc_rgbt.edgelab:main"
 arc-rgbt-e00 = "arc_rgbt.e00:main"
 arc-rgbt-sync = "arc_rgbt.synchronization:main"
 arc-rgbt-register = "arc_rgbt.registration:main"
+arc-rgbt-e01 = "arc_rgbt.e01:main"
+arc-rgbt-e02 = "arc_rgbt.e02:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
