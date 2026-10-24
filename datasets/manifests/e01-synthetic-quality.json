@@ -1,0 +1,117 @@
+{
+  "experiment": "E01",
+  "data_origin": "simulated",
+  "quality_origin": "synthetic_scenario",
+  "annotation_status": "complete",
+  "config": {
+    "iou_threshold": 0.5,
+    "min_effective_score": 0.25
+  },
+  "frames": [
+    {
+      "id": "synthetic-scene-001",
+      "ground_truth": [
+        {
+          "label": "person",
+          "bbox": [
+            10,
+            10,
+            20,
+            20
+          ]
+        }
+      ],
+      "rgb_predictions": [
+        {
+          "label": "person",
+          "bbox": [
+            10,
+            10,
+            20,
+            20
+          ],
+          "score": 0.9
+        }
+      ],
+      "thermal_predictions": [
+        {
+          "label": "person",
+          "bbox": [
+            80,
+            80,
+            20,
+            20
+          ],
+          "score": 0.95
+        }
+      ],
+      "quality": {
+        "rgb": 0.95,
+        "thermal": 0.1
+      }
+    },
+    {
+      "id": "synthetic-scene-002",
+      "ground_truth": [
+        {
+          "label": "vehicle",
+          "bbox": [
+            25,
+            25,
+            30,
+            20
+          ]
+        }
+      ],
+      "rgb_predictions": [
+        {
+          "label": "vehicle",
+          "bbox": [
+            1,
+            1,
+            8,
+            8
+          ],
+          "score": 0.85
+        }
+      ],
+      "thermal_predictions": [
+        {
+          "label": "vehicle",
+          "bbox": [
+            25,
+            25,
+            30,
+            20
+          ],
+          "score": 0.85
+        }
+      ],
+      "quality": {
+        "rgb": 0.2,
+        "thermal": 0.9
+      }
+    },
+    {
+      "id": "synthetic-scene-003",
+      "ground_truth": [],
+      "rgb_predictions": [],
+      "thermal_predictions": [
+        {
+          "label": "person",
+          "bbox": [
+            50,
+            50,
+            10,
+            10
+          ],
+          "score": 0.85
+        }
+      ],
+      "quality": {
+        "rgb": 0.9,
+        "thermal": 0.1
+      }
+    }
+  ]
+}

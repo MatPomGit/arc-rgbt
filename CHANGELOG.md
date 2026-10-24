@@ -10,3 +10,9 @@
 - Dedicated P01/P02/P03 publication workspaces and offline test suite.
 
 This changelog records implemented features only; it is not a validation certificate or a Git tag.
+
+## Unreleased (experimental P02 branch)
+
+- Add quality-scaled late box fusion with explicit finite reliability weights.
+- Add E01 labelled four-arm comparison with input-provenance manifests and CSV metrics.
+- Add synthetic example, focused tests and a study protocol; no field-performance claim.
