@@ -104,7 +104,11 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
         per_resolution.append({"native_resolution_px": [w, h],
                                "data_origin": "simulated", "label_origin": "synthetic_geometry",
                                "detector": "class_agnostic_threshold_connected_components",
-                               "metrics": metrics, "degradation": record})
+                               "metrics": metrics,
+                               "degradation": {**record,
+                                               "seed": "per_frame_seed_plus_index",
+                                               "first_noise_seed": seed,
+                                               "last_noise_seed": seed + count - 1}})
     manifest = {"experiment": "E00", "data_origin": "simulated",
                 "physical_measurements": False, "seed": seed, "configuration": config,
                 "provenance": provenance([config_path] if config_path else []),

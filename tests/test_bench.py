@@ -30,3 +30,9 @@ def test_invalid_gt_bbox_is_rejected():
     with pytest.raises(ValueError, match="Invalid labelled"):
         evaluate([{"id": "bad", "ground_truth": [{"label": "object", "bbox": [0, 0, -1, 2]}],
                    "predictions": []}])
+
+
+def test_only_negative_unannotated_frames_do_not_produce_metrics(tmp_path):
+    with pytest.raises(ValueError, match="labelled ground truth"):
+        report({"data_origin": "simulated", "config": {},
+                "frames": [{"id": "empty", "ground_truth": [], "predictions": []}]}, tmp_path)

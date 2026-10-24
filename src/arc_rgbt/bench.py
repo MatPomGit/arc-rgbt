@@ -62,8 +62,10 @@ def report(dataset: dict, dest: str | Path, source_path: str | Path | None = Non
     exact_keys(dataset, {"data_origin", "frames", "config"})
     if dataset["data_origin"] not in ("simulated", "measured", "reference"):
         raise ValueError("Explicit data_origin required")
-    if not dataset["frames"]:
-        raise ValueError("Cannot compute detection metrics without labelled frames")
+    if not dataset["frames"] or not any(
+        frame.get("ground_truth") for frame in dataset["frames"] if isinstance(frame, dict)
+    ):
+        raise ValueError("Cannot compute detection metrics without labelled ground truth")
     result = {"metrics": evaluate(dataset["frames"]), "config": dataset["config"],
               "data_origin": dataset["data_origin"],
               "provenance": provenance([source_path] if source_path else [])}
