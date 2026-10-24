@@ -2,6 +2,36 @@
 
 All entry points are defined by `[project.scripts]` in `pyproject.toml`. Run any tool with `--help` for the authoritative flag list. Execute commands from the repository root; generated results belong in the ignored `reports/` directory.
 
+## Unified launcher (recommended)
+
+After `pip install -e .`, `arc-rgbt --help` lists all available tools.
+
+| Command | Purpose |
+| --- | --- |
+| `arc-rgbt doctor [--json]` | Validate Python >=3.12 and required local dependencies |
+| `arc-rgbt demo [--output NEW_DIR] [--seed N]` | Generate a synthetic run, image previews and a local HTML viewer |
+| `arc-rgbt sensor ...` | Forwards to `sensorlab` |
+| `arc-rgbt degrade ...` | Forwards to `degradesim` |
+| `arc-rgbt fuse ...` | Forwards to `fusionlab` |
+| `arc-rgbt bench ...` | Forwards to `bench-rgbt` |
+| `arc-rgbt edge ...` | Forwards to `edgelab` |
+| `arc-rgbt e00/e01/e02 ...` | Forwards to the corresponding experiment |
+| `arc-rgbt sync ...` | Forwards to `arc-rgbt-sync` |
+| `arc-rgbt register ...` | Forwards to `arc-rgbt-register` |
+
+Legacy entry points remain compatible. Use `arc-rgbt fuse --help` or the
+original executable's `--help` for detailed arguments. Failed local file
+reads are reported as short command-specific errors by the launcher.
+
+The demo directory must **not already exist**. The CLI writes to a temporary
+directory and publishes it only after all files have been generated. Preview
+PNGs, a local `index.html`, NumPy arrays, benchmark CSV/JSON/HTML, a
+geometry report and a host CPU profile are included.
+
+For `fusionlab` and `degradesim`, an extensionless `--output` is
+normalized to `.npy`; metadata is written as `<actual-file>.json`.
+Other explicit extensions are rejected instead of silently appending `.npy`.
+
 | Command | Required inputs | Default output |
 | --- | --- | --- |
 | `sensorlab` | `--camera`, `--range-m`, `--object-width-m`, `--object-height-m` | `reports/sensorlab.json` |
