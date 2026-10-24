@@ -46,7 +46,7 @@ def test_read_error_is_human_readable(capsys, tmp_path):
 
 
 def test_demo_writes_interpretable_artifacts_and_guards_output(tmp_path):
-    target = tmp_path / "example"
+    target = tmp_path / "przykład_RGB–IR"
     assert cli.main(["demo", "--output", str(target), "--seed", "41"]) == 0
     summary = json.loads((target / "summary.json").read_text())
     assert summary["synthetic_demo"] is True
