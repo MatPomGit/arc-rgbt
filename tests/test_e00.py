@@ -49,6 +49,7 @@ def test_e00_rejects_invalid_configuration_without_output(tmp_path):
             run({**base, **change}, destination)
         assert not destination.exists()
 
+
 @pytest.mark.parametrize("change", [
     {"frames": 129},
     {"interpolated_preview_px": [3000, 3000]},
