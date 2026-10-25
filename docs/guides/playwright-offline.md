@@ -22,6 +22,37 @@ These acceptance tests are **opt-in** and run only when
 `ARC_RGBT_BROWSER_TEST=1`. A missing Playwright Python module or Chromium
 browser is a test failure during opt-in execution; it must not count as PASS.
 
+## Windows PowerShell: interpreter and test opt-in
+
+The repository uses the `src/` layout. Plain `python -m pytest` can now
+import `arc_rgbt` from the checkout because `pyproject.toml` declares
+`[tool.pytest.ini_options].pythonpath = ["src"]`. This solves collection
+without an editable install, but **CLI commands outside pytest still require**
+the package to be installed in the selected Python environment.
+
+In **PowerShell**, run tests through the project's virtual environment:
+
+```powershell
+$python = (Resolve-Path .\.venv\Scripts\python.exe).Path
+& $python -m pytest -q
+& $python -m ruff check src tests tools
+
+# 'set ARC_RGBT_BROWSER_TEST=1' is CMD syntax, not PowerShell.
+$env:ARC_RGBT_BROWSER_TEST = "1"
+& $python -m pytest -q tests/test_studio_browser.py tests/test_studio_playwright_offline.py -v
+Remove-Item Env:\ARC_RGBT_BROWSER_TEST
+```
+
+Check that the browser run reports **7 passed**, not `7 skipped`.
+For a fresh virtual environment, `& $python -m pip install -e
+".[dev,browser]"` installs the entry points; perform this separately
+using approved preinstalled/offline dependencies where required.
+Use double quotes around extras in Windows PowerShell or CMD.
+
+If PowerShell uses an unrelated global Python, `python -m pytest` may
+still collect tests after the source-path fix, but that does **not**
+certify the virtual environment, installed package or console scripts.
+
 ## Andromeda, isolated offline verification
 
 Use a **clean, disposable worktree** or ephemeral Windows/VM test environment
@@ -38,7 +69,10 @@ Set-Location "$env:TEMP\\arc-rgbt-pr8-browser"
 
 # Use a previously installed Chromium or Chrome binary. Example location:
 $chrome = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-& .\\tools\\run-playwright-offline.ps1 -ExpectedSha $sha -ChromiumExecutable $chrome
+# Use the existing virtual environment from the original checkout
+$python = "C:\Users\matpo\repo\arc-rgbt\.venv\Scripts\python.exe"
+& .\tools\run-playwright-offline.ps1 -ExpectedSha $sha `
+  -ChromiumExecutable $chrome -PythonExecutable $python
 ```
 
 The runner fails closed if the current SHA is wrong, tracked files were edited,
