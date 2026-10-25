@@ -74,3 +74,62 @@ def test_studio_browser_workflow(tmp_path):
             assert not exceptions, exceptions
         finally:
             browser.close()
+
+@pytest.mark.skipif(os.getenv("ARC_RGBT_BROWSER_TEST") != "1", reason="Opt-in local browser test")
+def test_studio_reads_native_numpy_uint16_without_dropping_raw_range(tmp_path):
+    playwright = pytest.importorskip("playwright.sync_api")
+    from arc_rgbt import studio
+
+    frame = np.full((3, 4), 500, dtype=np.uint16)
+    frame[0, 0] = 1000
+    path = tmp_path / "thermal_u16.npy"
+    np.save(path, frame, allow_pickle=False)
+    rgb = np.zeros((3, 4, 3), dtype=np.uint8)
+    rgb[:, :] = (0, 0, 255)
+    ok, encoded = cv2.imencode(".png", rgb)
+    assert ok
+    rgb_path = tmp_path / "rgb.png"
+    rgb_path.write_bytes(encoded.tobytes())
+
+    with playwright.sync_playwright() as engine:
+        options = {"headless": True}
+        if os.getenv("ARC_RGBT_CHROMIUM_EXECUTABLE"):
+            options["executable_path"] = os.environ["ARC_RGBT_CHROMIUM_EXECUTABLE"]
+        browser = engine.chromium.launch(**options)
+        try:
+            page = browser.new_page(accept_downloads=True)
+            studio_html = Path(studio.resources.files("arc_rgbt").joinpath("studio.html"))
+            page.set_content(studio_html.read_text(encoding="utf-8"))
+            errors = []
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.locator("#rgb").set_input_files(str(rgb_path))
+            page.locator("#thermal").set_input_files(str(path))
+            page.wait_for_function("() => !document.getElementById('save').disabled")
+            assert "<u2" in page.locator("#thermalinfo").inner_text()
+            assert "raw [500, 1000]" in page.locator("#thermalinfo").inner_text()
+
+            def pixel(x):
+                return page.evaluate("""x => Array.from(document.getElementById('fused')
+                  .getContext('2d').getImageData(x, 0, 1, 1).data)""", x)
+
+            assert pixel(0) == [155, 155, 155, 255]
+            assert pixel(1) == [27, 27, 27, 255]
+            with page.expect_download() as result:
+                page.locator("#metadata").click()
+            download = result.value
+            file_path = tmp_path / "exported.json"
+            download.save_as(str(file_path))
+            meta = __import__("json").loads(file_path.read_text(encoding="utf-8"))
+            assert meta["thermal"]["raw_dtype"] == "<u2"
+            assert meta["thermal"]["raw_min"] == 500
+            assert meta["thermal"]["raw_max"] == 1000
+            assert meta["thermal"]["normalization"] == "per_frame_min_max"
+
+            corrupted = tmp_path / "corrupt.npy"
+            corrupted.write_bytes(b"NOT NUMPY DATA")
+            page.locator("#thermal").set_input_files(str(corrupted))
+            assert page.locator("#save").is_disabled()
+            assert "Invalid NumPy" in page.locator("#status").inner_text()
+            assert not errors, errors
+        finally:
+            browser.close()
