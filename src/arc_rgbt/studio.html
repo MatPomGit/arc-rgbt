@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>RGB–Thermal Studio | arc-rgbt</title>
+<style>
+:root{font:16px/1.5 system-ui,sans-serif;color-scheme:dark;background:#0e1729;color:#f4f7fb}
+*{box-sizing:border-box}body{max-width:1100px;margin:0 auto;padding:clamp(1rem,3vw,2.5rem)}
+h1{margin-bottom:.25rem}p{max-width:85ch}small,.subtle{color:#afbdcc}
+header{padding-bottom:1rem;border-bottom:1px solid #4a566b;margin-bottom:1.5rem}
+.panel{border:1px solid #526078;background:#172439;border-radius:12px;padding:1.1rem;margin:1rem 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:1rem}
+label{display:block;font-weight:600;margin-bottom:.5rem}input[type=file]{max-width:100%;font-size:.94rem}
+input[type=range]{width:100%;accent-color:#5db8ff}
+.controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:end}.controls>div{flex:1;min-width:230px}
+button{font:inherit;border:1px solid #7db8e4;background:#234769;color:#fff;border-radius:7px;padding:.55rem 1rem;cursor:pointer}
+button:hover:enabled{background:#345f85}button:disabled{opacity:.5;cursor:not-allowed}
+.preview{display:block;width:100%;max-height:330px;object-fit:contain;background:#090f1a;border:1px solid #455268;border-radius:5px;min-height:150px}
+canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
+.status{padding:.75rem;border-radius:8px;background:#29394e;min-height:3rem}
+.status.error{background:#603039}.status.success{background:#254e43}
+.note{border-left:3px solid #eebc69;padding:.5rem .9rem;background:#2b3038}
+:focus-visible{outline:3px solid #80c9ff;outline-offset:3px}
+@media (prefers-color-scheme:light){:root{background:#fafcff;color:#122036;color-scheme:light}.subtle,small{color:#4a586c}.panel{background:#eef3f8;border-color:#9dadbf}.status{background:#deeaf5}.status.error{background:#f6d7d7}.status.success{background:#d6f4e3}.note{background:#fff2d9}.preview{background:#dae2e9}}
+</style>
+</head>
+<body>
+<header>
+<h1>RGB–Thermal Studio</h1>
+<p class="subtle">Offline image comparison and exploratory intensity fusion · arc-rgbt · reference UI</p>
+<p>Choose local RGB and thermal-like images. All processing stays in this browser tab; there are no uploads, servers or external libraries.</p>
+</header>
+<main>
+<section class="panel">
+<h2>1. Load aligned images</h2>
+<div class="grid">
+<div><label for="rgb">RGB image</label><input id="rgb" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="filehint"><p id="rgbinfo" class="subtle">No file selected</p></div>
+<div><label for="thermal">Thermal / IR image</label><input id="thermal" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="filehint"><p id="thermalinfo" class="subtle">No file selected</p></div>
+</div>
+<p id="filehint" class="subtle">PNG, JPEG or WebP. Images must have exactly the same width and height and already be spatially aligned. Maximum 16 MiB per file and 4 megapixels per image.</p>
+<div id="status" role="status" aria-live="polite" class="status">Select two images to begin.</div>
+</section>
+<section class="panel">
+<h2>2. Explore fusion</h2>
+<div class="controls">
+<div><label for="weight">Thermal contribution: <output id="weightValue" for="weight">50%</output></label><input id="weight" type="range" min="0" max="100" value="50" step="1" disabled></div>
+<div><label for="mode">Visualization method</label><select id="mode" disabled><option value="weighted">Weighted grayscale intensity</option><option value="difference">Absolute grayscale difference</option></select></div>
+<button id="save" disabled type="button">Save fused PNG</button>
+<button id="metadata" disabled type="button">Save metadata JSON</button>
+</div>
+<div class="grid">
+<figure><figcaption>RGB source</figcaption><img id="rgbPreview" class="preview" alt="Selected RGB image preview"></figure>
+<figure><figcaption>Thermal / IR source</figcaption><img id="thermalPreview" class="preview" alt="Selected thermal image preview"></figure>
+<figure><figcaption>Computed grayscale image</figcaption><canvas id="fused" class="preview" width="1" height="1" aria-label="Fusion visualization"></canvas></figure>
+</div>
+</section>
+<section class="note"><strong>Interpretation limits.</strong> Input pixels are browser-decoded 8-bit sRGB values, not calibrated thermal radiance or temperature. Each RGB image is converted to grayscale using sRGB coefficients (0.2126 R + 0.7152 G + 0.0722 B) without linear-light conversion. The weighted output is a visualization, not a sensor calibration, trained detector, benchmark or radiometrically valid product. Transparency is composited against black. The difference view is an intensity diagnostic, not a registration-quality metric.</section>
+</main>
+<script>
+'use strict';
+(() => {
+  const MAX_BYTES = 16 * 1024 * 1024;
+  const MAX_PIXELS = 4_000_000;
+  const TYPES = new Set(['image/png','image/jpeg','image/webp']);
+  const $ = id => document.getElementById(id);
+  const inputs = {rgb: $('rgb'), thermal: $('thermal')};
+  const data = {rgb: null, thermal: null};
+  const previews = {rgb: $('rgbPreview'), thermal: $('thermalPreview')};
+  const canvas = $('fused');
+  const ctx = canvas.getContext('2d', {willReadFrequently:false});
+  const controls = [$('weight'), $('mode'), $('save'), $('metadata')];
+  const status = (message, kind='') => {
+    $('status').textContent = message;
+    $('status').className = 'status' + (kind ? ' ' + kind : '');
+  };
+  function ready() {
+    return data.rgb && data.thermal && data.rgb.width === data.thermal.width && data.rgb.height === data.thermal.height;
+  }
+  function sync() {
+    const ok = Boolean(ready());
+    controls.forEach(control => control.disabled = !ok);
+    if (!data.rgb || !data.thermal) {status('Select both images to continue.'); return;}
+    if (!ok) {
+      status('Dimension mismatch: RGB ' + data.rgb.width + '×' + data.rgb.height +
+        ', IR ' + data.thermal.width + '×' + data.thermal.height +
+        '. Register images externally; automatic resizing is disabled.', 'error');
+      return;
+    }
+    status('Aligned grids: ' + data.rgb.width + '×' + data.rgb.height + ' pixels. Visualization ready.', 'success');
+    render();
+  }
+  async function load(kind) {
+    const file = inputs[kind].files[0];
+    data[kind] = null;
+    load.active[kind] = Symbol(kind + '-reset');
+    previews[kind].removeAttribute('src');
+    const priorUrl = previews[kind].dataset.objectUrl;
+    if (priorUrl) URL.revokeObjectURL(priorUrl);
+    delete previews[kind].dataset.objectUrl;
+    $(kind + 'info').textContent = 'No valid file selected';
+    controls.forEach(control => control.disabled = true);
+    if (!file) {sync(); return;}
+    if (!TYPES.has(file.type) || !file.size || file.size > MAX_BYTES) {
+      status(kind.toUpperCase() + ': choose a nonempty PNG, JPEG or WebP file up to 16 MiB.', 'error');
+      return;
+    }
+    const token = Symbol(kind);
+    load.active[kind] = token;
+    let objectUrl = null;
+    try {
+      objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('Image could not be decoded'));
+        img.src = objectUrl;
+      });
+      if (load.active[kind] !== token) return;
+      if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth * img.naturalHeight > MAX_PIXELS) {
+        throw new Error('Image exceeds the 4 megapixel limit');
+      }
+      const work = document.createElement('canvas');
+      work.width = img.naturalWidth;
+      work.height = img.naturalHeight;
+      const workCtx = work.getContext('2d', {willReadFrequently:true});
+      workCtx.fillStyle = '#000';
+      workCtx.fillRect(0,0,work.width,work.height);
+      workCtx.drawImage(img,0,0);
+      const pixels = workCtx.getImageData(0,0,work.width,work.height).data;
+      const gray = new Uint8ClampedArray(work.width * work.height);
+      for (let i=0,j=0;i<pixels.length;i+=4,j++) {
+        gray[j] = Math.round(.2126*pixels[i] + .7152*pixels[i+1] + .0722*pixels[i+2]);
+      }
+      data[kind] = {width:work.width,height:work.height,gray,
+        name:file.name,bytes:file.size,type:file.type};
+      previews[kind].src = objectUrl;
+      previews[kind].dataset.objectUrl = objectUrl;
+      objectUrl = null;
+      $(kind + 'info').textContent = file.name + ' · ' + work.width + '×' + work.height +
+        ' · ' + (file.size/1024).toFixed(1) + ' KiB';
+      sync();
+    } catch (error) {
+      if (load.active[kind] === token) status(kind.toUpperCase() + ': ' + error.message, 'error');
+    } finally {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    }
+  }
+  load.active = {rgb:null,thermal:null};
+  function render() {
+    if (!ready()) return;
+    const {width,height} = data.rgb;
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width=width;canvas.height=height;
+    }
+    const pixels = ctx.createImageData(width,height);
+    const weight = Number($('weight').value)/100;
+    const mode = $('mode').value;
+    $('weightValue').textContent = Math.round(weight*100) + '%';
+    for (let i=0,j=0;j<data.rgb.gray.length;i+=4,j++) {
+      const a = data.rgb.gray[j], b = data.thermal.gray[j];
+      const output = mode === 'difference' ? Math.abs(a-b) : Math.round((1-weight)*a+weight*b);
+      pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=output;
+      pixels.data[i+3]=255;
+    }
+    ctx.putImageData(pixels,0,0);
+  }
+  function saveBlob(blob,name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;a.download = name;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(() => URL.revokeObjectURL(url),2000);
+  }
+  inputs.rgb.addEventListener('change', () => load('rgb'));
+  inputs.thermal.addEventListener('change', () => load('thermal'));
+  $('weight').addEventListener('input',render);
+  $('mode').addEventListener('change',render);
+  $('save').addEventListener('click', () => {
+    if (!ready()) return;
+    canvas.toBlob(blob => {
+      if (blob) saveBlob(blob,'arc-rgbt-fusion.png');
+      else status('PNG encoding failed.','error');
+    },'image/png');
+  });
+  $('metadata').addEventListener('click', () => {
+    if (!ready()) return;
+    const result = {tool:'arc-rgbt-studio',method:$('mode').value,
+      thermal_weight:Number($('weight').value)/100,
+      input_grid_px:[data.rgb.width,data.rgb.height],
+      rgb:{name:data.rgb.name,bytes:data.rgb.bytes,mime_type:data.rgb.type},
+      thermal:{name:data.thermal.name,bytes:data.thermal.bytes,mime_type:data.thermal.type},
+      data_origin:'user_supplied',radiometric_calibration:false,
+      spatial_registration:'external_unverified',
+      output:'browser_8bit_grayscale_visualization',
+      note:'Not a scientific detection or thermal radiometry measurement'};
+    saveBlob(new Blob([JSON.stringify(result,null,2)+'\n'],{type:'application/json'}),
+      'arc-rgbt-fusion.json');
+  });
+  window.addEventListener('beforeunload', () => {
+    Object.values(previews).forEach(preview => {
+      if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+    });
+  });
+})();
+</script>
+</body>
+</html>
