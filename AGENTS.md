@@ -17,4 +17,3 @@ Use reusable validators from a trusted controller revision. Run one bounded batc
 After the applicable checks, reviews and current GitHub rules pass, merge within existing user authorization. Do not request the same authorization again. Delete only a confirmed merged, owned branch after verifying its current SHA and that no dependent PR needs it. Merge does not authorize deployment or publication.
 
 For blocked work, record the reason, required exit condition and next safe action. Continue unrelated authorized repairs without starting another feature in the blocked repository. Report completed merges, remaining PR age and blockers; do not use PR creation count as the progress metric.
-
