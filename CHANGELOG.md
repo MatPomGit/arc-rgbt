@@ -35,6 +35,18 @@ This changelog records implemented features only; it is not a validation certifi
 - Explicitly distinguish time pairing from real clock synchronization,
   spatial registration, detector accuracy and radiometric validity.
 
+## Unreleased (KISS usability pass, under review)
+
+- Studio starts with a one-click synthetic example, a clear/reset action
+  and a simpler two-step interface, without requiring a local image dataset.
+- Selecting real data automatically discards the example's other modality
+  instead of silently combining simulated and measured inputs.
+- Mark synthetic example provenance in exported JSON, retain an explicit
+  note about non-radiometric preview-only results and make CLI help
+  recommend the simplest local workflow.
+- Test blending behavior, source labels, reset, and sample-to-real transition
+  without adding dependencies to the runtime.
+
 ## Unreleased (user experience, under review)
 
 - Add unified `arc-rgbt` CLI with diagnostics and synthetic self-contained demo.
