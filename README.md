@@ -58,6 +58,11 @@ arc-rgbt studio
 arc-rgbt studio --no-open
 ```
 
+To try it without a camera or external dataset, first run
+`arc-rgbt demo --output reports/demo`, then select
+`reports/demo/rgb_native.png` and `reports/demo/thermal_native.png`
+inside Studio.
+
 Studio opens a **local, self-contained HTML file**. Select two pre-aligned,
 same-size PNG/JPEG/WebP images using file pickers. A thermal contribution slider
 controls weighted grayscale intensity fusion; the difference view shows absolute
