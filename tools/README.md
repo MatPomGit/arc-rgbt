@@ -22,3 +22,20 @@ All commands work with an editable installation (`pip install -e .`) and local i
   native image shapes using an **externally supplied** planar transform.
   Inputs must be compatible with the calibration; the example matrix is
   strictly synthetic.
+
+## New UX commands (unreleased)
+
+```bash
+arc-rgbt --help
+arc-rgbt doctor
+arc-rgbt demo --output reports/demo
+arc-rgbt studio
+arc-rgbt thermal --input thermal_uint16.npy --output reports/thermal-preview
+```
+
+`thermal` accepts original 2D finite NumPy frames and writes a separate
+8-bit display PNG plus audit metadata. It does **not** overwrite the input
+nor infer physical temperature. Use `--range LOW HIGH` for consistent
+display scaling between frames; percentile scaling is frame-dependent.
+Studio can inspect native `.npy` arrays but exports visualization images,
+not calibrated radiometry.
