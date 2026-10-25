@@ -50,6 +50,38 @@ The documentation site is built **locally** and not automatically
 deployed to GitHub Pages. Installation uses free Python dependencies;
 for an air-gapped machine use an approved, local wheelhouse.
 
+## Scientific raw thermal frames: 16-bit and NumPy (new)
+
+A native thermal frame should remain numeric throughout the research pipeline.
+Use this new standalone converter **only for visual inspection**:
+
+```bash
+arc-rgbt thermal --input local_thermal_uint16.npy --output reports/thermal-preview-001
+# Explicit, shared display bounds for comparisons across frames:
+arc-rgbt thermal --input local_thermal_uint16.npy \
+  --range 1000 16000 --output reports/thermal-preview-002
+```
+
+The command accepts finite 2D NumPy arrays with up to four million samples;
+8/16/32-bit signed or unsigned integers and real floating-point arrays
+(up to float64). It writes `preview.png` plus `metadata.json` containing
+the original dtype, dimensions, raw min/max, display limits, clip counts and
+the input SHA-256. The original `.npy` is not modified and no raw thermal
+values are replaced. The default 2–98 percentile stretch is image-relative.
+Use explicit `--range LOW HIGH` for comparable display scales across frames.
+Existing output directories are not overwritten. No camera or network required.
+
+The Studio image pickers additionally accept little- or big-endian 2D
+`.npy` of dtype `uint8`, `uint16`, `int16`, `uint32`, `int32`,
+`float32` or `float64`, at up to 16 MiB per file. The browser retains
+numeric values while rendering a separate min–max-normalized 8-bit preview.
+The exported metadata records raw dtype, min/max and normalization, but the
+exported PNG is always a display image rather than radiometric output.
+
+Neither mode calibrates temperatures, corrects nonlinear response,
+aligns geometries, recovers lost native resolution or validates
+people/vehicle detection.
+
 ## Interactive RGB–Thermal Studio (fully offline)
 
 ```bash
