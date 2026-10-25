@@ -71,6 +71,14 @@ def test_invalid_file_does_not_publish_directory(tmp_path):
     assert not (tmp_path / "output").exists()
 
 
+def test_float64_extreme_range_no_overflow_or_silent_black_frame():
+    raw = np.array([[-1e308, 0.0, 1e308]], dtype=np.float64)
+    with np.errstate(all="raise"):
+        image, meta = preview(raw, display_range=(-1e308, 1e308))
+    assert image.tolist() == [[0, 128, 255]]
+    assert meta["raw_max"] == 1e308
+
+
 def test_cli_help_and_conflicting_controls(capsys, tmp_path):
     with pytest.raises(SystemExit) as exc:
         main(["--help"])
