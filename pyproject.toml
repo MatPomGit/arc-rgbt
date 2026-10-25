@@ -32,6 +32,9 @@ arc-rgbt-e02 = "arc_rgbt.e02:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+arc_rgbt = ["studio.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
