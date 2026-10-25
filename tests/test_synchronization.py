@@ -75,6 +75,7 @@ def test_cli_reports_exact_origin(tmp_path):
     assert stored["data_origin"] == "simulated"
     assert stored["summary"]["matched"] == 1
 
+
 def test_reject_int64_overflow_and_unbounded_tolerance():
     huge = [frame("huge", 10**400)]
     with pytest.raises(ValueError, match="64-bit"):
