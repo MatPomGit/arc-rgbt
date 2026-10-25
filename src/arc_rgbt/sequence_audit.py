@@ -146,7 +146,8 @@ def analyze(manifest: dict, root: Path, *, manifest_sha256: str | None = None) -
             "Greedy nearest frame pairing is not globally optimal and does not interpolate frames",
             "Equal native grids do not imply spatial registration or mutual field-of-view",
             "Raw range/dtype/shape checks do not establish sensor radiometry or detector accuracy",
-            "No automatic resizing, image fusion, energy metering or object recognition is performed",
+            "No automatic resizing, image fusion, energy metering, "
+            "or object recognition is performed",
         ],
     }
 
@@ -165,7 +166,8 @@ def _publish(report: dict, target: Path, stage: Path) -> None:
             row = {name: pair[name] for name in columns}
             for field in ("rgb_id", "thermal_id", "rgb_path", "thermal_path"):
                 value = str(row[field])
-                if value.startswith(("=", "+", "-", "@", "\\t", "\\r", "\\n")):
+                if (value.lstrip(" \t\r\n").startswith(("=", "+", "-", "@"))
+                        or value.startswith(("\t", "\r", "\n"))):
                     row[field] = "'" + value
             writer.writerow(row)
     rows = "".join(
