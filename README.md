@@ -143,6 +143,23 @@ exploratory visualization, not an RGB–LWIR detector or scientific benchmark.
 For numerical pipelines on `.npy` data, continue using `fusionlab` and the
 existing reference algorithms.
 
+## Offline Playwright browser tests
+
+The Studio acceptance suite uses local Chromium without network access.
+Four additional Playwright tests validate the packaged `file://` page,
+native NumPy input, corrupt-file rejection, downloads, provenance and
+asynchronous upload races. They supplement three existing interaction tests.
+
+Use a clean disposable worktree and run
+`tools/run-playwright-offline.ps1 -ExpectedSha <40-character-commit-SHA>`
+with a preinstalled browser and test dependencies. The script verifies the
+exact SHA, runs Ruff, offline pytest and opt-in Chromium acceptance. It
+never installs software or starts GitHub Actions.
+
+See the [Playwright offline runbook](docs/guides/playwright-offline.md).
+Real `file://` browser checks must not be replaced by synthetic DOM-only
+checks if the machine policy blocks local-file navigation.
+
 ## Unified entry point and synthetic preview
 
 After installation, run the local diagnostic and a complete, self-contained example:
