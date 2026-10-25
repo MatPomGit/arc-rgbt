@@ -23,6 +23,17 @@ All commands work with an editable installation (`pip install -e .`) and local i
   Inputs must be compatible with the calibration; the example matrix is
   strictly synthetic.
 
+## Sequence audit (experimental)
+
+```bash
+arc-rgbt sequence --demo --output reports/seq-demo
+arc-rgbt sequence --input recordings/manifest.json --output reports/seq-run
+```
+
+Timestamped NumPy datasets are checked offline for input safety, shape/dtype
+consistency, source hashes and paired-frame temporal skew. Output is JSON,
+CSV and HTML. No sensor connection, calibration, upsampling or inference.
+
 ## New UX commands (unreleased)
 
 ```bash
