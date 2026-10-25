@@ -153,8 +153,14 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
     }
     const gray = new Uint8ClampedArray(width*height);
     const constant = max === min;
+    const scale = Math.max(Math.abs(min),Math.abs(max),1);
+    const low = min/scale, high = max/scale;
+    if (!constant && high <= low) {
+      throw new Error('NumPy range is too narrow for a stable display normalization');
+    }
     for (let i=0;i<gray.length;i++) {
-      gray[i] = constant ? 127 : Math.round(255*(values[i]-min)/(max-min));
+      gray[i] = constant ? 127 :
+        Math.round(255*Math.min(1,Math.max(0,(values[i]/scale-low)/(high-low))));
     }
     return {width,height,gray,raw:values,raw_dtype:dtype,raw_min:min,raw_max:max,
       normalization:constant ? 'constant_127' : 'per_frame_min_max'};
