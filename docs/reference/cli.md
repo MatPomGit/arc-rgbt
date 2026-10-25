@@ -73,6 +73,7 @@ For extensionless output paths, `arc-rgbt register` also normalizes
 
 ## Unified launcher (recommended)
 
+The installed unified entry point is `arc-rgbt`.
 After `pip install -e .`, `arc-rgbt --help` lists all available tools.
 
 | Command | Purpose |
