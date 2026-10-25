@@ -78,12 +78,14 @@ def test_image_fusion_rejects_non_numeric_arrays():
     with pytest.raises(ValueError, match="grayscale"):
         fuse_images(invalid, invalid)
 
+
 def test_finite_float64_values_outside_float32_range_are_rejected():
     extreme = np.full((4, 4), 1e40, dtype=np.float64)
     with pytest.raises(ValueError, match="float32"):
         fuse_images(extreme, extreme)
     with pytest.raises(ValueError, match="float32"):
         register_translation(extreme, extreme)
+
 
 def test_late_fusion_rejects_overflowed_iou_geometry():
     extreme = {"label": "person", "bbox": [0.0, 0.0, 1e308, 1e308], "score": 0.8}
