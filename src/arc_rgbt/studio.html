@@ -22,7 +22,7 @@ button:hover:enabled{background:#345f85}button:disabled{opacity:.5;cursor:not-al
 canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
 .status{padding:.75rem;border-radius:8px;background:#29394e;min-height:3rem}
 .status.error{background:#603039}.status.success{background:#254e43}
-.note{border-left:3px solid #eebc69;padding:.5rem .9rem;background:#2b3038}
+.note{border-left:3px solid #eebc69;padding:.5rem .9rem;background:#2b3038}.note summary{cursor:pointer;margin-top:.5rem;text-decoration:underline}
 :focus-visible{outline:3px solid #80c9ff;outline-offset:3px}
 @media (prefers-color-scheme:light){:root{background:#fafcff;color:#122036;color-scheme:light}.subtle,small{color:#4a586c}.panel{background:#eef3f8;border-color:#9dadbf}.status{background:#deeaf5}.status.error{background:#f6d7d7}.status.success{background:#d6f4e3}.note{background:#fff2d9}.preview{background:#dae2e9}}
 </style>
@@ -31,7 +31,7 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
 <header>
 <h1>RGB–Thermal Studio</h1>
 <p class="subtle">Offline image comparison and exploratory intensity fusion · arc-rgbt · reference UI</p>
-<p>Choose local RGB and thermal-like images. All processing stays in this browser tab; there are no uploads, servers or external libraries.</p>
+<p>Try the built-in example, or open your RGB and thermal images. Nothing is uploaded.</p>
 </header>
 <main>
 <section class="panel">
@@ -45,24 +45,24 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
 <div><label for="rgb">RGB image</label><input id="rgb" type="file" accept="image/png,image/jpeg,image/webp,.npy" aria-describedby="filehint"><p id="rgbinfo" class="subtle">No file selected</p></div>
 <div><label for="thermal">Thermal / IR image</label><input id="thermal" type="file" accept="image/png,image/jpeg,image/webp,.npy" aria-describedby="filehint"><p id="thermalinfo" class="subtle">No file selected</p></div>
 </div>
-<p id="filehint" class="subtle">PNG, JPEG, WebP or uncompressed 2D NumPy .npy (uint16, int16, float32/64). Each .npy frame is stretched to 8-bit for display using its own min/max, while source values remain unchanged. Images must have exactly the same width and height and already be spatially aligned. Maximum 16 MiB per file and 4 megapixels per image.</p>
+<p id="filehint" class="subtle">PNG, JPEG, WebP or 2D NumPy .npy · same image dimensions required · up to 16 MiB and 4 megapixels per image. No automatic alignment or resizing.</p>
 <div id="status" role="status" aria-live="polite" class="status">Select two images, or choose “Try an example”.</div>
 </section>
 <section class="panel">
-<h2>2. Explore fusion</h2>
+<h2>2. Compare and save</h2>
 <div class="controls">
 <div><label for="weight">Thermal contribution: <output id="weightValue" for="weight">50%</output></label><input id="weight" type="range" min="0" max="100" value="50" step="1" disabled></div>
-<div><label for="mode">Visualization method</label><select id="mode" disabled><option value="weighted">Weighted grayscale intensity</option><option value="difference">Absolute grayscale difference</option></select></div>
+<div><label for="mode">View</label><select id="mode" disabled><option value="weighted">RGB + thermal blend</option><option value="difference">Highlight intensity differences</option></select></div>
 <button id="save" disabled type="button">Save fused PNG</button>
 <button id="metadata" disabled type="button">Save metadata JSON</button>
 </div>
 <div class="grid">
 <figure><figcaption>RGB source</figcaption><img id="rgbPreview" class="preview" alt="Selected RGB image preview"></figure>
 <figure><figcaption>Thermal / IR source</figcaption><img id="thermalPreview" class="preview" alt="Selected thermal image preview"></figure>
-<figure><figcaption>Computed grayscale image</figcaption><canvas id="fused" class="preview" width="1" height="1" aria-label="Fusion visualization"></canvas></figure>
+<figure><figcaption>Result (grayscale preview)</figcaption><canvas id="fused" class="preview" width="1" height="1" aria-label="Fusion visualization"></canvas></figure>
 </div>
 </section>
-<section class="note"><strong>Interpretation limits.</strong> Raster-image inputs are browser-decoded 8-bit sRGB values; NumPy inputs retain the raw numeric dtype and min/max in export metadata but are independently normalized to 8-bit for the visualization. Neither is calibrated thermal radiance or temperature. Each RGB image is converted to grayscale using sRGB coefficients (0.2126 R + 0.7152 G + 0.0722 B) without linear-light conversion. The weighted output is a visualization, not a sensor calibration, trained detector, benchmark or radiometrically valid product. Transparency is composited against black. The difference view is an intensity diagnostic, not a registration-quality metric.</section>
+<section class="note"><strong>Preview only:</strong> results are not calibrated temperature or verified detections. <details><summary>How to interpret the images</summary><p>Raster images use browser-decoded 8-bit sRGB intensities. NumPy inputs retain original dtype and min/max in the JSON export, but use independent min–max stretching for display. RGB is converted to grayscale using 0.2126 R + 0.7152 G + 0.0722 B without linear-light conversion; transparent pixels are composited over black. The blend and difference views are only visual diagnostics, not camera calibration, radiometry, spatial registration, a trained detector, a benchmark or a sensor performance measurement.</p></details></section>
 </main>
 <script>
 'use strict';
@@ -91,8 +91,9 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
     if (!data.rgb || !data.thermal) {status('Select both images to continue.'); return;}
     if (!ok) {
       status('Dimension mismatch: RGB ' + data.rgb.width + '×' + data.rgb.height +
-        ', IR ' + data.thermal.width + '×' + data.thermal.height +
-        '. Register images externally; automatic resizing is disabled.', 'error');
+        ', thermal ' + data.thermal.width + '×' + data.thermal.height +
+        '. Choose two images with the same dimensions. Files are never resized automatically.',
+        'error');
       return;
     }
     status('Aligned grids: ' + data.rgb.width + '×' + data.rgb.height + ' pixels. Visualization ready.', 'success');
