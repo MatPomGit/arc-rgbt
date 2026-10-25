@@ -32,6 +32,7 @@ $oldBrowser = $env:ARC_RGBT_BROWSER_TEST
 $oldExecutable = $env:ARC_RGBT_CHROMIUM_EXECUTABLE
 $oldPythonPath = $env:PYTHONPATH
 $oldBytecode = $env:PYTHONDONTWRITEBYTECODE
+Push-Location -LiteralPath $root
 try {
     if ($ChromiumExecutable) {
         $env:ARC_RGBT_CHROMIUM_EXECUTABLE = $ChromiumExecutable
@@ -66,4 +67,5 @@ finally {
     $env:ARC_RGBT_CHROMIUM_EXECUTABLE = $oldExecutable
     $env:PYTHONPATH = $oldPythonPath
     $env:PYTHONDONTWRITEBYTECODE = $oldBytecode
+    Pop-Location
 }
