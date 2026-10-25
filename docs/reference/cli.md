@@ -2,12 +2,23 @@
 
 All entry points are defined by `[project.scripts]` in `pyproject.toml`. Run any tool with `--help` for the authoritative flag list. Execute commands from the repository root; generated results belong in the ignored `reports/` directory.
 
+## Interactive local studio
+
+`arc-rgbt studio` opens a packaged, standalone browser UI via a `file://`
+URL. Use `arc-rgbt studio --no-open` to print the absolute HTML path without
+launching a browser. It has no HTTP server and requires no added dependencies.
+Select same-size, pre-aligned PNG/JPEG/WebP inputs, use the weighted grayscale
+fusion slider or absolute difference view, then export PNG or JSON. The UI
+does not perform spatial registration or radiometric calibration, and its
+outputs are exploratory rather than validated detector/MCU measurements.
+
 ## Unified launcher (recommended)
 
 After `pip install -e .`, `arc-rgbt --help` lists all available tools.
 
 | Command | Purpose |
 | --- | --- |
+| `arc-rgbt studio [--no-open]` | Open local browser-based RGB–thermal viewer with no server |
 | `arc-rgbt doctor [--json]` | Validate Python >=3.12 and required local dependencies |
 | `arc-rgbt demo [--output NEW_DIR] [--seed N]` | Generate a synthetic run, image previews and a local HTML viewer |
 | `arc-rgbt sensor ...` | Forwards to `sensorlab` |
