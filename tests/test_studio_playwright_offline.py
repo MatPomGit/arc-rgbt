@@ -154,11 +154,21 @@ def test_corrupted_and_unsupported_npy_fail_closed(offline_page, tmp_path):
         tmp_path / "fortran.npy", np.asfortranarray(np.arange(12).reshape(3, 4))
     )
     wrong = save_npy(tmp_path / "wrong.npy", np.zeros((2, 4), dtype=np.uint8))
+    oversized = save_npy(tmp_path / "too_many_pixels.npy", np.zeros((2001, 2000), np.uint8))
+    object_file = tmp_path / "unsafe_object.npy"
+    np.save(object_file, np.array([["unused"]], dtype=object), allow_pickle=True)
+    over_limit = tmp_path / "over_16_mib.npy"
+    with over_limit.open("wb") as stream:
+        stream.seek(16 * 1024 * 1024)
+        stream.write(b"x")
     cases = [
         (str(invalid), "Invalid NumPy"),
         (nonfinite, "non-finite"),
         (fortran, "C-order"),
         (wrong, "Dimension mismatch"),
+        (oversized, "4 million pixels"),
+        (str(object_file), "Unsupported dtype"),
+        (str(over_limit), "up to 16 MiB"),
     ]
     for filename, diagnostic in cases:
         page.locator("#thermal").set_input_files(filename)
