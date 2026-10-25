@@ -87,9 +87,15 @@ def simulate(config: dict) -> dict:
         raise ValueError("Maximum 10000 E02 geometry configurations")
 
     # Every timestamp is from a single *simulated* monotonic capture clock.
+    # Reject FPS that cannot produce a signed-64-bit nanosecond period.
+    min_fps = 1e9 / (2**63 - 1)
+    if rgb_fps < min_fps or thermal_fps < min_fps:
+        raise ValueError("FPS is too small for bounded nanosecond timestamps")
     rgb_period_ns = round(1e9 / rgb_fps)
     thermal_period_ns = round(1e9 / thermal_fps)
     max_time_ns = (frames - 1) * thermal_period_ns + round(max(offsets) * 1e6)
+    if max_time_ns > 2**63 - 1:
+        raise ValueError("Simulated timestamps exceed signed-64-bit range")
     rgb_count = math.ceil(max_time_ns / rgb_period_ns) + 2
     if rgb_count > 120000:
         raise ValueError("Simulated frame count too large")
