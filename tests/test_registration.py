@@ -71,6 +71,7 @@ def test_fractional_translation_rejects_partial_interpolation_support():
     assert not inverse_mask[:, -1].any()
     assert inverse_mask[:, :-1].all()
 
+
 def test_scaled_equivalent_homographies_are_accepted():
     rgb = np.arange(64, dtype=np.float32).reshape(8, 8)
     a = align_pair(rgb, rgb, np.eye(3), calibration_origin="simulated")
