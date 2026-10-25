@@ -2,6 +2,16 @@
 
 All entry points are defined by `[project.scripts]` in `pyproject.toml`. Run any tool with `--help` for the authoritative flag list. Execute commands from the repository root; generated results belong in the ignored `reports/` directory.
 
+## RGB/LWIR sequence quality audit
+
+`arc-rgbt sequence --demo --output reports/sequence-demo` creates a
+self-contained, labelled-as-synthetic timestamp/data-integrity example.
+`arc-rgbt sequence --input PATH/manifest.json --output NEW_DIRECTORY` checks
+preexisting local frames. The manifest schema and output format are described
+in [synchronization guide](../guides/synchronization-registration.md).
+Use `arc-rgbt-sequence` for the dedicated executable. All outputs are offline
+and the destination must not already exist.
+
 ## Raw NumPy thermal preview (new)
 
 `arc-rgbt thermal` (or `arc-rgbt-thermal`) takes a 2D numeric `.npy`:
