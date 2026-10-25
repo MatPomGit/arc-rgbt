@@ -17,7 +17,11 @@ def _image(value: np.ndarray, label: str) -> np.ndarray:
             or np.issubdtype(value.dtype, np.complexfloating)
             or not np.isfinite(value).all()):
         raise ValueError(f"{label} must be a finite real grayscale/RGB/RGBA image")
-    return value.astype(np.float32)
+    with np.errstate(over="ignore", invalid="ignore"):
+        converted = value.astype(np.float32)
+    if not np.isfinite(converted).all():
+        raise ValueError(f"{label} intensities exceed the supported float32 range")
+    return converted
 
 
 def align_pair(
@@ -41,7 +45,14 @@ def align_pair(
         raise ValueError("Homography must contain real numeric values") from exc
     if h.shape != (3, 3) or not np.isfinite(h).all():
         raise ValueError("Homography must be a finite 3x3 matrix")
-    if abs(np.linalg.det(h)) < 1e-12 or np.linalg.cond(h) > 1e10:
+    # Homographies are defined up to nonzero scale; determinant thresholds
+    # on an unnormalized matrix reject geometrically identical transforms.
+    scale = float(np.max(np.abs(h)))
+    if scale == 0:
+        raise ValueError("Homography must be nonsingular and well-conditioned")
+    h = h / scale
+    condition = float(np.linalg.cond(h))
+    if not np.isfinite(condition) or condition > 1e10:
         raise ValueError("Homography must be nonsingular and well-conditioned")
     matrix = h if reference == "thermal" else np.linalg.inv(h)
     source = a if reference == "thermal" else b
