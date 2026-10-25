@@ -47,6 +47,28 @@ pytest -q
 ruff check src tests tools
 ```
 
+### Windows PowerShell tests
+
+This project uses the `src/` package layout. Pytest resolves `src` from
+`pyproject.toml`, but installing the package is still required for CLI use.
+Prefer the project's `.venv` interpreter to a global Python:
+
+```powershell
+$python = (Resolve-Path .\.venv\Scripts\python.exe).Path
+& $python -m pytest -q
+& $python -m ruff check src tests tools
+$env:ARC_RGBT_BROWSER_TEST = "1"
+& $python -m pytest -q tests/test_studio_browser.py tests/test_studio_playwright_offline.py -v
+Remove-Item Env:\ARC_RGBT_BROWSER_TEST
+```
+
+PowerShell does **not** set environment variables with CMD's
+`set ARC_RGBT_BROWSER_TEST=1`; that syntax leaves all seven browser tests
+skipped. If the virtual environment needs installation, run
+`& $python -m pip install -e ".[dev,browser]"` separately, using approved
+offline dependencies when required. See the
+[offline Playwright guide](docs/guides/playwright-offline.md).
+
 ## Searchable research documentation (MkDocs)
 
 The full research guide is in [docs/](docs/index.md), with
