@@ -5,7 +5,8 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidatePattern('^[0-9a-f]{40}$')]
     [string]$ExpectedSha,
-    [string]$ChromiumExecutable = ''
+    [string]$ChromiumExecutable = '',
+    [string]$PythonExecutable = ''
 )
 
 Set-StrictMode -Version Latest
@@ -21,7 +22,17 @@ $changes = & git -C $root status --porcelain --untracked-files=no
 if ($LASTEXITCODE -ne 0) { throw 'BLOCKED: cannot inspect tracked worktree state' }
 if ($changes) { throw 'BLOCKED: tracked files are modified; use a disposable clean worktree' }
 
-$python = (Get-Command python -ErrorAction Stop).Source
+# Prefer the checkout's virtual environment over an unrelated global Python.
+# A disposable worktree can pass -PythonExecutable explicitly.
+$localPython = Join-Path $root '.venv\\Scripts\\python.exe'
+if ($PythonExecutable) {
+    $python = (Resolve-Path -LiteralPath $PythonExecutable -ErrorAction Stop).Path
+} elseif (Test-Path -LiteralPath $localPython -PathType Leaf) {
+    $python = (Resolve-Path -LiteralPath $localPython).Path
+} else {
+    $python = (Get-Command python -ErrorAction Stop).Source
+}
+Write-Host "VALIDATION_PYTHON=$python"
 if ($ChromiumExecutable) {
     if (-not (Test-Path -LiteralPath $ChromiumExecutable -PathType Leaf)) {
         throw "BLOCKED: Chromium executable not found: $ChromiumExecutable"
@@ -38,8 +49,8 @@ try {
         $env:ARC_RGBT_CHROMIUM_EXECUTABLE = $ChromiumExecutable
     }
     $env:PYTHONDONTWRITEBYTECODE = '1'
+    # Do not inherit arbitrary PYTHONPATH entries from the interactive shell.
     $env:PYTHONPATH = Join-Path $root 'src'
-    if ($oldPythonPath) { $env:PYTHONPATH += ";$oldPythonPath" }
     Set-Location -LiteralPath $root
 
     # Import errors must fail the validation, never convert to silent pytest skips.
