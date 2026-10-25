@@ -106,6 +106,16 @@ def analyze(manifest: dict, root: Path, *, manifest_sha256: str | None = None) -
         tolerance_ms=tol, clock_domain=manifest["clock_domain"],
     )
     base = root.resolve()
+    # Reusing a capture file with multiple IDs/times would inflate pairing counts.
+    # Use file identity to reject both duplicate names and hard-link aliases.
+    seen_files: set[tuple[int, int]] = set()
+    for entries in streams:
+        for entry in entries:
+            stat = _relative_path(base, entry["path"]).stat()
+            identity = (stat.st_dev, stat.st_ino)
+            if identity in seen_files:
+                raise ValueError("Duplicate capture file in sequence manifest")
+            seen_files.add(identity)
     rgb = [_check_frame(base, frame, "rgb") for frame in streams[0]]
     thermal = [_check_frame(base, frame, "thermal") for frame in streams[1]]
     rgb_by_id = {f["id"]: f for f in rgb}
