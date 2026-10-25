@@ -89,12 +89,16 @@ def main(argv: list[str] | None = None) -> None:
                         required=True)
     parser.add_argument("--output", default="reports/registered_pair.npz")
     args = parser.parse_args(argv)
+    output = Path(args.output)
+    if output.suffix not in ("", ".npz"):
+        parser.error("--output must be a .npz path or have no extension")
+    if not output.suffix:
+        output = output.with_suffix(".npz")
     h = json.loads(Path(args.homography).read_text(encoding="utf-8"))
     ra, ta, mask, metadata = align_pair(
         np.load(args.rgb, allow_pickle=False), np.load(args.thermal, allow_pickle=False),
         np.asarray(h), reference=args.reference, calibration_origin=args.calibration_origin,
     )
-    output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(output, rgb=ra, thermal=ta, valid=mask)
     output.with_suffix(output.suffix + ".json").write_text(
