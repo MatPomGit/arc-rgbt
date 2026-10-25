@@ -65,6 +65,8 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
     if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
         raise ValueError("seed must be a non-negative integer")
     positive_integer(count, "frames")
+    if count > 128:
+        raise ValueError("frames must be at most 128 for bounded offline E00 execution")
     positive_integer(config["min_area_px"], "min_area_px")
     threshold = config["threshold"]
     if (isinstance(threshold, bool) or not isinstance(threshold, (int, float))
@@ -80,6 +82,8 @@ def run(config: dict, destination: str | Path, config_path: str | Path | None = 
         not isinstance(v, int) or isinstance(v, bool) or v <= 0 for v in preview
     ):
         raise ValueError("interpolated_preview_px must contain two positive integers")
+    if preview[0] * preview[1] > 4_000_000:
+        raise ValueError("interpolated_preview_px exceeds four million pixels")
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=True)
     samples = scenes(count, seed)
