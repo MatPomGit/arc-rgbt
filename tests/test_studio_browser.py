@@ -125,10 +125,21 @@ def test_studio_reads_native_numpy_uint16_without_dropping_raw_range(tmp_path):
             assert meta["thermal"]["raw_max"] == 1000
             assert meta["thermal"]["normalization"] == "per_frame_min_max"
 
+            extremes = np.zeros((3, 4), dtype=np.float64)
+            extremes[0, :3] = [-1e308, 0.0, 1e308]
+            extreme_path = tmp_path / "float64_extreme.npy"
+            np.save(extreme_path, extremes, allow_pickle=False)
+            page.locator("#thermal").set_input_files(str(extreme_path))
+            page.wait_for_function("() => !document.getElementById('save').disabled")
+            assert pixel(0) == [27, 27, 27, 255]
+            assert pixel(1) == [91, 91, 91, 255]
+            assert pixel(2) == [155, 155, 155, 255]
+
             corrupted = tmp_path / "corrupt.npy"
             corrupted.write_bytes(b"NOT NUMPY DATA")
             page.locator("#thermal").set_input_files(str(corrupted))
             assert page.locator("#save").is_disabled()
+            page.locator("#status.error").wait_for(timeout=3000)
             assert "Invalid NumPy" in page.locator("#status").inner_text()
             assert not errors, errors
         finally:
