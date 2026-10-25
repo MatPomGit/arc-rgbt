@@ -87,6 +87,7 @@ def test_incomplete_annotation_status_is_rejected(tmp_path):
     with pytest.raises(ValueError, match="annotation_status"):
         report(dataset, tmp_path)
 
+
 def test_identical_extreme_boxes_fail_closed_instead_of_returning_zero_iou():
     box = {"label": "object", "bbox": [0.0, 0.0, 1e308, 1e308]}
     pred = {**box, "score": 1.0}
