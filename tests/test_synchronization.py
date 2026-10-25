@@ -74,3 +74,10 @@ def test_cli_reports_exact_origin(tmp_path):
     stored = json.loads(dest.read_text())
     assert stored["data_origin"] == "simulated"
     assert stored["summary"]["matched"] == 1
+
+def test_reject_int64_overflow_and_unbounded_tolerance():
+    huge = [frame("huge", 10**400)]
+    with pytest.raises(ValueError, match="64-bit"):
+        pair_frames(huge, [], tolerance_ms=1, clock_domain="shared_monotonic_ns")
+    with pytest.raises(ValueError, match="overflows"):
+        pair_frames([], [], tolerance_ms=1e308, clock_domain="shared_monotonic_ns")
