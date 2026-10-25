@@ -74,6 +74,7 @@ After `pip install -e .`, `arc-rgbt --help` lists all available tools.
 | Command | Purpose |
 | --- | --- |
 | `arc-rgbt thermal [--input] ...` | Raw numeric thermal preview with source SHA-256 and explicit display limits |
+| `arc-rgbt sequence --demo` or `--input FILE` | Validate RGB/LWIR frames and inspect timestamp pairing in HTML/CSV/JSON |
 | `arc-rgbt studio [--no-open]` | Open local browser-based RGB–thermal viewer with no server |
 | `arc-rgbt doctor [--json]` | Validate Python >=3.12 and required local dependencies |
 | `arc-rgbt demo [--output NEW_DIR] [--seed N]` | Generate a synthetic run, image previews and a local HTML viewer |
