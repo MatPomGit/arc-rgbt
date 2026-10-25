@@ -89,6 +89,7 @@ def test_cli_help_and_conflicting_controls(capsys, tmp_path):
               "--percentiles", "3", "98"])
     assert exc.value.code == 2
 
+
 def test_default_percentiles_handle_extreme_finite_float64():
     raw = np.array([[-1e308, 0.0, 1e308]], dtype=np.float64)
     with np.errstate(all="raise"):
