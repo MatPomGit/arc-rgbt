@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src blob:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'">
 <title>RGB–Thermal Studio | arc-rgbt</title>
 <style>
 :root{font:16px/1.5 system-ui,sans-serif;color-scheme:dark;background:#0e1729;color:#f4f7fb}
@@ -101,6 +102,8 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
     delete previews[kind].dataset.objectUrl;
     $(kind + 'info').textContent = 'No valid file selected';
     controls.forEach(control => control.disabled = true);
+    canvas.width = 1;
+    canvas.height = 1;
     if (!file) {sync(); return;}
     if (!TYPES.has(file.type) || !file.size || file.size > MAX_BYTES) {
       status(kind.toUpperCase() + ': choose a nonempty PNG, JPEG or WebP file up to 16 MiB.', 'error');
