@@ -26,6 +26,15 @@ This changelog records implemented features only; it is not a validation certifi
 - Manual self-hosted strict MkDocs build; no automatic public deployment.
 - This is documentation of reference/simulated methods, not new field evidence.
 
+## Unreleased (sequence integrity, under review)
+
+- Add vendor-independent offline audit for timestamped RGB/LWIR NumPy frame
+  sequences with strict relative paths and bounded frame/file sizes.
+- Add synthetic sequence demo and HTML/CSV/JSON pairing reports with SHA-256,
+  native grids, dtype changes, timing skew and unmatched-frame counts.
+- Explicitly distinguish time pairing from real clock synchronization,
+  spatial registration, detector accuracy and radiometric validity.
+
 ## Unreleased (user experience, under review)
 
 - Add unified `arc-rgbt` CLI with diagnostics and synthetic self-contained demo.
