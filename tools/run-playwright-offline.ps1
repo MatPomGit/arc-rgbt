@@ -24,7 +24,7 @@ if ($changes) { throw 'BLOCKED: tracked files are modified; use a disposable cle
 
 # Prefer the checkout's virtual environment over an unrelated global Python.
 # A disposable worktree can pass -PythonExecutable explicitly.
-$localPython = Join-Path $root '.venv\\Scripts\\python.exe'
+$localPython = Join-Path $root '.venv\Scripts\python.exe'
 if ($PythonExecutable) {
     $python = (Resolve-Path -LiteralPath $PythonExecutable -ErrorAction Stop).Path
 } elseif (Test-Path -LiteralPath $localPython -PathType Leaf) {
