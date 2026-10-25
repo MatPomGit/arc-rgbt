@@ -50,6 +50,29 @@ The documentation site is built **locally** and not automatically
 deployed to GitHub Pages. Installation uses free Python dependencies;
 for an air-gapped machine use an approved, local wheelhouse.
 
+## Interactive RGB–Thermal Studio (fully offline)
+
+```bash
+arc-rgbt studio
+# On a headless machine, print the local HTML file path:
+arc-rgbt studio --no-open
+```
+
+Studio opens a **local, self-contained HTML file**. Select two pre-aligned,
+same-size PNG/JPEG/WebP images using file pickers. A thermal contribution slider
+controls weighted grayscale intensity fusion; the difference view shows absolute
+intensity differences. Export the current 8-bit grayscale visualization to PNG
+and its configuration to JSON. Files never leave the browser tab: there is no
+server, upload API, JavaScript CDN or cloud dependency. Each file is limited to
+16 MiB, each image to 4 million pixels. Unequal grids are explicitly rejected
+without automatic resizing.
+
+**Scope:** browser-decoded sRGB grayscale intensities are not calibrated
+radiometry, temperature measurements or geometric calibration. This is an
+exploratory visualization, not an RGB–LWIR detector or scientific benchmark.
+For numerical pipelines on `.npy` data, continue using `fusionlab` and the
+existing reference algorithms.
+
 ## Unified entry point and synthetic preview
 
 After installation, run the local diagnostic and a complete, self-contained example:
