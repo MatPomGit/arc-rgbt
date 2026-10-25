@@ -29,6 +29,26 @@ python -m ruff check src tests tools
 
 A manual, self-hosted documentation-check workflow is provided. Its runner must have the documentation extra preinstalled; the workflow does not fetch dependencies from the network.
 
+## Python and shell selection on Windows
+
+Tests import the source package using `[tool.pytest.ini_options].pythonpath`
+from `pyproject.toml`; editable installation is still needed for CLI commands.
+
+From PowerShell, use the interpreter installed in this repo's environment:
+
+```powershell
+$python = (Resolve-Path .\.venv\Scripts\python.exe).Path
+& $python -m pytest -q
+& $python -m ruff check src tests tools
+$env:ARC_RGBT_BROWSER_TEST = "1"
+& $python -m pytest -q tests/test_studio_browser.py tests/test_studio_playwright_offline.py -v
+Remove-Item Env:\ARC_RGBT_BROWSER_TEST
+```
+
+Unlike CMD, PowerShell uses `$env:VARIABLE = "value"`; `set VARIABLE=1`
+does not enable browser acceptance and returns seven skipped tests. Use
+`tools/run-playwright-offline.ps1` for fail-closed exact-SHA validation.
+
 ## Extend the docs
 
 1. Add the new Markdown page under the appropriate `docs/` subdirectory.
