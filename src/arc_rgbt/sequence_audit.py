@@ -53,7 +53,11 @@ def _check_frame(root: Path, entry: dict, modality: str) -> dict:
     if size <= 0 or size > MAX_BYTES:
         raise ValueError(f"Invalid frame file size for {entry['id']!r} (limit 64 MiB)")
     array = np.load(path, mmap_mode="r", allow_pickle=False)
-    if (array.size == 0 or array.size > MAX_PIXELS or array.ndim not in (2, 3)
+    if not isinstance(array, np.ndarray):
+        array.close()
+        raise ValueError(f"Expected an uncompressed .npy array for frame {entry['id']!r}")
+    if (array.size == 0 or array.ndim not in (2, 3)
+            or array.shape[0] * array.shape[1] > MAX_PIXELS
             or modality == "thermal" and array.ndim != 2
             or array.ndim == 3 and array.shape[2] not in (1, 3)
             or array.dtype.kind not in "uif" or array.dtype.itemsize > 8
@@ -92,6 +96,9 @@ def analyze(manifest: dict, root: Path, *, manifest_sha256: str | None = None) -
         for item in entries:
             if not isinstance(item, dict) or set(item) != {"id", "timestamp_ns", "path"}:
                 raise ValueError(f"{role} frames require id, timestamp_ns and path")
+            if (type(item["timestamp_ns"]) is not int
+                    or not 0 <= item["timestamp_ns"] <= 2**63 - 1):
+                raise ValueError("timestamp_ns must be a nonnegative signed-64-bit integer")
     # Timestamp schema and uniqueness are validated before reading any arrays.
     result = pair_frames(
         [{k: e[k] for k in ("id", "timestamp_ns")} for e in streams[0]],
@@ -155,7 +162,12 @@ def _publish(report: dict, target: Path, stage: Path) -> None:
         writer = csv.DictWriter(output, fieldnames=columns)
         writer.writeheader()
         for pair in report["pairs"]:
-            writer.writerow({name: pair[name] for name in columns})
+            row = {name: pair[name] for name in columns}
+            for field in ("rgb_id", "thermal_id", "rgb_path", "thermal_path"):
+                value = str(row[field])
+                if value.startswith(("=", "+", "-", "@", "\\t", "\\r", "\\n")):
+                    row[field] = "'" + value
+            writer.writerow(row)
     rows = "".join(
         "<tr>" + "".join("<td>" + html.escape(str(pair[name])) + "</td>" for name in columns)
         + "</tr>" for pair in report["pairs"]
