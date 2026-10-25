@@ -35,13 +35,18 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
 </header>
 <main>
 <section class="panel">
-<h2>1. Load aligned images</h2>
+<h2>1. Start with an example or your images</h2>
+<p>No files yet? Run a built-in synthetic example, then replace either image with your own.</p>
+<div class="controls">
+<button id="sample" type="button">Try an example</button>
+<button id="clear" type="button">Clear images</button>
+</div>
 <div class="grid">
 <div><label for="rgb">RGB image</label><input id="rgb" type="file" accept="image/png,image/jpeg,image/webp,.npy" aria-describedby="filehint"><p id="rgbinfo" class="subtle">No file selected</p></div>
 <div><label for="thermal">Thermal / IR image</label><input id="thermal" type="file" accept="image/png,image/jpeg,image/webp,.npy" aria-describedby="filehint"><p id="thermalinfo" class="subtle">No file selected</p></div>
 </div>
 <p id="filehint" class="subtle">PNG, JPEG, WebP or uncompressed 2D NumPy .npy (uint16, int16, float32/64). Each .npy frame is stretched to 8-bit for display using its own min/max, while source values remain unchanged. Images must have exactly the same width and height and already be spatially aligned. Maximum 16 MiB per file and 4 megapixels per image.</p>
-<div id="status" role="status" aria-live="polite" class="status">Select two images to begin.</div>
+<div id="status" role="status" aria-live="polite" class="status">Select two images, or choose “Try an example”.</div>
 </section>
 <section class="panel">
 <h2>2. Explore fusion</h2>
@@ -72,6 +77,7 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
   const canvas = $('fused');
   const ctx = canvas.getContext('2d', {willReadFrequently:false});
   const controls = [$('weight'), $('mode'), $('save'), $('metadata')];
+  let revision = 0;
   const status = (message, kind='') => {
     $('status').textContent = message;
     $('status').className = 'status' + (kind ? ' ' + kind : '');
@@ -192,6 +198,7 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
     delete previews[kind].dataset.objectUrl;
     $(kind + 'info').textContent = 'No valid file selected';
     controls.forEach(control => control.disabled = true);
+    revision++;
     canvas.width = 1;
     canvas.height = 1;
     if (!file) {sync(); return;}
@@ -261,6 +268,7 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
   load.active = {rgb:null,thermal:null};
   function render() {
     if (!ready()) return;
+    revision++;
     const {width,height} = data.rgb;
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width=width;canvas.height=height;
@@ -284,13 +292,74 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(() => URL.revokeObjectURL(url),2000);
   }
+  function clearImages() {
+    for (const kind of ['rgb', 'thermal']) {
+      load.active[kind] = Symbol(kind + '-cleared');
+      data[kind] = null;
+      inputs[kind].value = '';
+      previews[kind].removeAttribute('src');
+      const url = previews[kind].dataset.objectUrl;
+      if (url) URL.revokeObjectURL(url);
+      delete previews[kind].dataset.objectUrl;
+      $(kind + 'info').textContent = 'No file selected';
+    }
+    $('weight').value = 50;
+    $('mode').value = 'weighted';
+    $('weightValue').textContent = '50%';
+    controls.forEach(control => control.disabled = true);
+    revision++;
+    canvas.width = 1;
+    canvas.height = 1;
+    status('Select two images, or choose “Try an example”.');
+  }
+  async function loadSample() {
+    clearImages();
+    const token = Symbol('synthetic-example');
+    load.active.rgb = load.active.thermal = token;
+    const width = 160, height = 120;
+    const make = (background, foreground) => {
+      const gray = new Uint8ClampedArray(width*height);
+      gray.fill(background);
+      for (let y=36;y<86;y++) {
+        for (let x=58;x<105;x++) gray[y*width+x] = foreground;
+      }
+      return {width,height,gray,isDemo:true,bytes:0,
+        type:'image/x-synthetic',name:'Built-in example'};
+    };
+    const a = make(35,175), b = make(65,230);
+    let urls = [];
+    try {
+      urls = await Promise.all([previewNpy(a),previewNpy(b)]);
+      if (load.active.rgb !== token || load.active.thermal !== token) return;
+      data.rgb = a;
+      data.thermal = b;
+      for (const [kind,url] of [['rgb',urls[0]],['thermal',urls[1]]]) {
+        previews[kind].src = url;
+        previews[kind].dataset.objectUrl = url;
+        $(kind + 'info').textContent = 'Synthetic example · 160×120 pixels';
+      }
+      urls = [];
+      sync();
+      status('Synthetic example loaded. Move the slider or select your own images.', 'success');
+    } catch (error) {
+      if (load.active.rgb === token && load.active.thermal === token) {
+        status('Could not create the example: ' + error.message, 'error');
+      }
+    } finally {
+      urls.forEach(url => URL.revokeObjectURL(url));
+    }
+  }
   inputs.rgb.addEventListener('change', () => load('rgb'));
   inputs.thermal.addEventListener('change', () => load('thermal'));
+  $('sample').addEventListener('click',loadSample);
+  $('clear').addEventListener('click',clearImages);
   $('weight').addEventListener('input',render);
   $('mode').addEventListener('change',render);
   $('save').addEventListener('click', () => {
     if (!ready()) return;
+    const clickedRevision = revision;
     canvas.toBlob(blob => {
+      if (revision !== clickedRevision || !ready()) return;
       if (blob) saveBlob(blob,'arc-rgbt-fusion.png');
       else status('PNG encoding failed.','error');
     },'image/png');
@@ -306,7 +375,9 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
       thermal:{name:data.thermal.name,bytes:data.thermal.bytes,mime_type:data.thermal.type,
         raw_dtype:data.thermal.raw_dtype || null,raw_min:data.thermal.raw_min ?? null,
         raw_max:data.thermal.raw_max ?? null,normalization:data.thermal.normalization || 'sRGB_grayscale'},
-      data_origin:'user_supplied',radiometric_calibration:false,
+      data_origin:data.rgb.isDemo && data.thermal.isDemo ? 'simulated' :
+        data.rgb.isDemo || data.thermal.isDemo ? 'mixed_simulated_user' : 'user_supplied',
+      radiometric_calibration:false,
       spatial_registration:'external_unverified',
       output:'browser_8bit_grayscale_visualization_not_raw_sensor_values',
       note:'Not a scientific detection or thermal radiometry measurement'};
