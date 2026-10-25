@@ -215,6 +215,7 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
       status(kind.toUpperCase() + ': choose a nonempty PNG, JPEG, WebP or .npy file up to 16 MiB.', 'error');
       return;
     }
+    status('Opening ' + (kind === 'rgb' ? 'RGB' : 'thermal') + ' image…');
     const token = Symbol(kind);
     load.active[kind] = token;
     let objectUrl = null;
