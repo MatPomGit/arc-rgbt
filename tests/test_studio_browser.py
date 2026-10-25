@@ -44,10 +44,12 @@ def test_studio_browser_workflow(tmp_path):
             assert page.locator("#save").is_disabled()
             page.locator("#rgb").set_input_files(red)
             page.locator("#thermal").set_input_files(wrong)
+            page.locator("#status.error").wait_for(timeout=3000)
             assert page.locator("#status.error").is_visible()
             assert "Dimension mismatch" in page.locator("#status").inner_text()
             assert page.locator("#save").is_disabled()
             page.locator("#thermal").set_input_files(blue)
+            page.wait_for_function("() => !document.getElementById('save').disabled")
             assert page.locator("#save").is_enabled()
 
             def pixel():
