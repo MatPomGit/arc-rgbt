@@ -88,3 +88,11 @@ def test_cli_help_and_conflicting_controls(capsys, tmp_path):
         main(["--input", "missing.npy", "--range", "1", "2",
               "--percentiles", "3", "98"])
     assert exc.value.code == 2
+
+def test_default_percentiles_handle_extreme_finite_float64():
+    raw = np.array([[-1e308, 0.0, 1e308]], dtype=np.float64)
+    with np.errstate(all="raise"):
+        view, meta = preview(raw)
+    assert meta["display_low"] < 0 < meta["display_high"]
+    assert np.isfinite([meta["display_low"], meta["display_high"]]).all()
+    assert view.tolist() == [[0, 128, 255]]
