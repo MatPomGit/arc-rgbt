@@ -18,26 +18,6 @@ python -m ruff check src tests tools
 
 The installation command may download free Python packages if they are not cached. For isolated offline execution, install from a locally prepared wheelhouse instead. No paid API or cloud runtime is needed.
 
-## Inspect a native 16-bit LWIR frame
-
-Store an original 2D `.npy` frame without converting it to RGB. Then:
-
-```bash
-arc-rgbt thermal --input local_sensor_raw.npy --output reports/raw-preview
-```
-
-Open `reports/raw-preview/preview.png` and inspect
-`reports/raw-preview/metadata.json` for dtype, SHA-256 and source intensity
-statistics. Source numeric values and raw file remain unchanged. Use
-`--range LOW HIGH` (in original sensor units) to compare multiple frames
-with identical visualization bounds. The default 2–98 percentile range
-does **not** support comparing absolute intensities across frames.
-
-In `arc-rgbt studio`, directly select 2D `.npy` arrays for RGB-like
-intensity and/or thermal inputs. Each array is displayed after a distinct
-min–max intensity stretch; the interface explicitly reports raw dtype/min/max.
-Do not interpret the visual blend as calibrated sensor fusion.
-
 ## Start the interactive image studio
 
 ```bash
@@ -58,7 +38,27 @@ local file path rather than launching a browser.
 intensities, not calibrated radiometry, detector accuracy or raw sensor
 measurements. Original numeric `.npy` input files remain unchanged.
 
-## Fastest start: no input files to prepare
+## Inspect a native 16-bit LWIR frame
+
+Store an original 2D `.npy` frame without converting it to RGB. Then:
+
+```bash
+arc-rgbt thermal --input local_sensor_raw.npy --output reports/raw-preview
+```
+
+Open `reports/raw-preview/preview.png` and inspect
+`reports/raw-preview/metadata.json` for dtype, SHA-256 and source intensity
+statistics. Source numeric values and raw file remain unchanged. Use
+`--range LOW HIGH` (in original sensor units) to compare multiple frames
+with identical visualization bounds. The default 2–98 percentile range
+does **not** support comparing absolute intensities across frames.
+
+In `arc-rgbt studio`, directly select 2D `.npy` arrays for RGB-like
+intensity and/or thermal inputs. Each array is displayed after a distinct
+min–max intensity stretch; the interface explicitly reports raw dtype/min/max.
+Do not interpret the visual blend as calibrated sensor fusion.
+
+## Optional: generate reproducible files and a report
 
 ```bash
 arc-rgbt doctor
