@@ -12,6 +12,26 @@ fusion slider or absolute difference view, then export PNG or JSON. The UI
 does not perform spatial registration or radiometric calibration, and its
 outputs are exploratory rather than validated detector/MCU measurements.
 
+## Studio acceptance test (optional)
+
+The ordinary offline test suite does not require a browser. For an extra
+end-to-end check with locally installed Chromium and Playwright:
+
+```bash
+ARC_RGBT_BROWSER_TEST=1 ARC_RGBT_CHROMIUM_EXECUTABLE=/usr/bin/chromium \
+  python -m pytest -q tests/test_studio_browser.py
+```
+
+Leave `ARC_RGBT_CHROMIUM_EXECUTABLE` unset when Playwright already has its
+own local Chromium installation. This optional test exercises file selection,
+mismatched grids, pixel values after blending, the intensity difference view,
+both download buttons and rejection of invalid MIME types. It does not download
+a browser automatically.
+
+For extensionless output paths, `arc-rgbt register` also normalizes
+`--output registered` into `registered.npz` with
+`registered.npz.json` metadata. Other explicit suffixes are rejected.
+
 ## Unified launcher (recommended)
 
 After `pip install -e .`, `arc-rgbt --help` lists all available tools.
