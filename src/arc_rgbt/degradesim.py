@@ -41,7 +41,11 @@ def degrade(
     if motion_length_px > 1:
         kernel = np.full((1, motion_length_px), 1 / motion_length_px, dtype=np.float32)
         work = cv2.filter2D(work, -1, kernel, borderType=cv2.BORDER_REFLECT)
+        if image.ndim == 3 and image.shape[2] == 1 and work.ndim == 2:
+            work = work[..., None]
     native = cv2.resize(work, (width_px, height_px), interpolation=cv2.INTER_AREA)
+    if image.ndim == 3 and image.shape[2] == 1 and native.ndim == 2:
+        native = native[..., None]
     if noise_sigma:
         native += (
             np.random.default_rng(seed).normal(0, noise_sigma, native.shape).astype(np.float32)
