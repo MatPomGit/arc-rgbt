@@ -44,8 +44,8 @@ Remove-Item Env:\ARC_RGBT_BROWSER_TEST
 ```
 
 Check that the browser run reports **7 passed**, not `7 skipped`.
-For a fresh virtual environment, `& $python -m pip install -e
-".[dev,browser]"` installs the entry points; perform this separately
+For a fresh virtual environment, run `& $python -m pip install -e ".[dev,browser]"`
+to install the entry points; perform this separately
 using approved preinstalled/offline dependencies where required.
 Use double quotes around extras in Windows PowerShell or CMD.
 
@@ -62,6 +62,7 @@ runners or GitHub-hosted Actions for this validation.
 From a clone of `MatPomGit/arc-rgbt` in Windows PowerShell:
 
 ```powershell
+$originalRoot = (Get-Location).Path
 git fetch origin refs/pull/8/head
 $sha = (git rev-parse FETCH_HEAD).Trim()
 git worktree add --detach "$env:TEMP\\arc-rgbt-pr8-browser" $sha
@@ -70,7 +71,7 @@ Set-Location "$env:TEMP\\arc-rgbt-pr8-browser"
 # Use a previously installed Chromium or Chrome binary. Example location:
 $chrome = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 # Use the existing virtual environment from the original checkout
-$python = "C:\Users\matpo\repo\arc-rgbt\.venv\Scripts\python.exe"
+$python = Join-Path $originalRoot '.venv\Scripts\python.exe'
 & .\tools\run-playwright-offline.ps1 -ExpectedSha $sha `
   -ChromiumExecutable $chrome -PythonExecutable $python
 ```
