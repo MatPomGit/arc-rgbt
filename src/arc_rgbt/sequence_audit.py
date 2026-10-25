@@ -134,7 +134,9 @@ def analyze(manifest: dict, root: Path, *, manifest_sha256: str | None = None) -
     return {
         "tool": "arc-rgbt-sequence-audit", "schema_version": 1,
         "data_origin": manifest["data_origin"],
+        "data_origin_verification": "declaration_only",
         "manifest_sha256": manifest_sha256, "clock_domain": result["clock_domain"],
+        "clock_domain_verification": "external_unverified",
         "matching_method": result["method"],
         "summary": {**result["summary"],
                     "equal_native_grid_pairs": sum(p["equal_native_grids"] for p in pairs),
@@ -151,6 +153,7 @@ def analyze(manifest: dict, root: Path, *, manifest_sha256: str | None = None) -
             "Raw range/dtype/shape checks do not establish sensor radiometry or detector accuracy",
             "No automatic resizing, image fusion, energy metering, "
             "or object recognition is performed",
+            "Files must be immutable during audit; live concurrent writes are not supported",
         ],
     }
 
