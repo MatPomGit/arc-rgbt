@@ -46,7 +46,8 @@ Click **Try an example** to load built-in, clearly labelled synthetic images
 without preparing any files. Use **Clear images** to start over. Alternatively,
 select pre-aligned same-size PNG/JPEG/WebP or supported 2D NumPy files, move
 the thermal slider, inspect differences, and save PNG/JSON. Exported metadata
-identifies a synthetic, mixed or user-supplied source. The UI does not
+identifies a synthetic or user-supplied source. Choosing your own image
+removes any remaining built-in example to avoid mixing both origins. The UI does not
 perform spatial registration or radiometric calibration; outputs are
 exploratory rather than validated detector/MCU measurements.
 
