@@ -67,6 +67,11 @@ mismatched grids, pixel values after blending, the intensity difference view,
 both download buttons and rejection of invalid MIME types. It does not download
 a browser automatically.
 
+On Windows PowerShell, opt in explicitly before the browser test:
+`$env:ARC_RGBT_BROWSER_TEST = "1"`. The CMD syntax `set VARIABLE=1`
+does not update PowerShell's environment, so the browser tests will skip.
+See [Playwright offline validation](../guides/playwright-offline.md).
+
 For extensionless output paths, `arc-rgbt register` also normalizes
 `--output registered` into `registered.npz` with
 `registered.npz.json` metadata. Other explicit suffixes are rejected.
