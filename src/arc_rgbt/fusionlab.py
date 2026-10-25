@@ -21,7 +21,11 @@ def _pair(rgb: np.ndarray, thermal: np.ndarray) -> tuple[np.ndarray, np.ndarray]
         raise ValueError("Provide two nonempty real aligned grayscale arrays of identical shape")
     if not (np.isfinite(rgb).all() and np.isfinite(thermal).all()):
         raise ValueError("Images must be finite")
-    return rgb.astype(np.float32), thermal.astype(np.float32)
+    with np.errstate(over="ignore", invalid="ignore"):
+        a, b = rgb.astype(np.float32), thermal.astype(np.float32)
+    if not (np.isfinite(a).all() and np.isfinite(b).all()):
+        raise ValueError("Image intensities exceed the supported float32 range")
+    return a, b
 
 
 def register_translation(reference: np.ndarray, moving: np.ndarray) -> tuple[np.ndarray, dict]:
