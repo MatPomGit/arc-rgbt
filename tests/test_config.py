@@ -12,6 +12,7 @@ def test_yaml_root_rejected(tmp_path):
     with pytest.raises(ValueError):
         load_yaml(p)
 
+
 def test_pytest_src_layout_is_configured_without_editable_install():
     config = Path(__file__).resolve().parents[1] / "pyproject.toml"
     settings = tomllib.loads(config.read_text(encoding="utf-8"))
