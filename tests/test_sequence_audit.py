@@ -204,3 +204,9 @@ def test_cli_demo_and_argument_errors(tmp_path, capsys):
     with pytest.raises(SystemExit) as raised:
         main(["--demo", "--input", "something.json"])
     assert raised.value.code == 2
+
+def test_reused_capture_file_cannot_count_as_multiple_frames(tmp_path):
+    _, manifest = fixture(tmp_path)
+    manifest["thermal_frames"][1]["path"] = manifest["thermal_frames"][0]["path"]
+    with pytest.raises(ValueError, match="Duplicate capture"):
+        analyze(manifest, tmp_path)
