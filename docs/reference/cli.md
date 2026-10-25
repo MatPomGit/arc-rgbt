@@ -32,7 +32,7 @@ The browser preserves raw samples separately from its normalized preview.
 `arc-rgbt studio` opens a packaged, standalone browser UI via a `file://`
 URL. Use `arc-rgbt studio --no-open` to print the absolute HTML path without
 launching a browser. It has no HTTP server and requires no added dependencies.
-Select same-size, pre-aligned PNG/JPEG/WebP inputs, use the weighted grayscale
+Select same-size, pre-aligned PNG/JPEG/WebP or supported 2D NumPy inputs, use the weighted grayscale
 fusion slider or absolute difference view, then export PNG or JSON. The UI
 does not perform spatial registration or radiometric calibration, and its
 outputs are exploratory rather than validated detector/MCU measurements.
@@ -63,6 +63,7 @@ After `pip install -e .`, `arc-rgbt --help` lists all available tools.
 
 | Command | Purpose |
 | --- | --- |
+| `arc-rgbt thermal [--input] ...` | Raw numeric thermal preview with source SHA-256 and explicit display limits |
 | `arc-rgbt studio [--no-open]` | Open local browser-based RGB–thermal viewer with no server |
 | `arc-rgbt doctor [--json]` | Validate Python >=3.12 and required local dependencies |
 | `arc-rgbt demo [--output NEW_DIR] [--seed N]` | Generate a synthetic run, image previews and a local HTML viewer |
