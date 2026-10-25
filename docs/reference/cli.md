@@ -42,10 +42,13 @@ The browser preserves raw samples separately from its normalized preview.
 `arc-rgbt studio` opens a packaged, standalone browser UI via a `file://`
 URL. Use `arc-rgbt studio --no-open` to print the absolute HTML path without
 launching a browser. It has no HTTP server and requires no added dependencies.
-Select same-size, pre-aligned PNG/JPEG/WebP or supported 2D NumPy inputs, use the weighted grayscale
-fusion slider or absolute difference view, then export PNG or JSON. The UI
-does not perform spatial registration or radiometric calibration, and its
-outputs are exploratory rather than validated detector/MCU measurements.
+Click **Try an example** to load built-in, clearly labelled synthetic images
+without preparing any files. Use **Clear images** to start over. Alternatively,
+select pre-aligned same-size PNG/JPEG/WebP or supported 2D NumPy files, move
+the thermal slider, inspect differences, and save PNG/JSON. Exported metadata
+identifies a synthetic, mixed or user-supplied source. The UI does not
+perform spatial registration or radiometric calibration; outputs are
+exploratory rather than validated detector/MCU measurements.
 
 ## Studio acceptance test (optional)
 
