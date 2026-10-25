@@ -9,6 +9,7 @@ An open, device-independent Python research toolkit for low- and medium-resoluti
 Install the package using your approved local dependencies, then run:
 
 ```bash
+python -m pip install -e .
 arc-rgbt studio
 ```
 
