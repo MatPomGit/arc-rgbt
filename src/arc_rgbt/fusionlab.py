@@ -62,6 +62,8 @@ def _iou(a: list[float], b: list[float]) -> float:
     x2, y2 = min(a[0] + a[2], b[0] + b[2]), min(a[1] + a[3], b[1] + b[3])
     inter = max(0, x2 - x1) * max(0, y2 - y1)
     union = a[2] * a[3] + b[2] * b[3] - inter
+    if not (np.isfinite(inter) and np.isfinite(union)):
+        raise ValueError("Derived detection geometry overflows the numeric range")
     return inter / union if union > 0 else 0.0
 
 
