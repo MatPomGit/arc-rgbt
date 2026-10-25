@@ -48,6 +48,7 @@ def test_motion_blur_is_horizontal_and_preserves_constant_signal():
                        height_px=9, motion_length_px=5)
     assert np.allclose(const, 0.4)
 
+
 def test_single_channel_3d_image_preserves_channel_axis():
     image = np.full((9, 9, 1), 0.4, dtype=np.float32)
     for motion in (1, 3):
