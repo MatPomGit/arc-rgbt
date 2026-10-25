@@ -25,3 +25,15 @@ This changelog records implemented features only; it is not a validation certifi
   and negative regression tests for the documentation contract.
 - Manual self-hosted strict MkDocs build; no automatic public deployment.
 - This is documentation of reference/simulated methods, not new field evidence.
+
+## Unreleased (user experience, under review)
+
+- Add unified `arc-rgbt` CLI with diagnostics and synthetic self-contained demo.
+- Add offline browser Studio with pre-aligned raster and numeric 2D NumPy
+  inputs, selectable grayscale blending, PNG export and metadata.
+- Add bounded native uint16/float thermal preview with SHA-256,
+  original intensity ranges and explicit display normalization.
+- Add guardrails for invalid frames, extensionless output paths and
+  regressions for overflow-prone float64 ranges.
+- Changes remain research visualization tools; they are not thermal
+  calibration, detector validation or MCU benchmark evidence.
