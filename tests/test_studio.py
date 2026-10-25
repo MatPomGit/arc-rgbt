@@ -16,6 +16,7 @@ def test_studio_is_packaged_and_local():
     assert "Try an example" in document
     assert "data.rgb.isDemo && data.thermal.isDemo" in document
     assert "Dimension mismatch" in document
+    assert "spatial alignment unverified" in document
     assert "radiometric_calibration:false" in document
     assert "MAX_PIXELS = 4_000_000" in document
     assert "fetch(" not in document
