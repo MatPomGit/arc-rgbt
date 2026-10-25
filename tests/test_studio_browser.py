@@ -196,7 +196,9 @@ def test_studio_one_click_example_and_reset(tmp_path):
             example_replacement = tmp_path / "real-rgb.png"
             example_replacement.write_bytes(encoded.tobytes())
             page.locator("#rgb").set_input_files(str(example_replacement))
-            page.wait_for_function("() => document.getElementById('thermalPreview').getAttribute('src') === null")
+            page.wait_for_function(
+                "() => document.getElementById('thermalPreview').getAttribute('src') === null"
+            )
             assert page.locator("#save").is_disabled()
             assert page.locator("#thermalinfo").inner_text() == "No file selected"
 
