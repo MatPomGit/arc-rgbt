@@ -50,6 +50,22 @@ The documentation site is built **locally** and not automatically
 deployed to GitHub Pages. Installation uses free Python dependencies;
 for an air-gapped machine use an approved, local wheelhouse.
 
+## Timestamped RGB/LWIR sequence audit
+
+```bash
+arc-rgbt sequence --demo --output reports/sequence-example
+arc-rgbt sequence --input recordings/manifest.json --output reports/capture-audit
+```
+
+The new offline batch audit validates local `.npy` frames, computes SHA-256,
+checks raw dimensions and dtypes, and pairs timestamps on a **declared** shared
+monotonic capture clock. It writes a portable HTML summary, JSON evidence and
+CSV of matched pairs, with unmatched counts, median/p95 skew and grid changes.
+The synthetic `--demo` requires no camera/data downloads. Unsafe paths and
+missing files fail closed. No interpolation, physical clock calibration or
+object detection is performed. See
+[sequence and registration guide](docs/guides/synchronization-registration.md).
+
 ## Scientific raw thermal frames: 16-bit and NumPy (new)
 
 A native thermal frame should remain numeric throughout the research pipeline.
