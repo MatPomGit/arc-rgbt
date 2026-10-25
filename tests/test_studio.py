@@ -11,6 +11,10 @@ def test_studio_is_packaged_and_local():
     assert "image/png,image/jpeg,image/webp" in document
     assert 'id="rgb"' in document
     assert 'id="thermal"' in document
+    assert 'id="sample"' in document
+    assert 'id="clear"' in document
+    assert "Try an example" in document
+    assert "data.rgb.isDemo && data.thermal.isDemo" in document
     assert "Dimension mismatch" in document
     assert "radiometric_calibration:false" in document
     assert "MAX_PIXELS = 4_000_000" in document
