@@ -44,17 +44,19 @@ Do not interpret the visual blend as calibrated sensor fusion.
 arc-rgbt studio
 ```
 
-The local browser UI accepts two images (PNG, JPEG or WebP), lets you change
-thermal weighting or inspect the absolute grayscale difference, and exports
-a PNG and JSON metadata. No server, network, login or uploaded data is involved.
-Inputs must already be aligned and have identical dimensions; resampling is
-never performed implicitly. For servers without a GUI, use
-`arc-rgbt studio --no-open` to print the packaged HTML file location and open
-it later on a desktop that has the package installed.
+1. Click **Try an example**. A synthetic pair appears without any dataset.
+2. Move the thermal slider or select **Highlight intensity differences**.
+3. Click **Save fused PNG** or **Save metadata JSON**. Use **Clear images** to reset.
 
-Studio operates on 8-bit browser-decoded image intensities and is **not**
-an interface for physical thermal radiometry, detector evaluation or rigorous
-research data processing. Use the Python API or CLI for numerical arrays.
+For your own recordings, choose two PNG/JPEG/WebP or supported 2D NumPy files.
+They must already be aligned and have exactly equal dimensions. Studio does
+not resize or register them. The UI is a local file: no network, login, upload,
+or server. On a headless system, `arc-rgbt studio --no-open` prints the
+local file path rather than launching a browser.
+
+**Interpretation:** the example is simulated. Fused PNGs show 8-bit display
+intensities, not calibrated radiometry, detector accuracy or raw sensor
+measurements. Original numeric `.npy` input files remain unchanged.
 
 ## Fastest start: no input files to prepare
 
