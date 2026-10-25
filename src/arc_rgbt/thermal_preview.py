@@ -41,9 +41,12 @@ def preview(image: np.ndarray, *, percentiles: tuple[float, float] = (2.0, 98.0)
     ):
         raise ValueError("display_range must contain two finite increasing numbers")
     raw = image.astype(np.float64)
-    low, high = (np.percentile(raw, percentiles) if display_range is None
-                 else display_range)
     minimum, maximum = float(raw.min()), float(raw.max())
+    # Interpolation on the original extreme float64 range may overflow inside
+    # NumPy's percentile calculation despite all source samples being finite.
+    scale = max(abs(minimum), abs(maximum), 1.0)
+    low, high = (np.percentile(raw / scale, percentiles) * scale
+                 if display_range is None else display_range)
     if not math.isfinite(low) or not math.isfinite(high):
         raise ValueError("Computed display bounds are non-finite")
     constant = high <= low
