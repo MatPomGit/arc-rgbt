@@ -44,11 +44,17 @@ def preview(image: np.ndarray, *, percentiles: tuple[float, float] = (2.0, 98.0)
     low, high = (np.percentile(raw, percentiles) if display_range is None
                  else display_range)
     minimum, maximum = float(raw.min()), float(raw.max())
+    if not math.isfinite(low) or not math.isfinite(high):
+        raise ValueError("Computed display bounds are non-finite")
     constant = high <= low
     if constant:
         view = np.full(image.shape, 127, dtype=np.uint8)
     else:
-        scaled = np.clip((raw - low) / (high - low), 0, 1)
+        scale = max(abs(low), abs(high), 1.0)
+        denominator = high / scale - low / scale
+        if denominator <= 0:
+            raise ValueError("Display range too narrow for stable float64 rendering")
+        scaled = np.clip((raw / scale - low / scale) / denominator, 0, 1)
         view = np.rint(scaled * 255).astype(np.uint8)
     metadata = {
         "data_origin": "user_supplied_unverified", "raw_dtype": image.dtype.str,
