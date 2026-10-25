@@ -18,6 +18,7 @@ torch = ["torch>=2.3"]
 
 [project.scripts]
 arc-rgbt = "arc_rgbt.cli:main"
+arc-rgbt-thermal = "arc_rgbt.thermal_preview:main"
 sensorlab = "arc_rgbt.sensorlab:main"
 degradesim = "arc_rgbt.degradesim:main"
 fusionlab = "arc_rgbt.fusionlab:main"
