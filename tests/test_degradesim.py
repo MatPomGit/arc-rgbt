@@ -47,3 +47,10 @@ def test_motion_blur_is_horizontal_and_preserves_constant_signal():
     const, _ = degrade(np.full((9, 9), 0.4), width_px=9,
                        height_px=9, motion_length_px=5)
     assert np.allclose(const, 0.4)
+
+def test_single_channel_3d_image_preserves_channel_axis():
+    image = np.full((9, 9, 1), 0.4, dtype=np.float32)
+    for motion in (1, 3):
+        output, _ = degrade(image, width_px=4, height_px=4, motion_length_px=motion)
+        assert output.shape == (4, 4, 1)
+        assert np.allclose(output, 0.4)
