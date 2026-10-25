@@ -189,15 +189,22 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
         reject(new Error('Could not encode NumPy preview')), 'image/png');
     });
   }
+  function forget(kind, keepInput=false) {
+    data[kind] = null;
+    load.active[kind] = Symbol(kind + '-cleared');
+    if (!keepInput) inputs[kind].value = '';
+    previews[kind].removeAttribute('src');
+    const previous = previews[kind].dataset.objectUrl;
+    if (previous) URL.revokeObjectURL(previous);
+    delete previews[kind].dataset.objectUrl;
+    $(kind + 'info').textContent = 'No file selected';
+  }
   async function load(kind) {
     const file = inputs[kind].files[0];
-    data[kind] = null;
-    load.active[kind] = Symbol(kind + '-reset');
-    previews[kind].removeAttribute('src');
-    const priorUrl = previews[kind].dataset.objectUrl;
-    if (priorUrl) URL.revokeObjectURL(priorUrl);
-    delete previews[kind].dataset.objectUrl;
-    $(kind + 'info').textContent = 'No valid file selected';
+    forget(kind, true);
+    // A demonstration must never silently become part of a real-data comparison.
+    const other = kind === 'rgb' ? 'thermal' : 'rgb';
+    if (file && data[other]?.isDemo) forget(other);
     controls.forEach(control => control.disabled = true);
     revision++;
     canvas.width = 1;
@@ -294,16 +301,7 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
     setTimeout(() => URL.revokeObjectURL(url),2000);
   }
   function clearImages() {
-    for (const kind of ['rgb', 'thermal']) {
-      load.active[kind] = Symbol(kind + '-cleared');
-      data[kind] = null;
-      inputs[kind].value = '';
-      previews[kind].removeAttribute('src');
-      const url = previews[kind].dataset.objectUrl;
-      if (url) URL.revokeObjectURL(url);
-      delete previews[kind].dataset.objectUrl;
-      $(kind + 'info').textContent = 'No file selected';
-    }
+    for (const kind of ['rgb', 'thermal']) forget(kind);
     $('weight').value = 50;
     $('mode').value = 'weighted';
     $('weightValue').textContent = '50%';
@@ -330,7 +328,8 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
     const a = make(35,175), b = make(65,230);
     let urls = [];
     try {
-      urls = await Promise.all([previewNpy(a),previewNpy(b)]);
+      urls.push(await previewNpy(a));
+      urls.push(await previewNpy(b));
       if (load.active.rgb !== token || load.active.thermal !== token) return;
       data.rgb = a;
       data.thermal = b;
