@@ -24,6 +24,7 @@ TOOLS = {
     "e02": ("e02", "Simulated synchronization/geometry experiment"),
     "sync": ("synchronization", "Pair timestamps on a common clock"),
     "register": ("registration", "Apply an externally calibrated homography"),
+    "studio": ("studio", "Offline visual image viewer and fusion controls"),
 }
 DEPENDENCIES = {"numpy": "NumPy", "cv2": "OpenCV", "scipy": "SciPy", "yaml": "PyYAML"}
 
