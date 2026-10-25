@@ -2,6 +2,31 @@
 
 All entry points are defined by `[project.scripts]` in `pyproject.toml`. Run any tool with `--help` for the authoritative flag list. Execute commands from the repository root; generated results belong in the ignored `reports/` directory.
 
+## Raw NumPy thermal preview (new)
+
+`arc-rgbt thermal` (or `arc-rgbt-thermal`) takes a 2D numeric `.npy`:
+
+```bash
+arc-rgbt thermal --input thermal_u16.npy --output reports/thermal-001
+arc-rgbt thermal --input thermal_u16.npy --range 1000 16000 \
+  --output reports/thermal-fixed-001
+arc-rgbt thermal --input thermal_u16.npy --percentiles 2 98 \
+  --output reports/thermal-relative-001
+```
+
+The `--range` and `--percentiles` controls are mutually exclusive.
+Accepted types: 8/16/32-bit signed/unsigned integers and real float arrays;
+2D, finite, ≤4 million samples and ≤64 MiB on disk. Raw units are not
+interpreted as temperatures without a separately documented calibration.
+Output is a new directory containing `preview.png` (8-bit visualization)
+and `metadata.json` (original dtype, shape, min/max, SHA-256, clipping,
+display bounds and explicit limitations). The input file is not changed.
+
+Studio also parses a safe subset of v1/v2/v3 uncompressed NumPy headers in
+the browser (2D C-order and supported real numeric dtypes). It validates
+header, file length, shape, endianness, finite values and the 16 MiB limit.
+The browser preserves raw samples separately from its normalized preview.
+
 ## Interactive local studio
 
 `arc-rgbt studio` opens a packaged, standalone browser UI via a `file://`
