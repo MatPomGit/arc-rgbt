@@ -96,7 +96,8 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
         'error');
       return;
     }
-    status('Aligned grids: ' + data.rgb.width + '×' + data.rgb.height + ' pixels. Visualization ready.', 'success');
+    status('Matching dimensions: ' + data.rgb.width + '×' + data.rgb.height +
+      ' pixels; spatial alignment unverified. Visualization ready.', 'success');
     render();
   }
 
