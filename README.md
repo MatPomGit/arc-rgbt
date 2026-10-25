@@ -106,19 +106,20 @@ arc-rgbt studio
 arc-rgbt studio --no-open
 ```
 
-To try it without a camera or external dataset, first run
-`arc-rgbt demo --output reports/demo`, then select
-`reports/demo/rgb_native.png` and `reports/demo/thermal_native.png`
-inside Studio.
+**First run:** click **Try an example**. A synthetic RGB/thermal pair appears
+immediately; move the thermal slider, switch to the difference view, or click
+**Clear images** to start again. No image files or camera are needed.
 
-Studio opens a **local, self-contained HTML file**. Select two pre-aligned,
-same-size PNG/JPEG/WebP images using file pickers. A thermal contribution slider
-controls weighted grayscale intensity fusion; the difference view shows absolute
-intensity differences. Export the current 8-bit grayscale visualization to PNG
-and its configuration to JSON. Files never leave the browser tab: there is no
-server, upload API, JavaScript CDN or cloud dependency. Each file is limited to
-16 MiB, each image to 4 million pixels. Unequal grids are explicitly rejected
-without automatic resizing.
+To use your own data, select two pre-aligned images (PNG, JPEG, WebP or
+supported 2D numeric `.npy`). The images must already have equal dimensions.
+The interface never resizes or automatically registers them. Export the
+grayscale visualization as PNG and its provenance/configuration as JSON.
+
+Studio is a **local self-contained HTML file**, not a web service. No uploads,
+login, JavaScript CDN, or cloud processing. Each input is limited to
+16 MiB and 4 million pixels. For a reproducible **file-based** example instead,
+run `arc-rgbt demo --output reports/demo` and select the generated
+`rgb_native.png` and `thermal_native.png` in Studio.
 
 **Scope:** browser-decoded sRGB grayscale intensities are not calibrated
 radiometry, temperature measurements or geometric calibration. This is an
