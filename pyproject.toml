@@ -40,6 +40,8 @@ arc_rgbt = ["studio.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Make the src/ layout importable to pytest without an editable install.
+pythonpath = ["src"]
 
 [tool.ruff]
 target-version = "py312"
