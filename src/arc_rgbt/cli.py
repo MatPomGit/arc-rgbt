@@ -25,6 +25,7 @@ TOOLS = {
     "sync": ("synchronization", "Pair timestamps on a common clock"),
     "register": ("registration", "Apply an externally calibrated homography"),
     "studio": ("studio", "Offline visual image viewer and fusion controls"),
+    "thermal": ("thermal_preview", "Raw 16-bit or float .npy preview with provenance"),
 }
 DEPENDENCIES = {"numpy": "NumPy", "cv2": "OpenCV", "scipy": "SciPy", "yaml": "PyYAML"}
 
