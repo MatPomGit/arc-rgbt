@@ -376,8 +376,7 @@ canvas.preview{height:auto;max-height:330px;image-rendering:pixelated}
       thermal:{name:data.thermal.name,bytes:data.thermal.bytes,mime_type:data.thermal.type,
         raw_dtype:data.thermal.raw_dtype || null,raw_min:data.thermal.raw_min ?? null,
         raw_max:data.thermal.raw_max ?? null,normalization:data.thermal.normalization || 'sRGB_grayscale'},
-      data_origin:data.rgb.isDemo && data.thermal.isDemo ? 'simulated' :
-        data.rgb.isDemo || data.thermal.isDemo ? 'mixed_simulated_user' : 'user_supplied',
+      data_origin:data.rgb.isDemo && data.thermal.isDemo ? 'simulated' : 'user_supplied',
       radiometric_calibration:false,
       spatial_registration:'external_unverified',
       output:'browser_8bit_grayscale_visualization_not_raw_sensor_values',
