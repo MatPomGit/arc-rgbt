@@ -31,6 +31,7 @@ def test_float_constant_has_explicit_display_status():
     np.array([[np.nan]]),
     np.array([[np.inf]]),
     np.array([[True]]),
+    np.array([[2**60]], dtype=np.uint64),
     np.empty((0, 3)),
 ])
 def test_invalid_source_rejected(bad):
