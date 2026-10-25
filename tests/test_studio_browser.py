@@ -144,3 +144,57 @@ def test_studio_reads_native_numpy_uint16_without_dropping_raw_range(tmp_path):
             assert not errors, errors
         finally:
             browser.close()
+
+
+@pytest.mark.skipif(os.getenv("ARC_RGBT_BROWSER_TEST") != "1", reason="Opt-in local browser test")
+def test_studio_one_click_example_and_reset(tmp_path):
+    """No dataset, camera or file preparation is needed to learn the controls."""
+    playwright = pytest.importorskip("playwright.sync_api")
+    from arc_rgbt import studio
+
+    with playwright.sync_playwright() as engine:
+        options = {"headless": True}
+        if os.getenv("ARC_RGBT_CHROMIUM_EXECUTABLE"):
+            options["executable_path"] = os.environ["ARC_RGBT_CHROMIUM_EXECUTABLE"]
+        browser = engine.chromium.launch(**options)
+        try:
+            page = browser.new_page(accept_downloads=True)
+            source = Path(studio.resources.files("arc_rgbt").joinpath("studio.html"))
+            page.set_content(source.read_text(encoding="utf-8"))
+            errors = []
+            page.on("pageerror", lambda error: errors.append(str(error)))
+
+            assert page.locator("#save").is_disabled()
+            page.get_by_role("button", name="Try an example").click()
+            page.wait_for_function("() => !document.getElementById('save').disabled")
+            assert "Synthetic example loaded" in page.locator("#status").inner_text()
+            assert "Synthetic example" in page.locator("#rgbinfo").inner_text()
+
+            def pixel(x, y):
+                return page.evaluate("""pos => Array.from(document.getElementById('fused')
+                  .getContext('2d').getImageData(pos[0], pos[1], 1, 1).data)""", [x, y])
+
+            assert pixel(0, 0) == [50, 50, 50, 255]
+            assert pixel(60, 40) == [203, 203, 203, 255]
+            page.locator("#weight").fill("100")
+            assert pixel(60, 40) == [230, 230, 230, 255]
+            page.locator("#mode").select_option("difference")
+            assert pixel(60, 40) == [55, 55, 55, 255]
+
+            with page.expect_download() as download:
+                page.locator("#metadata").click()
+            filename = tmp_path / "metadata.json"
+            download.value.save_as(str(filename))
+            meta = __import__("json").loads(filename.read_text(encoding="utf-8"))
+            assert meta["data_origin"] == "simulated"
+            assert meta["radiometric_calibration"] is False
+
+            page.get_by_role("button", name="Clear images").click()
+            assert page.locator("#save").is_disabled()
+            assert page.locator("#weight").is_disabled()
+            assert page.locator("#weightValue").inner_text() == "50%"
+            assert page.locator("#rgbPreview").get_attribute("src") is None
+            assert page.evaluate("document.getElementById('fused').width") == 1
+            assert not errors, errors
+        finally:
+            browser.close()
