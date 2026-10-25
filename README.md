@@ -4,6 +4,21 @@
 
 An open, device-independent Python research toolkit for low- and medium-resolution RGB, NIR and LWIR imaging, native-resolution effects, early/late fusion, labelled detection evaluation, and host profiling. No cloud service, API key, model download or dataset download is required. Apache-2.0 license.
 
+## Start here
+
+Install the package using your approved local dependencies, then run:
+
+```bash
+arc-rgbt studio
+```
+
+Click **Try an example**. You can immediately experiment with RGB/thermal
+weighting, view the difference, and save a result. No dataset, camera,
+configuration file, account or web service is required. Use **Clear images**
+to reset and choose your own pre-aligned files.
+
+More technical workflows and evidence limits are documented below.
+
 ## What works in v0.1.0
 
 | Component | Status | Scope |
