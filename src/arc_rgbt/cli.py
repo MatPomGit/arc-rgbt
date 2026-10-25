@@ -36,9 +36,12 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="arc-rgbt",
         description="Offline RGB/thermal research toolkit. No camera or dataset download required.",
-        epilog=("First run: arc-rgbt doctor ; arc-rgbt demo --output reports/demo\n"
-                "Tool help: arc-rgbt <command> --help\n\n"
-                "Available tools:\n" + descriptions),
+        epilog=("Start here:\n"
+                "  arc-rgbt studio       Open the viewer and click Try an example\n"
+                "  arc-rgbt doctor       Check installed dependencies\n"
+                "  arc-rgbt demo         Save a reproducible synthetic report\n"
+                "  arc-rgbt sequence --demo   Audit synthetic RGB/LWIR timestamps\n\n"
+                "Advanced tools (arc-rgbt <name> --help):\n" + descriptions),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     commands = parser.add_argument_group("commands")
