@@ -80,3 +80,10 @@ def test_tolerance_can_reduce_pairs():
                       "thermal_start_offsets_ms": [10]})
     assert no_pair["synchronization"][0]["summary"]["matched"] == 0
     assert loose["synchronization"][0]["summary"]["matched"] > 0
+
+
+@pytest.mark.parametrize("field", ["rgb_fps", "thermal_fps"])
+def test_extremely_small_fps_is_rejected_before_period_conversion(field):
+    values = {**scenario(), field: 1e-300}
+    with pytest.raises(ValueError, match="FPS"):
+        simulate(values)

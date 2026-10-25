@@ -55,7 +55,7 @@ def run(dataset: dict, output: str | Path, source_path: str | Path | None = None
                             "thermal_predictions", "quality"})
         frame_id = sample["id"]
         if (isinstance(frame_id, bool) or not isinstance(frame_id, (str, int))
-                or not frame_id or frame_id in seen):
+                or frame_id == "" or frame_id in seen):
             raise ValueError("Frame identifiers must be unique and nonempty")
         seen.add(frame_id)
         q = sample["quality"]

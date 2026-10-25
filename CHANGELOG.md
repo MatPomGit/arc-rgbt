@@ -25,3 +25,36 @@ This changelog records implemented features only; it is not a validation certifi
   and negative regression tests for the documentation contract.
 - Manual self-hosted strict MkDocs build; no automatic public deployment.
 - This is documentation of reference/simulated methods, not new field evidence.
+
+## Unreleased (sequence integrity, under review)
+
+- Add vendor-independent offline audit for timestamped RGB/LWIR NumPy frame
+  sequences with strict relative paths and bounded frame/file sizes.
+- Add synthetic sequence demo and HTML/CSV/JSON pairing reports with SHA-256,
+  native grids, dtype changes, timing skew and unmatched-frame counts.
+- Explicitly distinguish time pairing from real clock synchronization,
+  spatial registration, detector accuracy and radiometric validity.
+
+## Unreleased (KISS usability pass, under review)
+
+- Studio starts with a one-click synthetic example, a clear/reset action
+  and a simpler two-step interface, without requiring a local image dataset.
+- Selecting real data automatically discards the example's other modality
+  instead of silently combining simulated and measured inputs.
+- Mark synthetic example provenance in exported JSON, retain an explicit
+  note about non-radiometric preview-only results and make CLI help
+  recommend the simplest local workflow.
+- Test blending behavior, source labels, reset, and sample-to-real transition
+  without adding dependencies to the runtime.
+
+## Unreleased (user experience, under review)
+
+- Add unified `arc-rgbt` CLI with diagnostics and synthetic self-contained demo.
+- Add offline browser Studio with pre-aligned raster and numeric 2D NumPy
+  inputs, selectable grayscale blending, PNG export and metadata.
+- Add bounded native uint16/float thermal preview with SHA-256,
+  original intensity ranges and explicit display normalization.
+- Add guardrails for invalid frames, extensionless output paths and
+  regressions for overflow-prone float64 ranges.
+- Changes remain research visualization tools; they are not thermal
+  calibration, detector validation or MCU benchmark evidence.

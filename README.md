@@ -4,6 +4,22 @@
 
 An open, device-independent Python research toolkit for low- and medium-resolution RGB, NIR and LWIR imaging, native-resolution effects, early/late fusion, labelled detection evaluation, and host profiling. No cloud service, API key, model download or dataset download is required. Apache-2.0 license.
 
+## Start here
+
+Install the package using your approved local dependencies, then run:
+
+```bash
+python -m pip install -e .
+arc-rgbt studio
+```
+
+Click **Try an example**. You can immediately experiment with RGB/thermal
+weighting, view the difference, and save a result. No dataset, camera,
+configuration file, account or web service is required. Use **Clear images**
+to reset and choose your own pre-aligned files.
+
+More technical workflows and evidence limits are documented below.
+
 ## What works in v0.1.0
 
 | Component | Status | Scope |
@@ -31,6 +47,28 @@ pytest -q
 ruff check src tests tools
 ```
 
+### Windows PowerShell tests
+
+This project uses the `src/` package layout. Pytest resolves `src` from
+`pyproject.toml`, but installing the package is still required for CLI use.
+Prefer the project's `.venv` interpreter to a global Python:
+
+```powershell
+$python = (Resolve-Path .\.venv\Scripts\python.exe).Path
+& $python -m pytest -q
+& $python -m ruff check src tests tools
+$env:ARC_RGBT_BROWSER_TEST = "1"
+& $python -m pytest -q tests/test_studio_browser.py tests/test_studio_playwright_offline.py -v
+Remove-Item Env:\ARC_RGBT_BROWSER_TEST
+```
+
+PowerShell does **not** set environment variables with CMD's
+`set ARC_RGBT_BROWSER_TEST=1`; that syntax leaves all seven browser tests
+skipped. If the virtual environment needs installation, run
+`& $python -m pip install -e ".[dev,browser]"` separately, using approved
+offline dependencies when required. See the
+[offline Playwright guide](docs/guides/playwright-offline.md).
+
 ## Searchable research documentation (MkDocs)
 
 The full research guide is in [docs/](docs/index.md), with
@@ -49,6 +87,116 @@ python -m mkdocs serve
 The documentation site is built **locally** and not automatically
 deployed to GitHub Pages. Installation uses free Python dependencies;
 for an air-gapped machine use an approved, local wheelhouse.
+
+## Timestamped RGB/LWIR sequence audit
+
+```bash
+arc-rgbt sequence --demo --output reports/sequence-example
+arc-rgbt sequence --input recordings/manifest.json --output reports/capture-audit
+```
+
+The new offline batch audit validates local `.npy` frames, computes SHA-256,
+checks raw dimensions and dtypes, and pairs timestamps on a **declared** shared
+monotonic capture clock. It writes a portable HTML summary, JSON evidence and
+CSV of matched pairs, with unmatched counts, median/p95 skew and grid changes.
+The synthetic `--demo` requires no camera/data downloads. Unsafe paths and
+missing files fail closed. No interpolation, physical clock calibration or
+object detection is performed. See
+[sequence and registration guide](docs/guides/synchronization-registration.md).
+
+## Scientific raw thermal frames: 16-bit and NumPy (new)
+
+A native thermal frame should remain numeric throughout the research pipeline.
+Use this new standalone converter **only for visual inspection**:
+
+```bash
+arc-rgbt thermal --input local_thermal_uint16.npy --output reports/thermal-preview-001
+# Explicit, shared display bounds for comparisons across frames:
+arc-rgbt thermal --input local_thermal_uint16.npy \
+  --range 1000 16000 --output reports/thermal-preview-002
+```
+
+The command accepts finite 2D NumPy arrays with up to four million samples;
+8/16/32-bit signed or unsigned integers and real floating-point arrays
+(up to float64). It writes `preview.png` plus `metadata.json` containing
+the original dtype, dimensions, raw min/max, display limits, clip counts and
+the input SHA-256. The original `.npy` is not modified and no raw thermal
+values are replaced. The default 2–98 percentile stretch is image-relative.
+Use explicit `--range LOW HIGH` for comparable display scales across frames.
+Existing output directories are not overwritten. No camera or network required.
+
+The Studio image pickers additionally accept little- or big-endian 2D
+`.npy` of dtype `uint8`, `uint16`, `int16`, `uint32`, `int32`,
+`float32` or `float64`, at up to 16 MiB per file. The browser retains
+numeric values while rendering a separate min–max-normalized 8-bit preview.
+The exported metadata records raw dtype, min/max and normalization, but the
+exported PNG is always a display image rather than radiometric output.
+
+Neither mode calibrates temperatures, corrects nonlinear response,
+aligns geometries, recovers lost native resolution or validates
+people/vehicle detection.
+
+## Interactive RGB–Thermal Studio (fully offline)
+
+```bash
+arc-rgbt studio
+# On a headless machine, print the local HTML file path:
+arc-rgbt studio --no-open
+```
+
+**First run:** click **Try an example**. A synthetic RGB/thermal pair appears
+immediately; move the thermal slider, switch to the difference view, or click
+**Clear images** to start again. No image files or camera are needed.
+
+To use your own data, select two pre-aligned images (PNG, JPEG, WebP or
+supported 2D numeric `.npy`). The images must already have equal dimensions.
+The interface never resizes or automatically registers them. Export the
+grayscale visualization as PNG and its provenance/configuration as JSON.
+
+Studio is a **local self-contained HTML file**, not a web service. No uploads,
+login, JavaScript CDN, or cloud processing. Each input is limited to
+16 MiB and 4 million pixels. For a reproducible **file-based** example instead,
+run `arc-rgbt demo --output reports/demo` and select the generated
+`rgb_native.png` and `thermal_native.png` in Studio.
+
+**Scope:** browser-decoded sRGB grayscale intensities are not calibrated
+radiometry, temperature measurements or geometric calibration. This is an
+exploratory visualization, not an RGB–LWIR detector or scientific benchmark.
+For numerical pipelines on `.npy` data, continue using `fusionlab` and the
+existing reference algorithms.
+
+## Offline Playwright browser tests
+
+The Studio acceptance suite uses local Chromium without network access.
+Four additional Playwright tests validate the packaged `file://` page,
+native NumPy input, corrupt-file rejection, downloads, provenance and
+asynchronous upload races. They supplement three existing interaction tests.
+
+Use a clean disposable worktree and run
+`tools/run-playwright-offline.ps1 -ExpectedSha <40-character-commit-SHA>`
+with a preinstalled browser and test dependencies. The script verifies the
+exact SHA, runs Ruff, offline pytest and opt-in Chromium acceptance. It
+never installs software or starts GitHub Actions.
+
+See the [Playwright offline runbook](docs/guides/playwright-offline.md).
+Real `file://` browser checks must not be replaced by synthetic DOM-only
+checks if the machine policy blocks local-file navigation.
+
+## Unified entry point and synthetic preview
+
+After installation, run the local diagnostic and a complete, self-contained example:
+
+```bash
+arc-rgbt --help
+arc-rgbt doctor
+arc-rgbt demo --output reports/demo
+```
+
+Open `reports/demo/index.html` in a browser for side-by-side native-resolution RGB-like, thermal-like and fused previews, the labelled evaluation report and CPU timing. The demo generates all arrays locally and never contacts a service. The target directory must not already exist, preventing accidental overwrites; select a new `--output` for another run.
+
+The `arc-rgbt` command also forwards the original tool options: `sensor`, `degrade`, `fuse`, `bench`, `edge`, `e00`, `e01`, `e02`, `sync` and `register`. For example: `arc-rgbt fuse --help`.
+
+**Scientific limitation:** the demo contains one synthetic rectangle and a fixed-threshold localization heuristic. Its placeholder prediction score is not a calibrated probability. The resulting benchmark metrics do not establish detector, camera or embedded-hardware performance. Host CPU timings are environment-dependent.
 
 ## Quick start (no external data)
 

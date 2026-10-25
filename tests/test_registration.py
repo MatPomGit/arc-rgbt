@@ -70,3 +70,17 @@ def test_fractional_translation_rejects_partial_interpolation_support():
     assert np.all(shifted_back[:, -1] < 1.0)
     assert not inverse_mask[:, -1].any()
     assert inverse_mask[:, :-1].all()
+
+
+def test_scaled_equivalent_homographies_are_accepted():
+    rgb = np.arange(64, dtype=np.float32).reshape(8, 8)
+    a = align_pair(rgb, rgb, np.eye(3), calibration_origin="simulated")
+    b = align_pair(rgb, rgb, 1e-5 * np.eye(3), calibration_origin="simulated")
+    assert np.allclose(a[0], b[0])
+    assert np.array_equal(a[2], b[2])
+
+
+def test_registration_rejects_finite_float64_out_of_float32_range():
+    image = np.full((4, 4), 1e40, dtype=np.float64)
+    with pytest.raises(ValueError, match="float32"):
+        align_pair(image, image, np.eye(3), calibration_origin="simulated")

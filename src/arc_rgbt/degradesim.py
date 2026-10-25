@@ -41,7 +41,11 @@ def degrade(
     if motion_length_px > 1:
         kernel = np.full((1, motion_length_px), 1 / motion_length_px, dtype=np.float32)
         work = cv2.filter2D(work, -1, kernel, borderType=cv2.BORDER_REFLECT)
+        if image.ndim == 3 and image.shape[2] == 1 and work.ndim == 2:
+            work = work[..., None]
     native = cv2.resize(work, (width_px, height_px), interpolation=cv2.INTER_AREA)
+    if image.ndim == 3 and image.shape[2] == 1 and native.ndim == 2:
+        native = native[..., None]
     if noise_sigma:
         native += (
             np.random.default_rng(seed).normal(0, noise_sigma, native.shape).astype(np.float32)
@@ -64,11 +68,15 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--input", required=True, help="NumPy .npy array normalized to [0, 1]")
     p.add_argument("--output", default="reports/degradesim.npy")
     a = p.parse_args(argv)
+    out = Path(a.output)
+    if out.suffix not in ("", ".npy"):
+        p.error("--output must be a .npy path or have no extension")
+    if not out.suffix:
+        out = out.with_suffix(".npy")
     params = load_yaml(a.config)
     exact_keys(params, {"width_px", "height_px"},
                {"optical_sigma_px", "noise_sigma", "motion_length_px", "seed"})
     native, record = degrade(np.load(a.input, allow_pickle=False), **params)
-    out = Path(a.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     np.save(out, native, allow_pickle=False)
     print(save_json(str(out) + ".json", record))

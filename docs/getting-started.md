@@ -18,6 +18,66 @@ python -m ruff check src tests tools
 
 The installation command may download free Python packages if they are not cached. For isolated offline execution, install from a locally prepared wheelhouse instead. No paid API or cloud runtime is needed.
 
+## Start the interactive image studio
+
+```bash
+arc-rgbt studio
+```
+
+1. Click **Try an example**. A synthetic pair appears without any dataset.
+2. Move the thermal slider or select **Highlight intensity differences**.
+3. Click **Save fused PNG** or **Save metadata JSON**. Use **Clear images** to reset.
+
+For your own recordings, choose two PNG/JPEG/WebP or supported 2D NumPy files.
+They must already be aligned and have exactly equal dimensions. Studio does
+not resize or register them. The UI is a local file: no network, login, upload,
+or server. On a headless system, `arc-rgbt studio --no-open` prints the
+local file path rather than launching a browser.
+
+**Interpretation:** the example is simulated. Fused PNGs show 8-bit display
+intensities, not calibrated radiometry, detector accuracy or raw sensor
+measurements. Original numeric `.npy` input files remain unchanged.
+
+## Inspect a native 16-bit LWIR frame
+
+Store an original 2D `.npy` frame without converting it to RGB. Then:
+
+```bash
+arc-rgbt thermal --input local_sensor_raw.npy --output reports/raw-preview
+```
+
+Open `reports/raw-preview/preview.png` and inspect
+`reports/raw-preview/metadata.json` for dtype, SHA-256 and source intensity
+statistics. Source numeric values and raw file remain unchanged. Use
+`--range LOW HIGH` (in original sensor units) to compare multiple frames
+with identical visualization bounds. The default 2–98 percentile range
+does **not** support comparing absolute intensities across frames.
+
+In `arc-rgbt studio`, directly select 2D `.npy` arrays for RGB-like
+intensity and/or thermal inputs. Each array is displayed after a distinct
+min–max intensity stretch; the interface explicitly reports raw dtype/min/max.
+Do not interpret the visual blend as calibrated sensor fusion.
+
+## Optional: generate reproducible files and a report
+
+```bash
+arc-rgbt doctor
+arc-rgbt demo --output reports/demo
+```
+
+Open `reports/demo/index.html` locally to inspect the RGB-like, thermal-like and
+fused PNGs, a labelled report and the host CPU measurement. The full source
+NumPy arrays and metadata are available in the same directory. No datasets,
+cameras, accounts or API keys are required.
+
+The demo refuses to overwrite an existing output directory. For another run,
+choose `--output reports/demo-2`. Use `arc-rgbt --help` to discover commands
+and `arc-rgbt fuse --help` (or another command) to see the original options.
+
+This demonstration contains one synthetic rectangular target and a threshold
+heuristic with an uncalibrated placeholder prediction score. Its metrics are
+**not physical sensor, detection or MCU performance evidence**.
+
 ## Produce your first synthetic data
 
 The following creates a normalized input image **without downloading any dataset**:

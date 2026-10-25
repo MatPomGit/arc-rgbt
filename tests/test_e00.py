@@ -48,3 +48,17 @@ def test_e00_rejects_invalid_configuration_without_output(tmp_path):
         with pytest.raises(ValueError):
             run({**base, **change}, destination)
         assert not destination.exists()
+
+
+@pytest.mark.parametrize("change", [
+    {"frames": 129},
+    {"interpolated_preview_px": [3000, 3000]},
+])
+def test_e00_rejects_unbounded_work_before_creating_outputs(tmp_path, change):
+    config = {"seed": 2, "frames": 2, "optical_sigma_px": 0.8,
+              "noise_sigma": 0.02, "threshold": 0.45, "min_area_px": 1,
+              "interpolated_preview_px": [64, 48]}
+    target = tmp_path / "blocked"
+    with pytest.raises(ValueError):
+        run({**config, **change}, target)
+    assert not target.exists()

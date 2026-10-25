@@ -26,8 +26,9 @@ def _validate_frames(value: Any, label: str) -> list[dict[str, Any]]:
         name, stamp = raw["id"], raw["timestamp_ns"]
         if not isinstance(name, str) or not name or name in ids:
             raise ValueError(f"{label} IDs must be nonempty and unique strings")
-        if isinstance(stamp, bool) or not isinstance(stamp, int) or stamp < 0:
-            raise ValueError(f"{label} timestamps must be nonnegative integer nanoseconds")
+        if (isinstance(stamp, bool) or not isinstance(stamp, int)
+                or not 0 <= stamp <= 2**63 - 1):
+            raise ValueError(f"{label} timestamps must be signed-64-bit nonnegative nanoseconds")
         if stamp <= last_time:
             raise ValueError(f"{label} timestamps must be strictly increasing")
         ids.add(name)
@@ -63,6 +64,8 @@ def pair_frames(
     rgb = _validate_frames(rgb_frames, "rgb_frames")
     thermal = _validate_frames(thermal_frames, "thermal_frames")
     max_delta_ns = tolerance_ms * 1_000_000
+    if not math.isfinite(max_delta_ns):
+        raise ValueError("tolerance_ms overflows when converted to nanoseconds")
     rgb_stamps = [f["timestamp_ns"] for f in rgb]
     used: set[int] = set()
     pairs: list[dict[str, Any]] = []

@@ -64,6 +64,7 @@ nav:
       - Fusion and benchmark: guides/fusion-benchmark.md
       - Quality-weighted fusion: guides/quality-fusion.md
       - Synchronization and registration: guides/synchronization-registration.md
+      - Offline Playwright validation: guides/playwright-offline.md
   - Research:
       - E00 experiment: experiments/e00.md
       - E01 quality-weighted fusion: experiments/e01.md
