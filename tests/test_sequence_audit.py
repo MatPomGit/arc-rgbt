@@ -2,7 +2,6 @@
 
 import csv
 import json
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -42,6 +41,8 @@ def test_demo_end_to_end_nonmatching_grids_and_unmatched_frame(tmp_path):
     report = demo(folder)
     assert report["summary"]["matched"] == 2
     assert report["summary"]["unmatched_thermal"] == 1
+    assert report["unmatched_rgb_ids"] == ["rgb-2"]
+    assert report["unmatched_thermal_ids"] == ["thermal-2"]
     assert report["summary"]["different_native_grid_pairs"] == 2
     assert report["summary"]["equal_native_grid_pairs"] == 0
     assert report["data_origin"] == "simulated"
@@ -127,6 +128,32 @@ def test_reject_non_numeric_or_invalid_thermal_data(tmp_path, bad):
     _, manifest = fixture(tmp_path)
     np.save(tmp_path / manifest["thermal_frames"][0]["path"], bad, allow_pickle=False)
     with pytest.raises(ValueError, match="Unsupported|Non-finite"):
+        analyze(manifest, tmp_path)
+
+
+def test_missing_file_is_not_silently_dropped(tmp_path):
+    _, manifest = fixture(tmp_path)
+    (tmp_path / manifest["rgb_frames"][0]["path"]).unlink()
+    with pytest.raises(FileNotFoundError, match="Missing NumPy"):
+        analyze(manifest, tmp_path)
+    assert not (tmp_path / "report.json").exists()
+
+
+def test_reject_disguised_npz_archive(tmp_path):
+    _, manifest = fixture(tmp_path)
+    frame = tmp_path / manifest["thermal_frames"][0]["path"]
+    with frame.open("wb") as stream:
+        np.savez_compressed(stream, malicious=np.ones((4, 4)))
+    with pytest.raises(ValueError, match="uncompressed"):
+        analyze(manifest, tmp_path)
+
+
+def test_reject_duplicate_capture_timestamps(tmp_path):
+    _, manifest = fixture(tmp_path)
+    manifest["thermal_frames"][1]["timestamp_ns"] = (
+        manifest["thermal_frames"][0]["timestamp_ns"]
+    )
+    with pytest.raises(ValueError, match="strictly increasing"):
         analyze(manifest, tmp_path)
 
 
