@@ -110,6 +110,8 @@ def analyze(manifest: dict, root: Path, *, manifest_sha256: str | None = None) -
     thermal = [_check_frame(base, frame, "thermal") for frame in streams[1]]
     rgb_by_id = {f["id"]: f for f in rgb}
     thermal_by_id = {f["id"]: f for f in thermal}
+    used_rgb_ids = {pair["rgb_id"] for pair in result["pairs"]}
+    unmatched_rgb_ids = [f["id"] for f in rgb if f["id"] not in used_rgb_ids]
     pairs = []
     for pair in result["pairs"]:
         first = rgb_by_id[pair["rgb_id"]]
@@ -140,6 +142,7 @@ def analyze(manifest: dict, root: Path, *, manifest_sha256: str | None = None) -
                     "shape_changed_within_stream": shape_changes,
                     "dtype_changed_within_stream": dtype_changes},
         "pairs": pairs, "rgb_frames": rgb, "thermal_frames": thermal,
+        "unmatched_rgb_ids": unmatched_rgb_ids,
         "unmatched_thermal_ids": result["unmatched_thermal_ids"],
         "limitations": [
             "Matching uses declared shared clock; no independent clock calibration is performed",
