@@ -25,7 +25,8 @@ def preview(image: np.ndarray, *, percentiles: tuple[float, float] = (2.0, 98.0)
     """Produce an 8-bit *display only* image without modifying the source array."""
     if (not isinstance(image, np.ndarray) or image.ndim != 2 or not image.size
             or image.size > MAX_PIXELS or image.dtype.kind not in "uif"
-            or image.dtype.itemsize > 8 or not np.isfinite(image).all()):
+            or image.dtype.itemsize > 8 or (image.dtype.kind in "ui" and image.dtype.itemsize > 4)
+            or not np.isfinite(image).all()):
         raise ValueError("Expected finite, real 2D numeric array (1..4 million pixels)")
     if (not isinstance(percentiles, tuple) or len(percentiles) != 2
             or any(isinstance(v, bool) or not isinstance(v, (int, float))
