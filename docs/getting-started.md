@@ -18,6 +18,24 @@ python -m ruff check src tests tools
 
 The installation command may download free Python packages if they are not cached. For isolated offline execution, install from a locally prepared wheelhouse instead. No paid API or cloud runtime is needed.
 
+## Start the interactive image studio
+
+```bash
+arc-rgbt studio
+```
+
+The local browser UI accepts two images (PNG, JPEG or WebP), lets you change
+thermal weighting or inspect the absolute grayscale difference, and exports
+a PNG and JSON metadata. No server, network, login or uploaded data is involved.
+Inputs must already be aligned and have identical dimensions; resampling is
+never performed implicitly. For servers without a GUI, use
+`arc-rgbt studio --no-open` to print the packaged HTML file location and open
+it later on a desktop that has the package installed.
+
+Studio operates on 8-bit browser-decoded image intensities and is **not**
+an interface for physical thermal radiometry, detector evaluation or rigorous
+research data processing. Use the Python API or CLI for numerical arrays.
+
 ## Fastest start: no input files to prepare
 
 ```bash
