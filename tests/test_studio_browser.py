@@ -189,6 +189,17 @@ def test_studio_one_click_example_and_reset(tmp_path):
             assert meta["data_origin"] == "simulated"
             assert meta["radiometric_calibration"] is False
 
+            # The first real file automatically retires the synthetic partner.
+            image = np.full((3, 4, 3), 128, dtype=np.uint8)
+            ok, encoded = cv2.imencode(".png", image)
+            assert ok
+            example_replacement = tmp_path / "real-rgb.png"
+            example_replacement.write_bytes(encoded.tobytes())
+            page.locator("#rgb").set_input_files(str(example_replacement))
+            page.wait_for_function("() => document.getElementById('thermalPreview').getAttribute('src') === null")
+            assert page.locator("#save").is_disabled()
+            assert page.locator("#thermalinfo").inner_text() == "No file selected"
+
             page.get_by_role("button", name="Clear images").click()
             assert page.locator("#save").is_disabled()
             assert page.locator("#weight").is_disabled()
