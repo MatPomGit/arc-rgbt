@@ -100,3 +100,9 @@ def test_e01_cli_and_sha256_provenance(tmp_path):
     result = json.loads((output / "manifest.json").read_text())
     assert result["provenance"]["input_sha256"][str(dataset)]
     assert result["quality_origin"] == "synthetic_scenario"
+
+def test_integer_zero_frame_id_matches_benchmark_schema(tmp_path):
+    dataset = example()
+    dataset["frames"][0]["id"] = 0
+    result = run(dataset, tmp_path / "zero-id")
+    assert result["metrics"]["rgb_only"]["frames"] == 2
