@@ -1,11 +1,8 @@
-# P03: Resource-Efficient Embedded RGB–Thermal Detection
+# P03: embedded inference efficiency
 
-Status: **research planning only**, no manuscript/results claimed.
+Status: **planned physical-device evaluation; no MCU measurements**.
+[Hypotheses](hypotheses/README.md) · [preregistration gates](protocol/README.md) ·
+[planned adapters](../../embedded/README.md).
 
-- Hypotheses: see [../../research/hypotheses/README.md](../../research/hypotheses/README.md)
-- Protocols: record inclusion criteria, controls, sensor parameters and statistical plan in [../../research/protocols/README.md](../../research/protocols/README.md)
-- Experiments: link exact versioned configurations, input manifests and code SHA here
-- Results: store validated, immutable result snapshots with SHA256 in publication supplements, not generated repo artifacts
-- Analyses: create executable scripts and a dependency lockfile when empirical datasets are approved
-
-Study workspaces: `hypotheses/`, `protocol/`, `experiments/configs/`, `results/`, and `analyses/`. No empirical findings have been established for this publication package.
+See the [research plan](../../AUTOPILOT_PLAN.md) and
+[evidence limitations](../../docs/concepts/evidence.md).

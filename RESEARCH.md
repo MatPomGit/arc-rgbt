@@ -1,26 +1,19 @@
 # Research programme
 
-## P01: Detection Limits of Low-Cost RGB–Thermal Sensors
+The three workstreams are **research candidates**, not completed manuscripts:
 
-Hypothesis: Object pixel footprint and degradation conditions constrain localization sensitivity. Primary work package: E00 synthetic resolution sensitivity; external labelled real sensor data are needed before drawing empirical conclusions. See `publications/P01`.
+| Stream | Question | Protocol |
+| --- | --- | --- |
+| P01 | Native pixel footprint and degradation vs. object localization | [P01](publications/P01/protocol/README.md) |
+| P02 | Effect of time alignment, registration and independently estimated modality quality on fusion | [P02](publications/P02/protocol/README.md) |
+| P03 | Detection/latency/memory/energy trade-offs on a measured embedded target | [P03](publications/P03/protocol/README.md) |
 
-## P02: Adaptive and Temporal RGB–Thermal Fusion
+[E00](docs/experiments/e00.md), [E01](docs/experiments/e01.md) and
+[E02](docs/experiments/e02.md) supply **synthetic/analytical reference
+baselines**, not physical findings. See [research methods](docs/experiments/publications.md)
+and [evidence standards](docs/concepts/evidence.md) for interpretation.
 
-Hypothesis: Registration-aware modality weighting may outperform fixed fusion under asynchronous sensing or camera motion. v0.1.0 includes reference static early/late fusion and supporting timestamp-pairing/externally calibrated planar registration. Adaptive/temporal detection models remain planned. See `publications/P02`.
-
-## P03: Resource-Efficient Embedded RGB–Thermal Detection
-
-Hypothesis: Quantized multi-modal inference can offer a favorable accuracy/latency/memory tradeoff under MCU constraints. v0.1.0 provides host profiling and an MCU adapter interface only. Device-level measurements are mandatory for empirical conclusions. See `publications/P03`.
-
-## Controls
-
-Use openly licensed datasets with explicit ground truth and split-by-sequence/device where appropriate; report mean and uncertainty over predeclared random seeds; stratify by optical geometry and motion. Distinguish synthetic, host-reference and physical device data. Maintain literature references in `research/literature` and pre-register any hypothesis-changing protocol revision.
-
-## E01 methodological note
-
-Quality-scaled confidence is a heuristic and must not be described as a
-calibrated detection probability or uncertainty estimate. E01's synthetic
-example deliberately changes modality reliability, without independently
-measured quality. The publication experiment must predeclare quality
-estimators independently of test labels and compare all four methods on
-identical held-out samples and fixed IoU/threshold policies.
+Work packages, dependencies and GO/NO-GO decisions are in
+[AUTOPILOT_PLAN.md](AUTOPILOT_PLAN.md); machine-readable status and blockers
+are in [PROJECT_STATE.yaml](PROJECT_STATE.yaml). The active research task
+is [Issue #10](https://github.com/MatPomGit/arc-rgbt/issues/10).
