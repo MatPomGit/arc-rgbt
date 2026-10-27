@@ -19,6 +19,10 @@ examples are not calibrated radiometry or physical detector validation.
 
 ## Documentation
 
+Published MkDocs site: **https://matpomgit.github.io/arc-rgbt/**.
+Source Markdown is maintained in [`docs/`](docs/index.md).
+
+
 | Need | Canonical resource |
 | --- | --- |
 | Installation and first experiment | [Getting started](docs/getting-started.md) |

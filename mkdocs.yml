@@ -3,6 +3,7 @@ site_description: Low-Cost RGB–Thermal Fusion Research Platform
 site_author: arc-rgbt contributors
 repo_url: https://github.com/MatPomGit/arc-rgbt
 repo_name: MatPomGit/arc-rgbt
+site_url: https://matpomgit.github.io/arc-rgbt/
 edit_uri: edit/main/docs/
 copyright: Apache-2.0
 
