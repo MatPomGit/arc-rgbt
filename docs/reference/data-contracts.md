@@ -1,6 +1,7 @@
 # Data contracts
 
 Public examples live under `configs/` and `datasets/manifests/`. Values below describe currently implemented input contracts, not generalized camera standards.
+External dataset vetting is a separate [admission process](../experiments/datasets.md); its screening metadata example is **not** a supported Bench or E01 import format.
 
 ## Detection benchmark JSON
 
