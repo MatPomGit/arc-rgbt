@@ -19,7 +19,14 @@ python -m mkdocs build --strict --clean
 For documentation editing use `python -m mkdocs serve`. Each Markdown
 page in `docs/` must appear in `mkdocs.yml` navigation; use relative
 links inside the site and explicit repository links to files outside
-`docs/`. The site is built locally; it is not automatically published.
+`docs/`. Only trusted pushes to `main` that change the site sources, or a manual
+run on `main`, trigger the [GitHub Pages workflow](https://github.com/MatPomGit/arc-rgbt/actions/workflows/pages.yml).
+It builds the strict site on a free ephemeral hosted runner, never on a
+persistent self-hosted runner or on pull-request code, and deploys to
+https://matpomgit.github.io/arc-rgbt/.
+The GitHub repository's **Settings → Pages → Build and deployment → Source**
+must be set to **GitHub Actions**. A site link alone does not confirm
+that the Pages environment and its first deployment succeeded.
 
 ## Optional offline browser checks
 
