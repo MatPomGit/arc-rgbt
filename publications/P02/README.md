@@ -1,21 +1,9 @@
-# P02: Adaptive and Temporal RGB–Thermal Fusion
+# P02: adaptive and temporal fusion
 
-Status: **research planning only**, no manuscript/results claimed.
+Status: **planned study; E01/E02 remain reference demonstrations**.
+[Hypotheses](hypotheses/README.md) · [preregistration gates](protocol/README.md) ·
+[E01 method](../../docs/experiments/e01.md) ·
+[E02 geometry](../../docs/experiments/e02.md).
 
-- Hypotheses: see [../../research/hypotheses/README.md](../../research/hypotheses/README.md)
-- Protocols: record inclusion criteria, controls, sensor parameters and statistical plan in [../../research/protocols/README.md](../../research/protocols/README.md)
-- Experiments: link exact versioned configurations, input manifests and code SHA here
-- Results: store validated, immutable result snapshots with SHA256 in publication supplements, not generated repo artifacts
-- Analyses: create executable scripts and a dependency lockfile when empirical datasets are approved
-
-Study workspaces: `hypotheses/`, `protocol/`, `experiments/configs/`, `results/`, and `analyses/`. No empirical findings have been established for this publication package.
-
-## E01 quality-aware late fusion baseline
-
-E01 adds an **executable reference comparison**, not a validated empirical
-finding. The committed synthetic example is explanatory, deliberately small,
-and must not be reported as experimental evidence of RGB/LWIR superiority.
-
-See `experiments/E01/README.md` and the registered methodological plan in
-`publications/P02/hypotheses/README.md`. Field results, calibrated confidence,
-independent camera quality estimates and hardware metrics remain unverified.
+The detailed [pairing/registration protocol](../../research/protocols/P02-pairing-registration.md)
+and [research plan](../../AUTOPILOT_PLAN.md) define the next real-data gates.

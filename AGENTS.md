@@ -43,3 +43,9 @@
 ## Reporting
 - Report: completed merges, remaining PR age, blockers, and what was actually verified (and what was not).
 - PR creation count is not a progress metric.
+
+## Documentation ownership
+- Keep `README.md` as entry/navigation; `docs/` owns technical methods and CLI contracts.
+- Keep publication-specific preregistration rules only under `publications/P*/protocol/`; `AUTOPILOT_PLAN.md` owns work packages and `PROJECT_STATE.yaml` machine status.
+- Link to canonical material rather than repeating methods, flags, formulas or scientific claims.
+- Keep editable Markdown, not generated HTML/build assets. Each MkDocs page must be in `mkdocs.yml` and pass the documentation checks.

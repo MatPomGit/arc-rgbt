@@ -1,252 +1,40 @@
 # arc-rgbt
 
-**Low-Cost RGB–Thermal Fusion Research Platform** | v0.1.0
+**RGB–thermal/IR research toolkit** · Python 3.12+ · Apache-2.0
 
-An open, device-independent Python research toolkit for low- and medium-resolution RGB, NIR and LWIR imaging, native-resolution effects, early/late fusion, labelled detection evaluation, and host profiling. No cloud service, API key, model download or dataset download is required. Apache-2.0 license.
+Reusable offline software for native sensor geometry, degradation,
+RGB/LWIR image and detection fusion, frame pairing, labelled evaluation
+and host-side profiling. No models, datasets or API keys are downloaded.
 
-## Start here
-
-Install the package using your approved local dependencies, then run:
-
-```bash
-python -m pip install -e .
-arc-rgbt studio
-```
-
-Click **Try an example**. You can immediately experiment with RGB/thermal
-weighting, view the difference, and save a result. No dataset, camera,
-configuration file, account or web service is required. Use **Clear images**
-to reset and choose your own pre-aligned files.
-
-More technical workflows and evidence limits are documented below.
-
-## What works in v0.1.0
-
-| Component | Status | Scope |
-|---|---|---|
-| SensorLab | Reference implementation | Pinhole FOV, frontal-plane GSD, native object footprint and clipped frame fraction |
-| DegradeSim | Reference simulation | Source-domain Gaussian/motion blur, native downsampling, seeded additive noise |
-| FusionLab | Reference/experimental | Translation registration, intensity-weighted and gradient-guided image fusion; separate late box fusion |
-| Bench | Reference implementation | Labelled box-level greedy IoU matching; precision, recall and F1; CSV/JSON/HTML |
-| EdgeLab | Host reference only | CPU GaussianBlur latency, Python allocation peak and optional local model file size |
-| E00 | Synthetic experiment | Seven native sensor resolutions, deterministic annotated scenes, class-agnostic localization, manifest and reports |
-| E01 (experimental) | Simulated proposal evaluation | Four controlled detection-fusion strategies with externally specified modality quality; deterministic labelled results |
-| Synchronization | Reference method | Nearest-frame RGB/LWIR timestamp pairing in a shared clock domain, with missing-frame and skew statistics |
-| Calibrated registration | Reference method | Align unequal-resolution RGB/thermal arrays using externally supplied planar homographies and valid-support masks |
-| MCU drivers, radiometry, physical calibration, temporal fusion, energy metering | **Planned** | Not implemented or validated |
-
-This baseline does **not** recognize people or vehicles. Its E00 synthetic annotations and algorithm-derived metrics do **not** constitute camera measurements, hardware benchmarks or generalization evidence.
-
-## Installation
-
-Requires Python >=3.12. Install from locally provisioned dependencies (use a wheelhouse if offline):
+## Start
 
 ```bash
 python -m pip install -e '.[dev]'
-pytest -q
-ruff check src tests tools
-```
-
-### Windows PowerShell tests
-
-This project uses the `src/` package layout. Pytest resolves `src` from
-`pyproject.toml`, but installing the package is still required for CLI use.
-Prefer the project's `.venv` interpreter to a global Python:
-
-```powershell
-$python = (Resolve-Path .\.venv\Scripts\python.exe).Path
-& $python -m pytest -q
-& $python -m ruff check src tests tools
-$env:ARC_RGBT_BROWSER_TEST = "1"
-& $python -m pytest -q tests/test_studio_browser.py tests/test_studio_playwright_offline.py -v
-Remove-Item Env:\ARC_RGBT_BROWSER_TEST
-```
-
-PowerShell does **not** set environment variables with CMD's
-`set ARC_RGBT_BROWSER_TEST=1`; that syntax leaves all seven browser tests
-skipped. If the virtual environment needs installation, run
-`& $python -m pip install -e ".[dev,browser]"` separately, using approved
-offline dependencies when required. See the
-[offline Playwright guide](docs/guides/playwright-offline.md).
-
-## Searchable research documentation (MkDocs)
-
-The full research guide is in [docs/](docs/index.md), with
-[getting started](docs/getting-started.md), [CLI reference](docs/reference/cli.md),
-[E00](docs/experiments/e00.md), [E01](docs/experiments/e01.md),
-[E02](docs/experiments/e02.md) and
-[evidence limits](docs/concepts/evidence.md).
-
-```bash
-python -m pip install -e '.[dev,docs]'
-python -m tools.check_docs
-python -m mkdocs build --strict --clean
-python -m mkdocs serve
-```
-
-The documentation site is built **locally** and not automatically
-deployed to GitHub Pages. Installation uses free Python dependencies;
-for an air-gapped machine use an approved, local wheelhouse.
-
-## Timestamped RGB/LWIR sequence audit
-
-```bash
-arc-rgbt sequence --demo --output reports/sequence-example
-arc-rgbt sequence --input recordings/manifest.json --output reports/capture-audit
-```
-
-The new offline batch audit validates local `.npy` frames, computes SHA-256,
-checks raw dimensions and dtypes, and pairs timestamps on a **declared** shared
-monotonic capture clock. It writes a portable HTML summary, JSON evidence and
-CSV of matched pairs, with unmatched counts, median/p95 skew and grid changes.
-The synthetic `--demo` requires no camera/data downloads. Unsafe paths and
-missing files fail closed. No interpolation, physical clock calibration or
-object detection is performed. See
-[sequence and registration guide](docs/guides/synchronization-registration.md).
-
-## Scientific raw thermal frames: 16-bit and NumPy (new)
-
-A native thermal frame should remain numeric throughout the research pipeline.
-Use this new standalone converter **only for visual inspection**:
-
-```bash
-arc-rgbt thermal --input local_thermal_uint16.npy --output reports/thermal-preview-001
-# Explicit, shared display bounds for comparisons across frames:
-arc-rgbt thermal --input local_thermal_uint16.npy \
-  --range 1000 16000 --output reports/thermal-preview-002
-```
-
-The command accepts finite 2D NumPy arrays with up to four million samples;
-8/16/32-bit signed or unsigned integers and real floating-point arrays
-(up to float64). It writes `preview.png` plus `metadata.json` containing
-the original dtype, dimensions, raw min/max, display limits, clip counts and
-the input SHA-256. The original `.npy` is not modified and no raw thermal
-values are replaced. The default 2–98 percentile stretch is image-relative.
-Use explicit `--range LOW HIGH` for comparable display scales across frames.
-Existing output directories are not overwritten. No camera or network required.
-
-The Studio image pickers additionally accept little- or big-endian 2D
-`.npy` of dtype `uint8`, `uint16`, `int16`, `uint32`, `int32`,
-`float32` or `float64`, at up to 16 MiB per file. The browser retains
-numeric values while rendering a separate min–max-normalized 8-bit preview.
-The exported metadata records raw dtype, min/max and normalization, but the
-exported PNG is always a display image rather than radiometric output.
-
-Neither mode calibrates temperatures, corrects nonlinear response,
-aligns geometries, recovers lost native resolution or validates
-people/vehicle detection.
-
-## Interactive RGB–Thermal Studio (fully offline)
-
-```bash
 arc-rgbt studio
-# On a headless machine, print the local HTML file path:
-arc-rgbt studio --no-open
 ```
 
-**First run:** click **Try an example**. A synthetic RGB/thermal pair appears
-immediately; move the thermal slider, switch to the difference view, or click
-**Clear images** to start again. No image files or camera are needed.
+In Studio, choose **Try an example** for a fully synthetic RGB–thermal
+preview. For CLI discovery run `arc-rgbt --help`. The interface and
+examples are not calibrated radiometry or physical detector validation.
 
-To use your own data, select two pre-aligned images (PNG, JPEG, WebP or
-supported 2D numeric `.npy`). The images must already have equal dimensions.
-The interface never resizes or automatically registers them. Export the
-grayscale visualization as PNG and its provenance/configuration as JSON.
+## Documentation
 
-Studio is a **local self-contained HTML file**, not a web service. No uploads,
-login, JavaScript CDN, or cloud processing. Each input is limited to
-16 MiB and 4 million pixels. For a reproducible **file-based** example instead,
-run `arc-rgbt demo --output reports/demo` and select the generated
-`rgb_native.png` and `thermal_native.png` in Studio.
-
-**Scope:** browser-decoded sRGB grayscale intensities are not calibrated
-radiometry, temperature measurements or geometric calibration. This is an
-exploratory visualization, not an RGB–LWIR detector or scientific benchmark.
-For numerical pipelines on `.npy` data, continue using `fusionlab` and the
-existing reference algorithms.
-
-## Offline Playwright browser tests
-
-The Studio acceptance suite uses local Chromium without network access.
-Four additional Playwright tests validate the packaged `file://` page,
-native NumPy input, corrupt-file rejection, downloads, provenance and
-asynchronous upload races. They supplement three existing interaction tests.
-
-Use a clean disposable worktree and run
-`tools/run-playwright-offline.ps1 -ExpectedSha <40-character-commit-SHA>`
-with a preinstalled browser and test dependencies. The script verifies the
-exact SHA, runs Ruff, offline pytest and opt-in Chromium acceptance. It
-never installs software or starts GitHub Actions.
-
-See the [Playwright offline runbook](docs/guides/playwright-offline.md).
-Real `file://` browser checks must not be replaced by synthetic DOM-only
-checks if the machine policy blocks local-file navigation.
-
-## Unified entry point and synthetic preview
-
-After installation, run the local diagnostic and a complete, self-contained example:
+| Need | Canonical resource |
+| --- | --- |
+| Installation and first experiment | [Getting started](docs/getting-started.md) |
+| Command syntax and Python API | [CLI reference](docs/reference/cli.md) |
+| Architecture and data formats | [Architecture](docs/concepts/architecture.md) · [data contracts](docs/reference/data-contracts.md) |
+| E00 resolution, E01 fusion, E02 timing | [E00](docs/experiments/e00.md) · [E01](docs/experiments/e01.md) · [E02](docs/experiments/e02.md) |
+| Research methods and candidate literature | [Evidence requirements](docs/guides/evaluation-requirements.md) · [literature](docs/experiments/literature-screening.md) |
+| Research portfolio and current gates | [Research plan](AUTOPILOT_PLAN.md) · [state](PROJECT_STATE.yaml) · [Issue #10](https://github.com/MatPomGit/arc-rgbt/issues/10) |
+| Development and validation | [Contributing](CONTRIBUTING.md) · [reproducibility](docs/reproducibility.md) |
 
 ```bash
-arc-rgbt --help
-arc-rgbt doctor
-arc-rgbt demo --output reports/demo
+python -m tools.check_docs
+python -m pytest -q
+python -m ruff check src tests tools
 ```
 
-Open `reports/demo/index.html` in a browser for side-by-side native-resolution RGB-like, thermal-like and fused previews, the labelled evaluation report and CPU timing. The demo generates all arrays locally and never contacts a service. The target directory must not already exist, preventing accidental overwrites; select a new `--output` for another run.
-
-The `arc-rgbt` command also forwards the original tool options: `sensor`, `degrade`, `fuse`, `bench`, `edge`, `e00`, `e01`, `e02`, `sync` and `register`. For example: `arc-rgbt fuse --help`.
-
-**Scientific limitation:** the demo contains one synthetic rectangle and a fixed-threshold localization heuristic. Its placeholder prediction score is not a calibrated probability. The resulting benchmark metrics do not establish detector, camera or embedded-hardware performance. Host CPU timings are environment-dependent.
-
-## Quick start (no external data)
-
-```bash
-sensorlab --camera configs/sensors/thermal_80x60.yaml --range-m 20 --object-width-m 0.6 --object-height-m 1.7
-python -c 'import numpy as np; a=np.zeros((240,320),np.float32); a[50:80,80:95]=.9; np.save("sample.npy",a)'
-degradesim --config configs/scenarios/degradation.yaml --input sample.npy --output reports/native.npy
-fusionlab --config configs/scenarios/fusion.yaml --rgb reports/native.npy --thermal reports/native.npy --output reports/fused.npy
-bench-rgbt --dataset datasets/manifests/example-labelled.json --output reports/bench
-edgelab --config configs/processors/reference_cpu.yaml --input reports/native.npy --output reports/edge.json
-arc-rgbt-e00 --config experiments/E00/config.yaml --output reports/E00
-```
-
-`sample.npy` is intentionally ignored by Git. `reports/` contains generated outputs, never precomputed evidence. Every CLI supports `--help`. Running modules directly via `PYTHONPATH=src python -m arc_rgbt.<module>` is also supported.
-
-See [ARCHITECTURE.md](ARCHITECTURE.md), [RESEARCH.md](RESEARCH.md), [REPRODUCIBILITY.md](REPRODUCIBILITY.md) and [ROADMAP.md](ROADMAP.md). The research programme has dedicated publication workspaces in `publications/P01` through `P03`.
-
-
-## Experimental P02 foundations: asynchronous acquisition and unequal image grids
-
-The five principal research tools now have two additional supporting CLI modules.
-They are **not** full cross-modal calibration, physical clock synchronization,
-motion compensation, tracking, or person/vehicle recognition systems.
-
-```bash
-arc-rgbt-sync --input configs/scenarios/synchronization-example.json \
-  --output reports/synchronization.json
-# The next command requires local .npy images whose dimensions match the
-# independently established RGB -> thermal pixel transform.
-arc-rgbt-register --rgb local_rgb.npy --thermal local_thermal.npy \
-  --homography configs/scenarios/homography-simulated-example.json \
-  --calibration-origin simulated --reference thermal \
-  --output reports/registered_pair.npz
-```
-
-The homography example is **synthetic** and must not be used as real camera
-calibration. A smaller thermal grid is not equivalent to an interpolated larger
-image. Consult [P02 acquisition protocol](research/protocols/P02-pairing-registration.md).
-
-## Experimental E01: quality-weighted late fusion
-
-The E01 baseline compares RGB-only, thermal-only, equal-quality fixed fusion
-and externally quality-weighted late fusion on **identical labelled proposals**.
-
-```bash
-arc-rgbt-e01 --dataset datasets/manifests/e01-synthetic-quality.json \
-  --output reports/E01
-```
-
-E01 does **not** infer per-frame quality, estimate object probabilities,
-train a detector or validate physical RGB/LWIR sensing. The small example is
-purposefully constructed synthetic data demonstrating method differences,
-**not a performance benchmark**. See [E01 protocol](experiments/E01/README.md).
+All generated artifacts belong under the ignored `reports/` directory.
+**Synthetic E00/E01/E02 and host profiling are not evidence of sensor,
+human/vehicle detection or microcontroller performance.**

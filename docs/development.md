@@ -1,62 +1,39 @@
-# Development and documentation maintenance
+# Development and documentation
 
-## Working conventions
+The canonical contribution/review rules are in
+[CONTRIBUTING.md](https://github.com/MatPomGit/arc-rgbt/blob/main/CONTRIBUTING.md)
+and [AGENTS.md](https://github.com/MatPomGit/arc-rgbt/blob/main/AGENTS.md).
+Use Python 3.12+ and keep tests deterministic, code KISS/PEP 8, and
+changes limited to the named responsibility.
 
-- Python 3.12+, deterministic fixtures and strict input schemas.
-- Small reviewable commits and offline-first tests.
-- Only openly publishable, hardware/vendor-independent material.
-- No downloaded weights, confidential data, generated `reports/`, tokens or invented empirical claims.
-- Do not use paid hosted CI. Self-hosted workflows must run **trusted code only**; manually approve any documentation build on a self-hosted runner.
-
-## Edit and preview the site
+## Validate locally
 
 ```bash
 python -m pip install -e '.[dev,docs]'
-python -m tools.check_docs
-python -m mkdocs serve
-```
-
-Open the local development URL reported by MkDocs (typically `http://127.0.0.1:8000/`). Documentation content lives in `docs/`; navigation and theme settings live in `mkdocs.yml`. Search is client-side and does not require a hosted service.
-
-Before review:
-
-```bash
-python -m tools.check_docs
-python -m mkdocs build --strict --clean
 python -m pytest -q
 python -m ruff check src tests tools
+python -m tools.check_docs
+python -m mkdocs build --strict --clean
 ```
 
-A manual, self-hosted documentation-check workflow is provided. Its runner must have the documentation extra preinstalled; the workflow does not fetch dependencies from the network.
+For documentation editing use `python -m mkdocs serve`. Each Markdown
+page in `docs/` must appear in `mkdocs.yml` navigation; use relative
+links inside the site and explicit repository links to files outside
+`docs/`. The site is built locally; it is not automatically published.
 
-## Python and shell selection on Windows
+## Optional offline browser checks
 
-Tests import the source package using `[tool.pytest.ini_options].pythonpath`
-from `pyproject.toml`; editable installation is still needed for CLI commands.
+On Fedora/Linux with existing Chromium/Playwright:
 
-From PowerShell, use the interpreter installed in this repo's environment:
-
-```powershell
-$python = (Resolve-Path .\.venv\Scripts\python.exe).Path
-& $python -m pytest -q
-& $python -m ruff check src tests tools
-$env:ARC_RGBT_BROWSER_TEST = "1"
-& $python -m pytest -q tests/test_studio_browser.py tests/test_studio_playwright_offline.py -v
-Remove-Item Env:\ARC_RGBT_BROWSER_TEST
+```bash
+ARC_RGBT_BROWSER_TEST=1 ARC_RGBT_CHROMIUM_EXECUTABLE=/usr/bin/chromium \
+  python -m pytest -q tests/test_studio_browser.py tests/test_studio_playwright_offline.py
 ```
 
-Unlike CMD, PowerShell uses `$env:VARIABLE = "value"`; `set VARIABLE=1`
-does not enable browser acceptance and returns seven skipped tests. Use
-`tools/run-playwright-offline.ps1` for fail-closed exact-SHA validation.
+In PowerShell, set `$env:ARC_RGBT_BROWSER_TEST = "1"` instead of using
+CMD's `set VARIABLE=1`. The detailed fail-closed procedure is in
+[Offline Playwright](guides/playwright-offline.md).
 
-## Extend the docs
-
-1. Add the new Markdown page under the appropriate `docs/` subdirectory.
-2. Link it from `mkdocs.yml` navigation; every Markdown page belongs in navigation.
-3. Use relative links between documentation pages; link source files with explicit repository URLs instead of unresolved paths outside `docs/`.
-4. Supply a reproducible, self-contained command for any new example.
-5. Describe units, confidence metrics, provenance, experimental limitations and what remains unverified.
-
-Documentation is not automatically published to GitHub Pages. `mkdocs build --strict` produces a local, distributable `site/` folder; publishing requires a separately reviewed deployment configuration.
-
-See [scientific evidence policy](concepts/evidence.md) and [verification guide](reproducibility.md).
+Never run untrusted contributions on a persistent self-hosted runner.
+Manual workflow dispatch, local wheelhouses and zero-paid-service policy
+remain in force. For provenance see [reproducibility](reproducibility.md).
