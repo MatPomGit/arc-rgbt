@@ -14,8 +14,11 @@ into this public repository.
 - The shortlist is **not systematic**. Original PDF text, abstracts,
   unpublished commercial schedules, vendor/component price lists,
   operational flight plans and autonomous pursuit instructions are excluded.
-- Four publisher record identities were checked. Other candidate
-  bibliographic strings remain **metadata-only**, not validated citations.
+- Shortlisted titles and DOI identities were checked against publisher
+  or institutional records where available; one entry remains export-only.
+  None of the experimental results or dataset licences has been independently
+  reproduced or validated. One source entry's final journal year was
+  corrected to 2024, and two off-topic records were excluded.
 - Imported performance claims must be verified on the primary publication
   before being used in scientific argument or experiment acceptance criteria.
 
