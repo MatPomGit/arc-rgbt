@@ -61,6 +61,7 @@ nav:
       - Evidence and limitations: concepts/evidence.md
   - How-to guides:
       - Sensor geometry and degradation: guides/sensors-degradation.md
+      - Experimental evaluation requirements: guides/evaluation-requirements.md
       - Fusion and benchmark: guides/fusion-benchmark.md
       - Quality-weighted fusion: guides/quality-fusion.md
       - Synchronization and registration: guides/synchronization-registration.md
@@ -70,6 +71,7 @@ nav:
       - E01 quality-weighted fusion: experiments/e01.md
       - E02 temporal geometry: experiments/e02.md
       - P01–P03 programme: experiments/publications.md
+      - Aerial RGBT literature screening: experiments/literature-screening.md
       - Reproducibility: reproducibility.md
   - Reference:
       - Command line tools: reference/cli.md

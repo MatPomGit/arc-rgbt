@@ -38,3 +38,11 @@ The code runs locally, without cloud APIs or pretrained-model downloads. Python 
 - [Publication readiness and traceability](reproducibility.md)
 
 Source code and licence: [arc-rgbt repository](https://github.com/MatPomGit/arc-rgbt).
+
+## Research review intake
+
+A selective screening of historical RGB–thermal/aerial-imaging literature
+is available in [literature screening](experiments/literature-screening.md).
+Its methodology is distilled into
+[experimental evaluation requirements](guides/evaluation-requirements.md).
+These pages do not add verified physical performance claims.
