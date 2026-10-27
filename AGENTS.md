@@ -1,19 +1,45 @@
 # Agent operating contract
 
-Scope: vendor-independent open research code only. Do not mention or infer any industrial partner, products, contacts or confidential projects. Avoid paid APIs. Do not download datasets/models or commit reports, weights, secrets, user data or local paths. Implement functionality rather than directories alone. Keep all benchmark claims tied to labelled evidence and explicit provenance. Use small commits, report concrete failures
+## Scope and safety
+- Vendor-independent open research code only. Do not mention or infer any industrial partner, product, contact or confidential project.
+- No paid APIs. Do not download datasets or models.
+- Never commit reports, weights, secrets, user data or local paths.
+- Implement functionality, not empty directories or stubs.
+- Tie every benchmark claim to labelled evidence with explicit provenance.
+- Keep it simple (KISS): no speculative abstractions, no duplicate implementations, docs or configs. Prefer editing existing files over creating new ones.
+- Small commits. Report concrete failures; do not hide or soften them.
 
-## Complete delivery before starting new work
+## Pipeline
+- Follow the [shared delivery pipeline](https://github.com/MatPomGit/research-autopilot/blob/41ddb950a363df2ef78850ac9766c130880b2fd9/docs/architecture/DELIVERY_PIPELINE.md). Research Autopilot is the sole controller.
+- Act autonomously within existing user authorization. Do not ask again for authorization already given.
 
-Follow the [shared delivery pipeline](https://github.com/MatPomGit/research-autopilot/blob/41ddb950a363df2ef78850ac9766c130880b2fd9/docs/architecture/DELIVERY_PIPELINE.md). Research Autopilot remains the sole controller.
+## Finish before starting
+- Before any feature, read the full current PR inventory and existing task ownership.
+- Finish the repository's existing PR first; reuse its branch for repairs.
+- Limits: one active PR per repository, five across the managed portfolio. Drafts, testing, review and repair all count as active. A blocked PR does not free a slot.
+- Priority order:
+  1. Security and dependency blockers
+  2. Repairs
+  3. Validation and review
+  4. Authorized merge and branch cleanup
+  5. New features
+- No separate report-only PR per validation run.
 
-Before starting a feature, read the complete current PR inventory and existing task ownership. Finish the repository's existing PR first. Reuse its branch for repairs.
+## Validation
+- Use reusable validators from a trusted controller revision.
+- One bounded batch per host, isolated execution, exact source SHAs, separate result per check.
+- Statuses: PASS, FAIL, BLOCKED, UNAVAILABLE, NOT_RUN. Only PASS is a pass.
+- Syntax checks do not establish scientific validity or teaching-material correctness.
 
-Limit autonomous feature work to one active PR per repository and five across the managed portfolio. Count drafts, testing, review and repair as active work. A blocked PR does not free a feature slot.
+## Merge and cleanup
+- Merge when all applicable checks, reviews and current GitHub rules pass, within existing authorization.
+- Delete a branch only if it is confirmed merged and owned, its current SHA is verified, and no dependent PR needs it.
+- Merge does not authorize deployment or publication.
 
-Prioritize repairs, validation, review, authorized merge and branch cleanup before new features. Handle security and dependency blockers first. Do not create a separate report-only PR for each validation run.
+## Blocked work
+- Record: reason, required exit condition, next safe action.
+- Continue unrelated authorized repairs. Do not start another feature in the blocked repository.
 
-Use reusable validators from a trusted controller revision. Run one bounded batch per host, with isolated execution, exact source SHAs and separate check results. Record FAIL, BLOCKED, UNAVAILABLE and NOT_RUN without treating them as PASS. Syntax checks do not establish scientific validity or teaching-material correctness.
-
-After the applicable checks, reviews and current GitHub rules pass, merge within existing user authorization. Do not request the same authorization again. Delete only a confirmed merged, owned branch after verifying its current SHA and that no dependent PR needs it. Merge does not authorize deployment or publication.
-
-For blocked work, record the reason, required exit condition and next safe action. Continue unrelated authorized repairs without starting another feature in the blocked repository. Report completed merges, remaining PR age and blockers; do not use PR creation count as the progress metric.
+## Reporting
+- Report: completed merges, remaining PR age, blockers, and what was actually verified (and what was not).
+- PR creation count is not a progress metric.
