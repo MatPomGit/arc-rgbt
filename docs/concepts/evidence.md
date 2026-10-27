@@ -28,3 +28,17 @@ This project distinguishes **software correctness**, **simulation behaviour**, *
 The software does not supply a trained person/vehicle detector, NIR/LWIR sensor drivers, an end-to-end calibrated RGB–thermal device, physical energy instrumentation, globally optimal time assignment or learned adaptive/temporal fusion. E01 is an externally weighted heuristic and E02 computes ideal analytical geometry.
 
 See [E00](../experiments/e00.md), [research programme](../experiments/publications.md) and [reproducibility](../reproducibility.md).
+
+## Evidence imported from external literature surveys
+
+Historical review documents may be used to **identify research questions
+and candidate citations**, but must not be copied as verified device
+specifications, fixed detection ranges, universal accuracy percentages
+or measured runtime results. When a source uses the word “accuracy”,
+identify the exact metric, input images, operating point and split
+before importing the claim.
+
+For the protocol safeguards, see
+[experimental evaluation requirements](../guides/evaluation-requirements.md).
+For screened DOI candidates and citation-check status, see
+[literature screening](../experiments/literature-screening.md).

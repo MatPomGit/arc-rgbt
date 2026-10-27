@@ -26,3 +26,13 @@ The available CLI tools intentionally lack physical clock calibration, tracking,
 A defensible embedded comparison must specify device model and software stack, target clocks, flash/RAM or peak activation memory, inference latency, workload, power instrumentation, conditions and confidence intervals. `edgelab` **does not** measure these quantities; it profiles a host-side OpenCV operator.
 
 All three publication folders in `publications/` are research workspaces, not accepted or submitted papers. Consult [evidence limitations](../concepts/evidence.md).
+
+## Imported literature and experiment-design improvements
+
+The [literature screening](literature-screening.md) prioritizes native
+pixel-footprint limits (P01), independently synchronized and calibrated
+multimodal comparisons (P02), and fully specified compute/energy workloads
+(P03). The [evaluation requirements](../guides/evaluation-requirements.md)
+translate historical review notes into measurable units and rejection
+criteria. They do not establish new empirical findings or commit the
+project to any product, aircraft or operational target scenario.
