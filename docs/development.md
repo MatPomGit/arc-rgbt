@@ -28,6 +28,13 @@ The GitHub repository's **Settings → Pages → Build and deployment → Source
 must be set to **GitHub Actions**. A site link alone does not confirm
 that the Pages environment and its first deployment succeeded.
 
+After each successful deployment, the separate read-only **smoke** job
+checks the public homepage, key research/method/reference routes and
+`search/search_index.json`. A passing build alone is not treated as
+proof of public site reachability. If smoke fails, inspect the
+[Pages workflow](https://github.com/MatPomGit/arc-rgbt/actions/workflows/pages.yml)
+before reporting that the site is accessible.
+
 ## Optional offline browser checks
 
 On Fedora/Linux with existing Chromium/Playwright:
