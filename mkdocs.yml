@@ -72,6 +72,7 @@ nav:
       - E01 quality-weighted fusion: experiments/e01.md
       - E02 temporal geometry: experiments/e02.md
       - P01–P03 programme: experiments/publications.md
+      - Dataset candidates and admission: experiments/datasets.md
       - Aerial RGBT literature screening: experiments/literature-screening.md
       - Reproducibility: reproducibility.md
   - Reference:

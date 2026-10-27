@@ -11,7 +11,7 @@ camera or embedded-device performance.
 - [Commands and input/output contracts](reference/cli.md) · [data schemas](reference/data-contracts.md)
 - [Processing architecture](concepts/architecture.md) · [scientific evidence boundaries](concepts/evidence.md)
 - [Research programme P01–P03](experiments/publications.md) · [reproducibility](reproducibility.md)
-- [Literature screening](experiments/literature-screening.md) · [evaluation requirements](guides/evaluation-requirements.md)
+- [Candidate datasets and licences](experiments/datasets.md) · [literature screening](experiments/literature-screening.md) · [evaluation requirements](guides/evaluation-requirements.md)
 
 ## Experiment reference
 

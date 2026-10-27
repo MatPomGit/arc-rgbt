@@ -10,7 +10,7 @@ plan, not a second implementation manual. Machine-readable truth:
 | ID | Work | Acceptance gate |
 | --- | --- | --- |
 | RGBT-01 | Freeze P01/P02 primary endpoints and negative controls | Reviewed [P01](publications/P01/protocol/README.md) / [P02](publications/P02/protocol/README.md) protocols and sequence splits |
-| RGBT-02 | Screen RGB/LWIR/NIR datasets, licences and annotations | Independent scenes, modality and native-grid provenance recorded |
+| RGBT-02 | Screen RGB/LWIR/NIR [dataset candidates](docs/experiments/datasets.md), licences and annotations | Independently verified permitted use, scenes, modality and native-grid provenance |
 | RGBT-03 | Calibrate exposure-time alignment and RGB–LWIR geometry | Measured time skew, reprojection residuals and valid masks |
 | RGBT-04 | Evaluate P01 resolution and degradation effects | Real, labelled holdout and uncertainty distinct from [E00](docs/experiments/e00.md) |
 | RGBT-05 | Compare P02 RGB/thermal/fixed/adaptive fusion | Independent quality estimates, matched operating points; [E01](docs/experiments/e01.md)/[E02](docs/experiments/e02.md) only reference baselines |

@@ -14,6 +14,7 @@ The authoritative per-study preregistration checklists live in
 [P02](https://github.com/MatPomGit/arc-rgbt/blob/main/publications/P02/protocol/README.md) and
 [P03](https://github.com/MatPomGit/arc-rgbt/blob/main/publications/P03/protocol/README.md).
 
+Dataset selection and rights are tracked in [dataset candidates and admission](datasets.md).
 See [evaluation requirements](../guides/evaluation-requirements.md),
 [literature screening](literature-screening.md) and
 [reproducibility](../reproducibility.md). Current task dependencies belong to
