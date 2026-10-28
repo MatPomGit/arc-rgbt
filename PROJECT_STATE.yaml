@@ -22,6 +22,11 @@ evidence_state:
   P01: research_work_package_not_empirically_confirmed
   P02: research_work_package_not_empirically_confirmed
   P03: research_work_package_not_empirically_confirmed
+  P04: research_work_package_not_empirically_confirmed
+  P05: research_work_package_not_empirically_confirmed
+  P06: research_work_package_not_empirically_confirmed
+  P07: optional_hold_no_hardware_energy_evidence
+  P08: optional_hold_no_calibration_uncertainty_evidence
   independent_sensor_dataset: not_yet_verified
   hardware_rgb_thermal_measurement: not_yet_verified
   embedded_mcu_power_or_latency: not_measured
@@ -51,14 +56,17 @@ publication_portfolio:
       title: Detection Limits of Low-Cost RGB-Thermal Sensors
       evidence: E00
       gate: independent_labelled_real_data_and_uncertainty
+      activation: core_planned
     - id: P02
       title: Adaptive and Temporal RGB-Thermal Fusion
       evidence: [E01, E02]
       gate: non_oracle_quality_estimator_exposure_timestamps_and_holdout
+      activation: core_planned
     - id: P03
       title: Resource-Efficient Embedded RGB-Thermal Detection
       evidence: host_reference_only
       gate: measured_ram_flash_latency_energy_on_named_device
+      activation: core_planned
     - id: P04
       title: "Failure-Aware RGB–Thermal Detection"
       evidence: "independent_labelled_fault_scenes_not_verified"
