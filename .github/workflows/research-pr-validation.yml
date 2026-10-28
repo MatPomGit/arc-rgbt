@@ -44,13 +44,17 @@ jobs:
           python-version: "3.13"
       - name: Install free documentation dependencies
         run: |
-          python -m pip install "PyYAML>=6,<7" "mkdocs>=1.6,<2" "mkdocs-material>=9.6,<10" "pytest>=8,<10"
+          python -m pip install -e ".[dev,docs]"
       - name: Verify exact PR head and publications state
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           python -m pytest -q tests/test_project_state.py tests/test_docs.py
+      - name: Run complete non-browser unit suite and lint
+        run: |
+          python -m pytest -q
+          python -m ruff check src tests tools
       - name: Verify MkDocs navigation and build
         run: |
           python -m tools.check_docs
