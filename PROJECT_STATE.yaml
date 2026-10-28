@@ -138,7 +138,7 @@ next_actions:
     done_when: "Named-device RAM, flash, latency and energy traces meet predeclared measurement rules."
   - order: 6
     id: A06_PUBLICATION
-    action: "Evaluate P01/P02/P03 readiness and journal suitability only after evidence gates pass."
+    action: "Evaluate P01-P06 manuscript readiness only after evidence gates pass; P07/P08 remain HOLD until separately promoted."
     procedure: docs/experiments/publications.md
     done_when: "Each claim is backed by immutable evidence and independently reviewed method/results."
   - order: 7

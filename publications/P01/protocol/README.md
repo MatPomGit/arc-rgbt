@@ -19,3 +19,13 @@ Specify inclusion/exclusion criteria, sensor calibration, datasets, controls, sp
 
 See [experimental evaluation requirements](../../../docs/guides/evaluation-requirements.md)
 and [screened literature](../../../docs/experiments/literature-screening.md).
+
+## Planned confirmatory study (not yet preregistered)
+
+- **Primary endpoint:** recall at the same preregistered FP/frame ceiling across native pixel-footprint bins, stratified by physical viewpoint, object class, modality and independent scene/acquisition.
+- **Baselines:** RGB-only and LWIR-only with fixed checkpoints and documented pre-processing. Artificial downsampling is a separate controlled software ablation and must not be confused with measured physical low-resolution performance.
+- **Controls:** native focal length/pixel pitch, projection geometry, image-frame orientation, blur, occlusion, thermal contrast and completeness of negative frames.
+- **Evaluation:** freeze inclusion/exclusion policy and footprint strata before analyzing held-out data. Use acquisition/sequence-group intervals, report detection failures and avoid frame-wise IID inference.
+- **GO:** physically acquired native frames, source/annotation licences, complete independent labels, test splits and uncertainty PASS. Otherwise NO-GO for physical detection-limit claims.
+
+[Hypothesis and estimands](../hypotheses/README.md) · [portfolio boundary](../../../RESEARCH.md).

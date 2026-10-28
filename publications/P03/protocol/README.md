@@ -18,3 +18,13 @@ Specify inclusion/exclusion criteria, sensor calibration, datasets, controls, sp
 
 See [experimental evaluation requirements](../../../docs/guides/evaluation-requirements.md)
 and [screened literature](../../../docs/experiments/literature-screening.md).
+
+## Planned fixed-pipeline study (not yet preregistered)
+
+- **Primary endpoint:** physically instrumented joules per complete frame under preregistered held-out detection recall/FP-frame and latency requirements; peak on-device memory and flash are co-constraints.
+- **Feasible controls:** RGB-only, LWIR-only and dual-modality fixed configurations, with identical sensor/image workloads; record configurations that cannot execute on the target as infeasible.
+- **Experimental design:** predeclare target board, numeric precision, warm-up, idle reference, power-meter uncertainty, capture/fusion/IO timing boundaries and cold/hot clock regimes. Repeated scene workloads and deterministic model hashes required.
+- **Acceptance:** independent labels, code/model/source revisions and separately metered acquisition through output pipeline available. P03 remains blocked until real target RAM, flash, latency and energy traces are independently verified.
+- **Separation from P07:** P03 compares fixed configurations; P07 would require a separately novel adaptive modality/compute switching policy with independently measured real energy saving and matched perception.
+
+[Hypothesis and estimands](../hypotheses/README.md) · [hardware prerequisites](../../../embedded/README.md).
