@@ -1,5 +1,5 @@
 version: 1
-updated: "2026-10-24"
+updated: "2026-10-28"
 purpose: "Canonical machine-readable scientific status for arc-rgbt and Research Autopilot."
 repository:
   canonical_branch: main
@@ -42,6 +42,10 @@ verification_history:
     caveat: "Docs validation applies to that PR SHA; HTML was generated locally."
 publication_portfolio:
   status: concepts_not_submitted
+  planned_core_count: 6
+  optional_hold_count: 2
+  core_ids: [P01, P02, P03, P04, P05, P06]
+  optional_ids: [P07, P08]
   lines:
     - id: P01
       title: Detection Limits of Low-Cost RGB-Thermal Sensors
@@ -55,6 +59,41 @@ publication_portfolio:
       title: Resource-Efficient Embedded RGB-Thermal Detection
       evidence: host_reference_only
       gate: measured_ram_flash_latency_energy_on_named_device
+    - id: P04
+      title: "Failure-Aware RGB–Thermal Detection"
+      evidence: "independent_labelled_fault_scenes_not_verified"
+      gate: G04_independent_fault_strata_and_risk_coverage
+      activation: core_planned
+    - id: P05
+      title: "Cross-Sensor Generalization of Low-Cost RGB–Thermal Detection"
+      evidence: "independent_sensor_domains_not_verified"
+      gate: G05_two_verified_independent_domains
+      activation: core_planned
+    - id: P06
+      title: "Temporal Consistency in RGB–Thermal Aerial Tracking"
+      evidence: "identity_labelled_paired_sequences_not_verified"
+      gate: G06_verified_track_ids_and_temporal_pairing
+      activation: core_planned
+    - id: P07
+      title: "Energy-Aware Adaptive Multimodal Inference"
+      evidence: "on_device_adaptive_energy_not_measured"
+      gate: G07_physical_P03_baseline_adaptive_power_and_novelty
+      activation: optional_hold_evidence
+    - id: P08
+      title: "Uncertainty-Aware RGB–Thermal Registration for Reliable Detection"
+      evidence: "physical_spatiotemporal_uncertainty_and_coverage_not_measured"
+      gate: G08_independent_calibration_uncertainty_coverage_and_novelty
+      activation: optional_hold_evidence
+  optional_activation_rules:
+    P07:
+      status: hold
+      prerequisites: [P03_real_hardware_baseline, adaptive_policy_metered_energy, matched_perception, independent_novelty_review]
+      excluded_evidence: [E00, E01, E02, host_EdgeLab]
+    P08:
+      status: hold
+      prerequisites: [measured_exposure_skew, independent_registration_uncertainty, independent_risk_coverage, independent_novelty_review]
+      excluded_evidence: [simulated_E02_skew, analytical_bbox_iou]
+
 current_blockers:
   - id: B01_REAL_DATA
     status: pending
@@ -65,6 +104,12 @@ current_blockers:
   - id: B03_HARDWARE
     status: pending
     exit_condition: "Specify a target MCU and measure memory, latency and energy on device before P03 claims."
+  - id: B04_DOMAIN_TRACKING_DATA
+    status: pending
+    exit_condition: "Verify independent sensor-domain labels for P05 and paired identity-labelled real sequences for P06."
+  - id: B05_OPTIONAL_GATES
+    status: hold
+    exit_condition: "P07 and P08 stay optional HOLD until independent G07/G08 physical evidence and distinct novelty pass."
 next_actions:
   - order: 1
     id: A01_PROTOCOL
@@ -96,6 +141,34 @@ next_actions:
     action: "Evaluate P01/P02/P03 readiness and journal suitability only after evidence gates pass."
     procedure: docs/experiments/publications.md
     done_when: "Each claim is backed by immutable evidence and independently reviewed method/results."
+  - order: 7
+    id: A07_P04
+    action: "Freeze P04 independent fault categories, risk/coverage outcomes and held-out baselines."
+    procedure: publications/P04/protocol/README.md
+    done_when: "Real independently labelled conditions and validated reliability monitoring protocol."
+  - order: 8
+    id: A08_P05
+    action: "Verify independent P05 sensor domains and locked cross-device comparisons."
+    procedure: publications/P05/protocol/README.md
+    done_when: "Two lawful, labelled sensor-domain cohorts and leakage-free splits audited."
+  - order: 9
+    id: A09_P06
+    action: "Verify P06 tracking datasets and real paired track-ID evaluation."
+    procedure: publications/P06/protocol/README.md
+    done_when: "Sequence IDs, tracking annotation rights and HOTA reference validation."
+  - order: 10
+    id: A10_P07_OPTIONAL
+    status: optional_hold_evidence
+    action: "Hold unless G07 physical P03 and adaptive energy/novelty gates are independently passed."
+    procedure: publications/P07/protocol/README.md
+    done_when: "G07 explicitly reviewed as PASS; otherwise HOLD."
+  - order: 11
+    id: A11_P08_OPTIONAL
+    status: optional_hold_evidence
+    action: "Hold unless G08 measured calibration/risk coverage and novelty gates are independently passed."
+    procedure: publications/P08/protocol/README.md
+    done_when: "G08 explicitly reviewed as PASS; otherwise HOLD."
+
 ai_handoff:
   read_first: [AGENTS.md, PROJECT_STATE.yaml, AUTOPILOT_PLAN.md, RESEARCH.md, REPRODUCIBILITY.md]
   never_infer:

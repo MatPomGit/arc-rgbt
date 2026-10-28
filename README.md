@@ -29,8 +29,8 @@ Source Markdown is maintained in [`docs/`](docs/index.md).
 | Command syntax and Python API | [CLI reference](docs/reference/cli.md) |
 | Architecture and data formats | [Architecture](docs/concepts/architecture.md) · [data contracts](docs/reference/data-contracts.md) |
 | E00 resolution, E01 fusion, E02 timing | [E00](docs/experiments/e00.md) · [E01](docs/experiments/e01.md) · [E02](docs/experiments/e02.md) |
-| Research methods and candidate literature | [Evidence requirements](docs/guides/evaluation-requirements.md) · [literature](docs/experiments/literature-screening.md) |
-| Research portfolio and current gates | [Research plan](AUTOPILOT_PLAN.md) · [state](PROJECT_STATE.yaml) · [Issue #10](https://github.com/MatPomGit/arc-rgbt/issues/10) |
+| Research methods P01–P08 and candidate literature | [Evidence requirements](docs/guides/evaluation-requirements.md) · [literature](docs/experiments/literature-screening.md) |
+| Research portfolio and current gates | [Eight-paper register](RESEARCH.md) · [work plan](AUTOPILOT_PLAN.md) · [state](PROJECT_STATE.yaml) · [Issue #10](https://github.com/MatPomGit/arc-rgbt/issues/10) |
 | Development and validation | [Contributing](CONTRIBUTING.md) · [reproducibility](docs/reproducibility.md) |
 
 ```bash

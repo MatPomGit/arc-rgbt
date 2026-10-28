@@ -40,6 +40,9 @@ before converting to the project's current axis-aligned Bench schema.
 
 ## Study suitability, not interchangeability
 
+**Expanded publication screening (2026-10-28):** P04 needs independently labelled failure-stratified negatives and actual fault evidence, not only synthetic corruptions. P05 needs at least two genuinely independent sensor/domain cohorts and comparable annotations, not two resizes of the same original. P06 needs paired time sequences with stable identity labels, not independent still images. A tracking dataset such as M3OT is only a candidate until owner source, modality, viewpoint, rights, original tracks and timing have been verified. P07/P08 remain OPTIONAL HOLD and demand instrumented hardware/calibration evidence beyond dataset downloads.
+
+
 - **P01 (native spatial limits):** prefer external labelled data with
   recoverable *native* sensor frames and independent source scenes.
   Resizing a high-resolution image can test a controlled algorithmic
