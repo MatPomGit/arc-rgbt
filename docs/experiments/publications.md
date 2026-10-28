@@ -1,22 +1,18 @@
-# Research programme: P01–P03
+# Research programme: P01–P08
 
-Three **candidate** publication lines; no real-camera or embedded-device
-claim is established by E00–E02.
+**Six core planned papers (P01–P06), two optional on HOLD (P07–P08).** These are candidate manuscripts, not published research outputs; current E00–E02 and host benchmarks are synthetic/analytical, not real sensor, tracking or embedded-device evidence.
 
-| Stream | Existing reference | Required empirical gate |
-| --- | --- | --- |
-| P01: native-resolution limits | [E00](e00.md) | Independent labelled images, calibration and scene-level uncertainty |
-| P02: asynchronous/quality fusion | [E01](e01.md), [E02](e02.md) | Verified exposure clock, registration and held-out fusion comparisons |
-| P03: constrained embedded compute | Host-only EdgeLab | Named-device RAM, latency and energy measurements |
+| Paper | Independent question | Status | Admission gate |
+| --- | --- | --- | --- |
+| [P01](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P01) | Native image footprint and detection limits | Core | Real, labelled native-resolution scenes |
+| [P02](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P02) | Exposure pairing, registration and modality-adaptive fusion | Core | Calibrated real pairing, independent holdout |
+| [P03](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P03) | Measured fixed embedded inference cost | Core | Named-device latency, energy, RAM/flash |
+| [P04](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P04) | Worst-condition detection risk under faults | Core | Independent fault strata, coverage and FP budget |
+| [P05](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P05) | Unseen sensor/domain transfer accuracy | Core | Two independently verified labelled devices/domains |
+| [P06](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P06) | Temporal multi-object identity tracking | Core | Real RGB/LWIR videos with stable ground-truth IDs |
+| [P07](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P07) | Policy-dependent energy-aware sensing | **Optional HOLD** | G07: P03 baseline, measured adaptive policy and novelty review |
+| [P08](https://github.com/MatPomGit/arc-rgbt/tree/main/publications/P08) | Calibrated uncertainty-to-risk prediction | **Optional HOLD** | G08: independent measured space/time uncertainty, out-of-sample coverage and novelty review |
 
-The authoritative per-study preregistration checklists live in
-[P01](https://github.com/MatPomGit/arc-rgbt/blob/main/publications/P01/protocol/README.md),
-[P02](https://github.com/MatPomGit/arc-rgbt/blob/main/publications/P02/protocol/README.md) and
-[P03](https://github.com/MatPomGit/arc-rgbt/blob/main/publications/P03/protocol/README.md).
+An independent manuscript must offer a distinct falsifiable primary endpoint and non-overlapping contribution. Specifically, P07 cannot merely re-report a P03 static energy/accuracy frontier, and P08 cannot merely re-report P02 registration residuals. If originality or evidence fails, integrate findings into the parent study. No guaranteed publication count follows from eight concepts.
 
-Dataset selection and rights are tracked in [dataset candidates and admission](datasets.md).
-See [evaluation requirements](../guides/evaluation-requirements.md),
-[literature screening](literature-screening.md) and
-[reproducibility](../reproducibility.md). Current task dependencies belong to
-[AUTOPILOT_PLAN.md](https://github.com/MatPomGit/arc-rgbt/blob/main/AUTOPILOT_PLAN.md),
-not a second copy of the roadmap in MkDocs.
+Canonical ownership: [research register](https://github.com/MatPomGit/arc-rgbt/blob/main/RESEARCH.md), [work packages](https://github.com/MatPomGit/arc-rgbt/blob/main/AUTOPILOT_PLAN.md), [machine-readable status](https://github.com/MatPomGit/arc-rgbt/blob/main/PROJECT_STATE.yaml), and publication-specific hypotheses and protocols under each PXX folder. Data prerequisites: [candidate datasets](datasets.md), [literature screening](literature-screening.md), [evaluation requirements](../guides/evaluation-requirements.md), [reproducibility](../reproducibility.md).

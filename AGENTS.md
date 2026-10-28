@@ -47,5 +47,7 @@
 ## Documentation ownership
 - Keep `README.md` as entry/navigation; `docs/` owns technical methods and CLI contracts.
 - Keep publication-specific preregistration rules only under `publications/P*/protocol/`; `AUTOPILOT_PLAN.md` owns work packages and `PROJECT_STATE.yaml` machine status.
+- Treat P01–P06 as planned, not empirically established. P07 and P08 are optional HOLD: never activate them until G07/G08 independently pass and PROJECT_STATE.yaml is changed after review.
+- Avoid salami slicing: require a distinct primary outcome, adequate independent evidence and novelty review before a new paper is treated as submission-ready.
 - Link to canonical material rather than repeating methods, flags, formulas or scientific claims.
 - Keep editable Markdown, not generated HTML/build assets. Each MkDocs page must be in `mkdocs.yml` and pass the documentation checks.

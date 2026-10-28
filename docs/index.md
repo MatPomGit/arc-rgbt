@@ -10,7 +10,7 @@ camera or embedded-device performance.
 - [Install and run a synthetic example](getting-started.md)
 - [Commands and input/output contracts](reference/cli.md) · [data schemas](reference/data-contracts.md)
 - [Processing architecture](concepts/architecture.md) · [scientific evidence boundaries](concepts/evidence.md)
-- [Research programme P01–P03](experiments/publications.md) · [reproducibility](reproducibility.md)
+- [Research programme P01–P08](experiments/publications.md) · [reproducibility](reproducibility.md)
 - [Candidate datasets and licences](experiments/datasets.md) · [literature screening](experiments/literature-screening.md) · [evaluation requirements](guides/evaluation-requirements.md)
 
 ## Experiment reference
