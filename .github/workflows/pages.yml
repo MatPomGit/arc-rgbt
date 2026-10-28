@@ -42,7 +42,7 @@ jobs:
       - name: Verify documentation and links
         run: |
           python -m tools.check_docs
-          python -m pytest -q tests/test_docs.py
+          python -m pytest -q tests/test_docs.py tests/test_project_state.py
 
       - name: Build complete static site
         run: python -m mkdocs build --strict --clean --site-dir site
