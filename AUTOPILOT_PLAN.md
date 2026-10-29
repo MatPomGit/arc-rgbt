@@ -2,6 +2,12 @@
 
 **Version 1.2.0 · updated 2026-10-28.** Six CORE planned studies P01–P06 and two OPTIONAL HOLD studies P07–P08. This file owns work packages, not a second copy of research methods: use [RESEARCH.md](RESEARCH.md), the individual protocols and machine-readable [PROJECT_STATE.yaml](PROJECT_STATE.yaml).
 
+## Current execution queue and issue milestones
+
+**Execution ownership:** [Issue #21, M0–M6](https://github.com/MatPomGit/arc-rgbt/issues/21) is the current checklist and dependency index; linked issues #10, #17–#19, #22–#29 specify atomic agent runs, acceptance evidence and blocked tasks. Use this tracker before selecting the next run. This Markdown file owns work-package definitions; `PROJECT_STATE.yaml` remains the machine-readable scientific gate authority. An issue marked complete must not automatically promote a dataset or optional publication.
+
+**Unblocked first actions:** source/rights and metadata-only M3OT review [#22](https://github.com/MatPomGit/arc-rgbt/issues/22) and reusable validation contracts [#23](https://github.com/MatPomGit/arc-rgbt/issues/23), subject to the one-active-PR rule. Empirical M2–M4 work still depends on independently admitted actual data/hardware; P07/P08 remain M6 OPTIONAL HOLD.
+
 ## Work packages
 
 | ID | Work | Acceptance gate | Stream |

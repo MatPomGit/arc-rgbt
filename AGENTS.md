@@ -14,6 +14,9 @@
 - Act autonomously within existing user authorization. Do not ask again for authorization already given.
 
 ## Finish before starting
+
+- Read the active [research issue and milestone tracker M0–M6](https://github.com/MatPomGit/arc-rgbt/issues/21) **after** `PROJECT_STATE.yaml` and `AUTOPILOT_PLAN.md`. Follow dependency and evidence gates in the linked issue before selecting a task. Use the existing issue (and PR, if any) rather than opening a duplicate.
+- Check M0 rights/data prerequisites before any empirical study. M6 P07/P08 tasks are OPTIONAL HOLD: issue checkboxes or dates do not authorize promotion, physical experiments or submission.
 - Before any feature, read the full current PR inventory and existing task ownership.
 - Finish the repository's existing PR first; reuse its branch for repairs.
 - Limits: one active PR per repository, five across the managed portfolio. Drafts, testing, review and repair all count as active. A blocked PR does not free a slot.
