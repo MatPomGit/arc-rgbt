@@ -16,8 +16,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import numpy as np
-
 from arc_rgbt.admission import _unique_pairs
 from arc_rgbt.evaluation_contracts import tracking_reference_contract
 from arc_rgbt.fusionlab import _iou
@@ -236,7 +234,7 @@ def audit(
         raise ValueError("TrackEval output is not valid JSON") from exc
     if not isinstance(values, dict) or set(values) != set(cases):
         raise ValueError("TrackEval returned unexpected class set")
-    for label, metrics in values.items():
+    for metrics in values.values():
         if not isinstance(metrics, dict) or set(metrics) != {
             "hota", "hota_alphas", "idf1", "idtp", "idfp", "idfn",
         }:
@@ -272,7 +270,8 @@ def run(source: str | Path, *, reference_root: str | Path | None = None,
         raise ValueError("Unsupported tracking input schema")
     if not isinstance(obj["sequence_id"], str) or not obj["sequence_id"].strip():
         raise ValueError("sequence_id must be a nonempty string")
-    if obj["data_origin"] not in {"synthetic", "external_unverified"}:
+    if (not isinstance(obj["data_origin"], str)
+            or obj["data_origin"] not in {"synthetic", "external_unverified"}):
         raise ValueError("data_origin must be synthetic or external_unverified")
     report = audit(obj["frames"], reference_root=reference_root,
                    run_reference=run_reference)
