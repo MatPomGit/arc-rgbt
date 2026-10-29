@@ -72,6 +72,28 @@ def test_eight_publication_entries_are_unique_and_have_reviewable_protocols():
     assert state["evidence_state"]["manuscripts_submitted"] == "not_claimed"
 
 
+def test_dataset_screening_is_not_experimental_admission():
+    state = _state()
+    screening = state["dataset_screening"]
+    assert screening["status"] == "metadata_only_not_admitted"
+    assert screening["raw_dataset_downloaded"] is False
+    assert screening["source_of_truth"] == "docs/experiments/datasets.md"
+    decisions = screening["candidate_decisions"]
+    assert {"M3OT", "KAIST", "LLVIP", "CART", "DroneVehicle", "FLIR_ADAS"} <= set(
+        decisions
+    )
+    assert all(
+        "hold" in decisions[dataset]
+        for dataset in ("CART", "DroneVehicle", "FLIR_ADAS")
+    )
+    assert state["evidence_state"]["independent_sensor_dataset"] == "not_yet_verified"
+    assert state["publication_portfolio"]["lines"][5]["activation"] == "core_planned"
+    assert all(
+        state["publication_portfolio"]["lines"][i]["activation"]
+        == "optional_hold_evidence" for i in (6, 7)
+    )
+
+
 def test_optional_papers_stay_blocked_until_all_evidence_gates_pass():
     state = _state()
     portfolio = state["publication_portfolio"]

@@ -16,6 +16,20 @@ Legally available paired RGB/LWIR video with annotated identities, explicit time
 
 Record original source/version, licences and ethics/privacy conditions, native spectral bands and image grids, annotations, calibration/timing status, independent session splits and SHA-256 for inputs before acquisition or reuse. Do not commit licensed image archives, personal data or weights.
 
+## M3OT first-candidate review (metadata only, 2026-10-29)
+
+[Nie et al., Scientific Data (2025)](https://www.nature.com/articles/s41597-025-06204-0) describe multi-UAV aerial RGB/thermal vehicle tracking, paired modalities, ~10,790 pairs and ~220k bounding boxes. The [institutional dataset entry](https://rgu-repository.worktribe.com/output/3195645/m3ot-a-multi-drone-multi-modality-dataset-for-multi-object-tracking-dataset) lists a CC BY 4.0 licence; the exact hosted archive and tracking GT have **not been inspected**. The dataset documentation reports *manual* sequence-time alignment and affine image registration/cropping, not calibrated physical exposure timestamps or native grids.
+
+Before G06 can pass:
+
+- [ ] Check rights attached to the exact Figshare archive and annotations, plus stable version and checksums; no data mirroring.
+- [ ] Audit original paired RGB/IR frame keys, consistent track identities per sequence, occlusion labels, missing tracks and processed/native geometry.
+- [ ] Freeze train/validation/test by acquisition flight and scene, check cross-drone views and adjacent-frame/near-duplicate leakage; do not assume the author's image split is sequence-independent.
+- [ ] Establish HOTA/IDF1 implementation with independently documented expected values. Verify whether scene/viewpoint label mapping supports the preregistered experiment.
+- [ ] Treat manual pair alignment as a preprocessing step with unknown residual clock/skew; keep P02 exposure-synchronization claims blocked unless independently measured.
+
+**Decision:** high-priority metadata candidate for P06, **not an admitted experimental dataset and not a passed G06 gate**.
+
 ## Design and controls
 
 First compare association methods with fixed detector proposals; then separately compare full detector+tracker pipelines. Include RGB-only, LWIR-only, fixed fusion+tracker and modality-aware association. Disallow shared tracks across development and test.
