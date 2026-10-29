@@ -61,7 +61,7 @@ def test_missing_tracks_and_cross_class_labels_are_not_falsely_matched():
     assert cases["pedestrian"]["num_tracker_dets"] == 0
     assert cases["vehicle"]["num_tracker_dets"] == 1
     assert cases["vehicle"]["num_gt_dets"] == 0
-    assert cases["pedestrian"]["similarity_scores"] == [[], []]
+    assert cases["pedestrian"]["similarity_scores"] == [[[]], [[]]]
 
 
 def test_crossing_label_and_reused_pred_tracks_use_distinct_role_dictionaries():
@@ -97,7 +97,7 @@ def test_cannot_execute_without_explicit_trusted_checkout(tmp_path):
         audit(perfect(), run_reference=True)
     with pytest.raises(ValueError, match="without explicit"):
         audit(perfect(), reference_root=tmp_path)
-    with pytest.raises(ValueError, match="reference root"):
+    with pytest.raises(ValueError, match="TrackEval source checkout"):
         audit(perfect(), reference_root=tmp_path, run_reference=True)
 
 
