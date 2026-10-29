@@ -16,6 +16,10 @@ At least two truly independent legal RGB/LWIR sensor/domain cohorts with compati
 
 Record original source/version, licences and ethics/privacy conditions, native spectral bands and image grids, annotations, calibration/timing status, independent session splits and SHA-256 for inputs before acquisition or reuse. Do not commit licensed image archives, personal data or weights.
 
+## Cross-domain identification caution (2026-10-29)
+
+Owner-backed candidates include [KAIST](https://github.com/SoonminHwang/rgbt-ped-detection) (vehicle-mounted, default CC BY-NC-SA 4.0), [LLVIP](https://github.com/bupt-ai-cz/LLVIP) (low-light pedestrian, non-commercial licence), and [M3OT](https://www.nature.com/articles/s41597-025-06204-0) (aerial vehicle tracking; institutional record lists CC BY 4.0). **These are not automatically comparable domains.** Differences in class labels (pedestrian vs vehicle), viewpoint, night/day, native sensor pitch, aligned crops and thermal processing can confound any inference that a change is caused by sensor identity. Declare a class-compatible, independent source/device comparison before any cross-sensor claim; otherwise report a broader multi-domain generalization study or NO-GO for P05.
+
 ## Design and controls
 
 Leave-one-device/source-out evaluation; fixed dataset/label mapping and train/validation/test partitions. Compare RGB-only, LWIR-only, fixed fusion, source-only and adaptation baselines with equal model budgets and no target-test label tuning.

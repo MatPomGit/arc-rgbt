@@ -1,5 +1,5 @@
 version: 1
-updated: "2026-10-28"
+updated: "2026-10-29"
 purpose: "Canonical machine-readable scientific status for arc-rgbt and Research Autopilot."
 repository:
   canonical_branch: main
@@ -101,6 +101,20 @@ publication_portfolio:
       status: hold
       prerequisites: [measured_exposure_skew, independent_registration_uncertainty, independent_risk_coverage, independent_novelty_review]
       excluded_evidence: [simulated_E02_skew, analytical_bbox_iou]
+
+dataset_screening:
+  screened_at: "2026-10-29"
+  status: metadata_only_not_admitted
+  raw_dataset_downloaded: false
+  source_policy: verify_primary_owner_and_archive_terms_separately
+  candidate_decisions:
+    M3OT: priority_P06_archive_rights_annotations_timing_pending
+    KAIST: owner_CC_BY_NC_SA_4_0_archive_pending
+    LLVIP: owner_noncommercial_terms_archive_pending
+    CART: owner_licence_statement_conflict_hold
+    DroneVehicle: image_annotation_licence_unknown_hold
+    FLIR_ADAS: original_archive_terms_pending_hold
+  source_of_truth: docs/experiments/datasets.md
 
 current_blockers:
   - id: B01_REAL_DATA
