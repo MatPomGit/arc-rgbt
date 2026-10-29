@@ -118,7 +118,7 @@ def propose_splits(
         "limitations": [
             "Group labels and hashes are source declarations and not independently checked",
             "Split quotas count connected acquisition groups, not frame count or class prevalence",
-            "Actual near-duplicates, cross-UAV overlap and device provenance require source inspection",
+            "Actual near-duplicates and cross-UAV overlap require source inspection",
             "A proposed split is not an empirical benchmark or licensing approval",
         ],
     }

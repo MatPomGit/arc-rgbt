@@ -5,9 +5,9 @@ from __future__ import annotations
 from copy import deepcopy
 
 import pytest
+from test_admission import manifest
 
 from arc_rgbt.split_plan import propose_splits
-from test_admission import manifest
 
 
 def source(group: int, *, flight=None, scene=None, device=None):
