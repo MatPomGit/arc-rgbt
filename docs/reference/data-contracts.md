@@ -44,6 +44,29 @@ Python evaluators in `arc_rgbt.evaluation_contracts` extend existing `bench.eval
 
 These tools do not open external archives, measure physical clocks, or promote B01/G06. Full AP/HOTA claims still require source evidence and benchmark protocol review.
 
+## Local image near-duplicate audit (R3.1, implemented)
+
+`arc-rgbt near-duplicates` is separate from metadata-only `arc-rgbt admission` and the `.npy` `arc-rgbt sequence` audit. Use it **only on a local subset whose licence permits access and analysis**. It does not download source images or upload images, derived thumbnails, or model weights. The input admission inventory must already pass the strict metadata schema and split guard. A second small JSON mapping identifies local images without modifying source manifests.
+
+Mapping format:
+
+```json
+{"schema_version": 1, "items": [
+  {"sequence_id": "flightA", "modality": "rgb", "frame_id": "rgb-001", "path": "frame-001.jpg"},
+  {"sequence_id": "flightB", "modality": "rgb", "frame_id": "rgb-002", "path": "frame-002.jpg"}
+]}
+```
+
+```bash
+arc-rgbt near-duplicates --input local-inventory.json --map local-frame-map.json --root /path/to/permitted/images --max-hamming 4 --output reports/near-duplicate-review.json
+```
+
+- `--input`: existing strict admission JSON with declared per-frame SHA-256, split, sequence ID and modality-specific frame ID. `--map`: exactly `schema_version` and 2–512 `items`. Each item has `sequence_id`, `modality` (`rgb` or `thermal`), `frame_id` and relative `.jpg`, `.jpeg` or `.png` `path`. `--root` identifies read-only source images. Local paths cannot escape the root, including symlinks; hardlinks and reused mapped image files are rejected.
+- The tool recomputes the **actual SHA-256 of each local PNG/JPEG** and requires an exact match to the admission manifest. It then decodes a reduced grayscale image and computes the 64-bit horizontal **difference hash (dHash)**. Images are compared only when they are in different train/validation/test splits and share the **same declared spectral band**. The default Hamming-distance threshold is four bits; configurable from 0 to 64.
+- A flagged pair means `REVIEW_REQUIRED`, **not** an independently established duplicate. dHash has false positives on flat/textureless scenes and false negatives after cropping, rotation, shifts and thermal remapping. An unflagged subset is `NO_CANDIDATES_IN_SUBSET`, **never** proof of split independence or absence of leakage. For M3OT, a reviewer must also inspect overlapping UAV flights and original capture provenance.
+- Bounds: local mapping up to 1 MiB; images up to 16 MiB each; maximum 4 million pixels after reduced decoding; maximum 512 mapped images and 200 candidate pairs per run. Reports contain IDs, splits, modality, hash distances and limitations, not image pixels. Output uses exclusive file creation and cannot overwrite existing results.
+- Results always report `empirical_admission: false`, `licence_verified: false`, and `tracking_metric_verified: false`, even when every input hash matches. Do not commit local image archives, restricted labels or review output.
+
 ## Detection benchmark JSON
 
 ```json
