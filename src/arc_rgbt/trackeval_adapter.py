@@ -68,6 +68,41 @@ for label, case in src.items():
         "idfp": int(identity["IDFP"]),
         "idfn": int(identity["IDFN"]),
     }
+
+# Sanity checks from the official pinned TrackEval tests and analytic perfect tracking.
+perfect = {
+    "num_timesteps": 2, "num_gt_ids": 1, "num_tracker_ids": 1,
+    "num_gt_dets": 2, "num_tracker_dets": 2,
+    "gt_ids": [np.asarray([0]), np.asarray([0])],
+    "tracker_ids": [np.asarray([0]), np.asarray([0])],
+    "similarity_scores": [np.asarray([[1.]]), np.asarray([[1.]])],
+}
+h = trackeval.metrics.HOTA().eval_sequence(perfect)
+ident = trackeval.metrics.Identity({"PRINT_CONFIG": False}).eval_sequence(perfect)
+if abs(float(np.mean(h["HOTA"])) - 1) > 1e-12 or abs(float(ident["IDF1"]) - 1) > 1e-12:
+    raise RuntimeError("Perfect-track HOTA/IDF1 sanity check failed")
+
+# Official upstream tests/test_metrics.py no_confusion:
+# IDTP=4, IDFN=4, IDFP=5, IDF1 = 8/17.
+no_confusion = {
+    "num_timesteps": 5, "num_gt_ids": 2, "num_tracker_ids": 2,
+    "num_gt_dets": 8, "num_tracker_dets": 9,
+    "gt_ids": [np.asarray(v, dtype=int) for v in [[0,1],[0,1],[0,1],[0],[0]]],
+    "tracker_ids": [np.asarray(v, dtype=int) for v in [
+        [0,1],[0,1],[0,1],[0,1],[1]
+    ]],
+    "similarity_scores": [np.asarray(v, dtype=float) for v in [
+        [[0,0],[1,0]], [[0,0],[1,0]], [[0,0],[0,0]], [[0,1]], [[1]],
+    ]],
+}
+test_identity = trackeval.metrics.Identity({"PRINT_CONFIG": False}).eval_sequence(
+    no_confusion
+)
+if (int(test_identity["IDTP"]), int(test_identity["IDFN"]),
+        int(test_identity["IDFP"])) != (4, 4, 5):
+    raise RuntimeError("Official Identity ID counts sanity check failed")
+if abs(float(test_identity["IDF1"]) - 8 / 17) > 1e-12:
+    raise RuntimeError("Official Identity IDF1 sanity check failed")
 print(json.dumps(result, allow_nan=False, sort_keys=True))
 """
 
@@ -216,6 +251,7 @@ def audit(
                        or not 0 <= v <= 1 for v in metrics["hota_alphas"])):
             raise ValueError("TrackEval returned invalid HOTA alpha series")
     result["reference_execution"] = True
+    result["reference_self_check"] = "PASS"
     result["evaluation_status"] = "PINNED_REFERENCE_EXECUTED_ON_DECLARED_INPUT"
     result["results"] = values
     return result

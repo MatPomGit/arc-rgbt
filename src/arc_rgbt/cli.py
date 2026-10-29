@@ -29,6 +29,7 @@ TOOLS = {
     "sequence": ("sequence_audit", "Audit RGB/LWIR timestamped frames and pairing quality"),
     "admission": ("admission", "Validate offline metadata and scene/flight splits"),
     "near-duplicates": ("near_duplicate_audit", "Audit local image subset leakage (human review)"),
+    "trackeval": ("trackeval_adapter", "Tracking input preflight or opt-in pinned TrackEval"),
     "split": ("split_plan", "Propose deterministic independent acquisition-group splits"),
 }
 DEPENDENCIES = {"numpy": "NumPy", "cv2": "OpenCV", "scipy": "SciPy", "yaml": "PyYAML"}

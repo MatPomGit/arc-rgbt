@@ -132,3 +132,22 @@ def test_schema_missing_frame_and_unknown_status_are_rejected(tmp_path):
     frames[0]["annotation_status"] = "unknown"
     with pytest.raises(ValueError, match="complete"):
         prepare(frames)
+
+
+
+def test_committed_tracking_fixture_is_dry_run():
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "datasets/manifests/tracking-synthetic.json"
+    r = run(path)
+    assert r["sequence_id"] == "synthetic-tracking-example"
+    assert r["results"]["vehicle"] == {"hota": None, "idf1": None}
+    assert r["reference_execution"] is False
+
+
+def test_official_sanity_cases_are_embedded_but_not_auto_executed():
+    from arc_rgbt.trackeval_adapter import _REFERENCE_SCRIPT
+
+    assert "no_confusion" in _REFERENCE_SCRIPT
+    assert "8 / 17" in _REFERENCE_SCRIPT
+    assert "Perfect-track" in _REFERENCE_SCRIPT

@@ -15,6 +15,7 @@ All experiments run locally and place outputs in ignored `reports/`.
 | `arc-rgbt sequence --input FILE --output DIR` | Audit existing local sequence manifests |
 | `arc-rgbt admission --input FILE` | Metadata, track IDs, flight/scene split integrity only; never opens images |
 | `arc-rgbt near-duplicates --input FILE --map MAP --root DIR` | Read-only actual SHA-256 and dHash cross-split candidate audit on permitted local images |
+| `arc-rgbt trackeval --input FILE` | Dry-run tracking schema/reference array audit; opt-in reference evaluation only |
 | `arc-rgbt split --input FILE [--seed N] [--output FILE]` | Deterministic split proposal by linked acquisition groups; no data admission |
 | `arc-rgbt doctor` | Inspect local runtime |
 | `arc-rgbt demo --output DIR` | Synthetic images and offline HTML example |
@@ -40,6 +41,7 @@ All experiments run locally and place outputs in ignored `reports/`.
 | `arc-rgbt-sequence` | `--demo` or `--input` manifest, `--output` fresh directory |
 | `arc-rgbt-admission` | `--input` metadata JSON, optional `--output` new report file |
 | `arc-rgbt-near-duplicates` | `--input` admission inventory, `--map` local frame-to-path mapping, `--root` permitted images |
+| `arc-rgbt-trackeval` | `--input` JSON, optional `--run-reference` and `--reference-root` for trusted pinned code |
 | `arc-rgbt-split` | `--input` metadata JSON, optional `--seed`, `--proportions`, `--device-disjoint`, `--output` |
 
 **Python/API launcher:** `arc-rgbt`, listed above; direct module
