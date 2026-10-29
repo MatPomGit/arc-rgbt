@@ -20,6 +20,8 @@ evidence_state:
   E01: hand_constructed_labelled_quality_fusion_comparison_only
   E02: simulated_timestamp_and_analytical_geometric_iou_only
   admission_metadata_v1: structural_validator_only_never_experimental_data_approval
+  split_plan_v1: acquisition_group_proposals_only_no_source_identity_verification
+  evaluation_contracts_v1: synthetic_AP_FP_frame_with_HOTA_IDF1_not_implemented
   P01: research_work_package_not_empirically_confirmed
   P02: research_work_package_not_empirically_confirmed
   P03: research_work_package_not_empirically_confirmed

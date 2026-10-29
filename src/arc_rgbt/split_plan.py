@@ -122,3 +122,41 @@ def propose_splits(
             "A proposed split is not an empirical benchmark or licensing approval",
         ],
     }
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Produce a proposal report, preserving source manifest bytes."""
+    import argparse
+    from pathlib import Path
+
+    from arc_rgbt.admission import MAX_MANIFEST_BYTES, _unique_pairs
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--input", required=True, help="Existing metadata-only JSON manifest")
+    parser.add_argument("--seed", type=int, default=17, help="Unsigned 32-bit seed")
+    parser.add_argument("--proportions", type=float, nargs=3, default=(0.7, 0.15, 0.15),
+                        metavar=("TRAIN", "VAL", "TEST"))
+    parser.add_argument("--device-disjoint", action="store_true")
+    parser.add_argument("--output", help="Optional new JSON report (no overwrite)")
+    args = parser.parse_args(argv)
+    try:
+        path = Path(args.input)
+        if path.stat().st_size > MAX_MANIFEST_BYTES:
+            raise ValueError("Manifest exceeds 8 MiB")
+        manifest = json.loads(path.read_text(encoding="utf-8"),
+                              object_pairs_hook=_unique_pairs)
+        result = propose_splits(
+            manifest, seed=args.seed, proportions=args.proportions,
+            device_disjoint=args.device_disjoint,
+        )
+        output = json.dumps(result, sort_keys=True, indent=2, allow_nan=False) + "\n"
+        if args.output:
+            with Path(args.output).open("x", encoding="utf-8") as handle:
+                handle.write(output)
+        print(output, end="")
+    except (OSError, ValueError, UnicodeError) as exc:
+        parser.exit(1, f"split: {type(exc).__name__}: {exc}\n")
+
+
+if __name__ == "__main__":
+    main()

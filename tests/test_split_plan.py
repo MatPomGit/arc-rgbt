@@ -95,3 +95,22 @@ def test_duplicate_image_hash_rejected_before_planning():
     )
     with pytest.raises(ValueError, match="Duplicate image"):
         propose_splits(d)
+
+
+def test_split_cli_creates_report_without_changing_metadata(tmp_path, capsys):
+    import json
+
+    from arc_rgbt import cli
+
+    original = dataset(5)
+    src = tmp_path / "input.json"
+    src.write_text(json.dumps(original), encoding="utf-8")
+    dst = tmp_path / "proposal.json"
+    assert cli.main(["split", "--input", str(src), "--output", str(dst)]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert json.loads(dst.read_text(encoding="utf-8")) == output
+    assert json.loads(src.read_text(encoding="utf-8")) == original
+    assert output["empirical_admission"] is False
+    with pytest.raises(SystemExit) as raised:
+        cli.main(["split", "--input", str(src), "--output", str(dst)])
+    assert raised.value.code == 1

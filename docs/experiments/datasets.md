@@ -87,6 +87,10 @@ legally cleared physical experimental evidence. Consult the canonical
 
 Use `arc-rgbt admission --input FILE` to validate declared source metadata, track-ID duplication, modality-specific boxes and scene/flight split leakage. The [implemented contract](../reference/data-contracts.md) and synthetic demo are separate from the real `.npy` sequence checker. This audit never opens source imagery or annotations. Structural PASS **does not** certify source hashes, dataset rights, native optics, or exposure clocks and cannot promote B01 or G06. Archive rights and genuine tracking labels remain tasks [#22](https://github.com/MatPomGit/arc-rgbt/issues/22) and [#23](https://github.com/MatPomGit/arc-rgbt/issues/23).
 
+## Acquisition-group split preflight and metrics
+
+The `arc-rgbt split` command produces deterministic metadata-only **proposals** that preserve declared flight/scene groups; optional `--device-disjoint` groups sources by device too. It does not inspect pixels, source archive, metadata truth or near-duplicates. Details and current metric limits (single-IoU AP, FP/frame, HOTA/IDF1 deferred) are in [data contracts](../reference/data-contracts.md). **M0 source admission and G06 remain pending**.
+
 ## Admission checklist for A02_DATA / B01_REAL_DATA
 
 Record the following **before** obtaining, importing or reporting a dataset:

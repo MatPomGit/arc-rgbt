@@ -11,7 +11,7 @@ def test_discoverable_help(capsys):
     text = capsys.readouterr().out
     for command in ("doctor", "demo", "sensor", "degrade", "fuse", "bench", "edge",
                     "e00", "e01", "e02", "sync", "register", "thermal", "sequence",
-                    "admission"):
+                    "admission", "split"):
         assert command in text
 
 
