@@ -65,11 +65,12 @@ def _modality(value: object, kind: str) -> tuple[int, int]:
         kind,
     )
     bands = {"rgb"} if kind == "rgb" else {"lwir", "nir", "unverified_ir"}
-    if item["band"] not in bands:
+    if not isinstance(item["band"], str) or item["band"] not in bands:
         raise ValueError(f"{kind}.band: invalid spectral band")
     _grid(item["native_grid_wh"], f"{kind}.native_grid_wh")
     grid = _grid(item["processed_grid_wh"], f"{kind}.processed_grid_wh")
-    if item["grid_origin"] not in {"original_native", "aligned_crop", "unknown"}:
+    if (not isinstance(item["grid_origin"], str)
+            or item["grid_origin"] not in {"original_native", "aligned_crop", "unknown"}):
         raise ValueError(f"{kind}.grid_origin: invalid source provenance")
     if (item["grid_origin"] == "original_native"
             and item["native_grid_wh"] != item["processed_grid_wh"]):
@@ -111,7 +112,7 @@ def analyze(manifest: dict, *, manifest_sha256: str | None = None) -> dict:
     _url(info["owner_url"], "dataset.owner_url")
     if info["licence_url"] is not None:
         _url(info["licence_url"], "dataset.licence_url")
-    if info["rights_status"] not in {
+    if not isinstance(info["rights_status"], str) or info["rights_status"] not in {
         "needs_review", "owner_terms_identified", "independently_reviewed",
     }:
         raise ValueError("dataset.rights_status: unsupported review category")
@@ -135,7 +136,8 @@ def analyze(manifest: dict, *, manifest_sha256: str | None = None) -> dict:
         if seq_id in seen_sequences:
             raise ValueError(f"Duplicate sequence ID: {seq_id}")
         seen_sequences.add(seq_id)
-        if seq["split"] not in {"train", "validation", "test"}:
+        if not isinstance(seq["split"], str) or seq["split"] not in {
+                "train", "validation", "test"}:
             raise ValueError(f"{seq_id}: unsupported split")
         for field in ("flight_group", "scene_group"):
             name = _ident(seq[field], f"{seq_id}.{field}")
@@ -148,9 +150,11 @@ def analyze(manifest: dict, *, manifest_sha256: str | None = None) -> dict:
         rgb_grid = _modality(seq["rgb"], "rgb")
         thermal_grid = _modality(seq["thermal"], "thermal")
         bands.add(seq["thermal"]["band"])
-        if seq["pairing_origin"] not in {"manual", "declared_clock", "unknown"}:
+        if (not isinstance(seq["pairing_origin"], str)
+                or seq["pairing_origin"] not in {"manual", "declared_clock", "unknown"}):
             raise ValueError(f"{seq_id}: pairing_origin invalid")
-        if seq["exposure_clock"] not in {"unknown", "declared_only"}:
+        if (not isinstance(seq["exposure_clock"], str)
+                or seq["exposure_clock"] not in {"unknown", "declared_only"}):
             raise ValueError(f"{seq_id}: clock verification is external, not automatic")
         frames = seq["frames"]
         if not isinstance(frames, list) or not frames:
@@ -185,7 +189,8 @@ def analyze(manifest: dict, *, manifest_sha256: str | None = None) -> dict:
                 if digest in image_hashes:
                     raise ValueError(f"Duplicate image SHA-256: {digest}")
                 image_hashes.add(digest)
-            if frame["annotation_status"] not in {"complete", "partial", "unknown"}:
+            if (not isinstance(frame["annotation_status"], str)
+                    or frame["annotation_status"] not in {"complete", "partial", "unknown"}):
                 raise ValueError(f"{seq_id}: annotation_status invalid")
             if frame["annotation_status"] != "complete":
                 counts["incomplete_or_unknown_labels"] += 1
@@ -197,7 +202,7 @@ def analyze(manifest: dict, *, manifest_sha256: str | None = None) -> dict:
                 _exact(obj, {"modality", "track_id", "label", "bbox_xywh"},
                        f"{seq_id}.object")
                 modality = obj["modality"]
-                if modality not in {"rgb", "thermal"}:
+                if not isinstance(modality, str) or modality not in {"rgb", "thermal"}:
                     raise ValueError(f"{seq_id}: object modality must be rgb or thermal")
                 identity = (modality, _ident(obj["track_id"], "object.track_id"))
                 if identity in this_tracks:

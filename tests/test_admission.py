@@ -11,7 +11,8 @@ from arc_rgbt import admission, cli
 
 
 def manifest():
-    digest = lambda n: f"{n:064x}"
+    def digest(n):
+        return f"{n:064x}"
     return {
         "schema_version": 1,
         "data_origin": "metadata_only",
@@ -171,3 +172,23 @@ def test_nir_never_relabelled_as_lwir():
     report = admission.analyze(case)
     assert report["thermal_bands_declared"] == ["nir"]
     assert report["empirical_admission"] is False
+
+
+@pytest.mark.parametrize(("path", "value"), [
+    (("dataset", "rights_status"), ["owner_terms_identified"]),
+    (("sequences", 0, "split"), []),
+    (("sequences", 0, "pairing_origin"), {"mode": "manual"}),
+    (("sequences", 0, "exposure_clock"), []),
+    (("sequences", 0, "thermal", "band"), []),
+    (("sequences", 0, "rgb", "grid_origin"), {}),
+    (("sequences", 0, "frames", 0, "annotation_status"), []),
+    (("sequences", 0, "frames", 0, "objects", 0, "modality"), []),
+])
+def test_untrusted_wrong_typed_fields_fail_as_value_errors(path, value):
+    bad = copy.deepcopy(manifest())
+    current = bad
+    for part in path[:-1]:
+        current = current[part]
+    current[path[-1]] = value
+    with pytest.raises(ValueError):
+        admission.analyze(bad)
