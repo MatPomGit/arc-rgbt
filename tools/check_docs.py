@@ -16,7 +16,7 @@ HEAD = re.compile(r"^#{1,6}\s+", re.MULTILINE)
 REQUIRED_SCRIPTS = {
     "sensorlab", "degradesim", "fusionlab", "bench-rgbt", "edgelab",
     "arc-rgbt-e00", "arc-rgbt-e01", "arc-rgbt-e02",
-    "arc-rgbt-sync", "arc-rgbt-register",
+    "arc-rgbt-sync", "arc-rgbt-register", "arc-rgbt-admission",
 }
 
 

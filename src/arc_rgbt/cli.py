@@ -27,6 +27,7 @@ TOOLS = {
     "studio": ("studio", "Offline visual image viewer and fusion controls"),
     "thermal": ("thermal_preview", "Raw 16-bit or float .npy preview with provenance"),
     "sequence": ("sequence_audit", "Audit RGB/LWIR timestamped frames and pairing quality"),
+    "admission": ("admission", "Validate offline metadata and scene/flight splits"),
 }
 DEPENDENCIES = {"numpy": "NumPy", "cv2": "OpenCV", "scipy": "SciPy", "yaml": "PyYAML"}
 
