@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "data_origin": "synthetic",
+  "sequence_id": "synthetic-tracking-example",
+  "frames": [
+    {
+      "frame_id": "f0",
+      "frame_index": 0,
+      "annotation_status": "complete",
+      "ground_truth": [
+        {
+          "track_id": "gt-vehicle",
+          "label": "vehicle",
+          "bbox_xywh": [
+            1,
+            1,
+            10,
+            10
+          ]
+        }
+      ],
+      "predictions": [
+        {
+          "track_id": "pred-vehicle",
+          "label": "vehicle",
+          "bbox_xywh": [
+            1,
+            1,
+            10,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "frame_id": "f1",
+      "frame_index": 1,
+      "annotation_status": "complete",
+      "ground_truth": [
+        {
+          "track_id": "gt-vehicle",
+          "label": "vehicle",
+          "bbox_xywh": [
+            2,
+            1,
+            10,
+            10
+          ]
+        }
+      ],
+      "predictions": [
+        {
+          "track_id": "pred-vehicle",
+          "label": "vehicle",
+          "bbox_xywh": [
+            2,
+            1,
+            10,
+            10
+          ]
+        }
+      ]
+    }
+  ]
+}

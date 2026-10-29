@@ -67,6 +67,23 @@ arc-rgbt near-duplicates --input local-inventory.json --map local-frame-map.json
 - Bounds: local mapping up to 1 MiB; images up to 16 MiB each; maximum 4 million pixels after reduced decoding; maximum 512 mapped images and 200 candidate pairs per run. Reports contain IDs, splits, modality, hash distances and limitations, not image pixels. Output uses exclusive file creation and cannot overwrite existing results.
 - Results always report `empirical_admission: false`, `licence_verified: false`, and `tracking_metric_verified: false`, even when every input hash matches. Do not commit local image archives, restricted labels or review output.
 
+## Tracking TrackEval adapter (P06, pinned and opt-in)
+
+The `arc-rgbt trackeval` / `arc-rgbt-trackeval` command reads a bounded **local JSON tracking sequence**. Without explicit permission to execute a third-party checkout, results have `hota: null`, `idf1: null`, `reference_execution: false`. It does not download external code or datasets.
+
+Strict input keys: `schema_version: 1`, `sequence_id`, `data_origin` (`synthetic` or `external_unverified`) and `frames`. Each frame requires a unique `frame_id`, **contiguous zero-based** `frame_index`, `annotation_status: complete` and `ground_truth` / `predictions` lists. Each object has nonempty `track_id`, `label`, and finite positive `bbox_xywh`. The adapter maps identities separately per role and class, computes box IoU and does not infer missing frames, ignore regions, cross-camera identity, crowd annotations or class mappings. Inputs with such unresolved conventions must be held for manual protocol work.
+
+```bash
+arc-rgbt trackeval --input datasets/manifests/tracking-synthetic.json
+arc-rgbt trackeval --input datasets/manifests/tracking-synthetic.json --reference-root /reviewed/TrackEval --run-reference --output reports/tracking-reference.json
+```
+
+**Explicit source execution:** `--run-reference` requires a locally inspected, clean Git checkout at exact [TrackEval revision](https://github.com/JonathonLuiten/TrackEval/tree/12c8791b303e0a0b50f753af204249e622d0281a) `12c8791b303e0a0b50f753af204249e622d0281a` (MIT software licence). The adapter refuses wrong revisions or dirty tracked/untracked files; it calls a separate isolated Python interpreter without user site packages and supplies legacy `np.float` and `np.int` compatibility aliases **inside that interpreter only**. It requires local NumPy and SciPy, no network access by the adapter; third-party execution should be restricted to an intentionally trusted disposable environment, never an unreviewed persistent runner.
+
+Before emitting numerical results, the reference child executes two checks: perfect two-frame tracking yields HOTA=1 and IDF1=1; the upstream `tests/test_metrics.py` `no_confusion` case must match IDTP=4, IDFN=4, IDFP=5 and IDF1=8/17. Official TrackEval computes HOTA over 19 alpha values 0.05–0.95 and IDF1 at the default 0.5 threshold. Only successfully executed upstream metrics are labelled `PINNED_REFERENCE_EXECUTED_ON_DECLARED_INPUT`. Source rights, original annotation correctness, GT semantics and flight independence are always explicitly unverified, even after numerical execution.
+
+**Current boundary:** no actual M3OT image/annotation archive has been admitted. A passing synthetic adapter test does not satisfy G06, and the CI does not execute the optional third-party reference.
+
 ## Detection benchmark JSON
 
 ```json
