@@ -91,6 +91,10 @@ Use `arc-rgbt admission --input FILE` to validate declared source metadata, trac
 
 The `arc-rgbt split` command produces deterministic metadata-only **proposals** that preserve declared flight/scene groups; optional `--device-disjoint` groups sources by device too. It does not inspect pixels, source archive, metadata truth or near-duplicates. Details and current metric limits (single-IoU AP, FP/frame, HOTA/IDF1 deferred) are in [data contracts](../reference/data-contracts.md). **M0 source admission and G06 remain pending**.
 
+## Local image leakage preflight
+
+After independent confirmation of rights for a locally held subset, `arc-rgbt near-duplicates` can re-hash user-provided JPEG/PNG files and flag same-band, cross-split dHash similarities for **manual review**. Its [read-only contract](../reference/data-contracts.md) requires an image-path map tied to exact admission frame IDs and rejects hash mismatch. It is not a substitute for original M3OT flight logs or complete source-image review; no source files are bundled in the repository.
+
 ## Admission checklist for A02_DATA / B01_REAL_DATA
 
 Record the following **before** obtaining, importing or reporting a dataset:

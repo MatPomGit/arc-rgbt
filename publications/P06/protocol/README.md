@@ -30,6 +30,9 @@ Before G06 can pass:
 
 **Decision:** high-priority metadata candidate for P06, **not an admitted experimental dataset and not a passed G06 gate**.
 
+## Reference tracking evaluator candidate (2026-10-29)
+
+Official upstream: [JonathonLuiten/TrackEval](https://github.com/JonathonLuiten/TrackEval). For reproducible P06 planning, the **candidate revision** is `12c8791b303e0a0b50f753af204249e622d0281a` ([tree](https://github.com/JonathonLuiten/TrackEval/tree/12c8791b303e0a0b50f753af204249e622d0281a), [MIT licence](https://github.com/JonathonLuiten/TrackEval/blob/12c8791b303e0a0b50f753af204249e622d0281a/LICENSE)). This is an exact source pin and licence check **only**. No reference TrackEval tests, GT mapping/ignore-region configuration or valid HOTA/IDF1 comparison have been executed yet; G06 remains blocked. Do not fetch untrusted code onto persistent runners or imply the external software licence grants rights to M3OT image/annotation archives.
 ## Design and controls
 
 First compare association methods with fixed detector proposals; then separately compare full detector+tracker pipelines. Include RGB-only, LWIR-only, fixed fusion+tracker and modality-aware association. Disallow shared tracks across development and test.
