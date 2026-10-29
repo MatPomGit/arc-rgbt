@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "data_origin": "metadata_only",
+  "dataset": {
+    "id": "synthetic-inventory-not-real-data",
+    "release": "demo-v1",
+    "owner_url": "https://example.org/synthetic-rgbt-demo",
+    "licence_url": null,
+    "rights_status": "needs_review",
+    "archive_sha256": null
+  },
+  "sequences": [
+    {
+      "id": "example-flight-1",
+      "flight_group": "demo-flight-1",
+      "scene_group": "demo-scene-1",
+      "device_id": "demo-camera-pair",
+      "split": "train",
+      "rgb": {
+        "band": "rgb",
+        "native_grid_wh": [
+          80,
+          60
+        ],
+        "processed_grid_wh": [
+          80,
+          60
+        ],
+        "grid_origin": "original_native"
+      },
+      "thermal": {
+        "band": "lwir",
+        "native_grid_wh": [
+          40,
+          30
+        ],
+        "processed_grid_wh": [
+          40,
+          30
+        ],
+        "grid_origin": "original_native"
+      },
+      "pairing_origin": "manual",
+      "exposure_clock": "unknown",
+      "frames": [
+        {
+          "pair_id": "demo-pair-0",
+          "frame_index": 0,
+          "rgb_id": "demo-rgb-0",
+          "thermal_id": "demo-thermal-0",
+          "rgb_sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+          "thermal_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+          "annotation_status": "complete",
+          "objects": [
+            {
+              "modality": "rgb",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                10,
+                10,
+                20,
+                20
+              ]
+            },
+            {
+              "modality": "thermal",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                5,
+                5,
+                10,
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

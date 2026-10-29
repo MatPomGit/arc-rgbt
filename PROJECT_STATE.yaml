@@ -19,6 +19,7 @@ evidence_state:
   E00: deterministic_synthetic_resolution_sweep_only
   E01: hand_constructed_labelled_quality_fusion_comparison_only
   E02: simulated_timestamp_and_analytical_geometric_iou_only
+  admission_metadata_v1: structural_validator_only_never_experimental_data_approval
   P01: research_work_package_not_empirically_confirmed
   P02: research_work_package_not_empirically_confirmed
   P03: research_work_package_not_empirically_confirmed

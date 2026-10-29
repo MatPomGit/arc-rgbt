@@ -3,6 +3,29 @@
 Public examples live under `configs/` and `datasets/manifests/`. Values below describe currently implemented input contracts, not generalized camera standards.
 External dataset vetting is a separate [admission process](../experiments/datasets.md); its screening metadata example is **not** a supported Bench or E01 import format.
 
+## Candidate metadata admission inventory (implemented v1)
+
+Separate from the existing `.npy` sequence audit, `arc-rgbt admission` validates **JSON metadata only**. It does not inspect or hash original image files, labels, licence text or capture clocks. Its structural PASS always reports `empirical_admission: false` and cannot satisfy B01, B02 or G06.
+
+The [synthetic example](https://github.com/MatPomGit/arc-rgbt/blob/main/datasets/manifests/admission-synthetic.json) uses illustrative, **not actual image** SHA-256 values:
+
+```bash
+arc-rgbt admission --input datasets/manifests/admission-synthetic.json
+arc-rgbt-admission --input datasets/manifests/admission-synthetic.json --output reports/admission.json
+```
+
+Strict root fields: `schema_version: 1`, `data_origin: metadata_only`, `dataset` and `sequences`.
+
+- Dataset fields: `id`, `release`, `owner_url` (HTTPS), `licence_url` (HTTPS or null), `rights_status` (`needs_review`, `owner_terms_identified`, `independently_reviewed`, **declared only**) and `archive_sha256` (lowercase 64-hex or null).
+- Each sequence: `id`, `flight_group`, `scene_group`, `device_id`, `split` (`train`, `validation`, `test`), `rgb`, `thermal`, `pairing_origin` (`manual`, `declared_clock`, `unknown`), `exposure_clock` (`unknown`, `declared_only`), and `frames`.
+- Modality descriptors: `band` is `rgb` for RGB, one of `lwir`, `nir`, `unverified_ir` for thermal/IR. Declare `native_grid_wh`, `processed_grid_wh` as `[width,height]`, and `grid_origin` (`original_native`, `aligned_crop`, `unknown`). Original-native geometry cannot declare a different processed grid.
+- Each paired frame: unique `pair_id`, `rgb_id`, `thermal_id`, increasing `frame_index`, lowercase `rgb_sha256`, `thermal_sha256`, `annotation_status` (`complete`, `partial`, `unknown`), and `objects`.
+- Object fields: `modality` (`rgb`/`thermal`), `track_id`, `label`, `bbox_xywh` (finite positive box fully inside **processed** modality grid). Track IDs are modality-local; equal names do not prove cross-sensor identity.
+
+Global duplicate image hashes, duplicate per-stream IDs, duplicate track IDs within a frame/modality, and assigning the same flight or scene group to multiple train/validation/test splits fail validation. Gaps in track IDs are **reported** as possible occlusions, not necessarily errors. Input bounds: 8 MiB, 2000 sequences, 50,000 paired frames, 256 objects per pair. Unknown schema fields and duplicate JSON keys are rejected.
+
+The optional output is created exclusively and never overwrites existing files. This tool cannot establish actual frame-to-frame identity correctness, measured exposure synchronization, annotation completeness or dataset permission. It does not calculate AP/HOTA/IDF1 or automatically allocate splits. See [dataset admission policy](../experiments/datasets.md).
+
 ## Detection benchmark JSON
 
 ```json

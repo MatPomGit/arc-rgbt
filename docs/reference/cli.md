@@ -13,6 +13,7 @@ All experiments run locally and place outputs in ignored `reports/`.
 | `arc-rgbt thermal --input FILE --output DIR` | Native 2D numeric preview; preserve input and record source units |
 | `arc-rgbt sequence --demo --output DIR` | Synthetic pair-timing/integrity report |
 | `arc-rgbt sequence --input FILE --output DIR` | Audit existing local sequence manifests |
+| `arc-rgbt admission --input FILE` | Metadata, track IDs, flight/scene split integrity only; never opens images |
 | `arc-rgbt doctor` | Inspect local runtime |
 | `arc-rgbt demo --output DIR` | Synthetic images and offline HTML example |
 | `arc-rgbt sensor/degrade/fuse/bench/edge` | Delegate to named reference tools |
@@ -35,6 +36,7 @@ All experiments run locally and place outputs in ignored `reports/`.
 | `arc-rgbt-register` | `--rgb`, `--thermal`, `--homography`, `--calibration-origin` |
 | `arc-rgbt-thermal` | `--input` 2D numeric thermal file, `--output` fresh directory |
 | `arc-rgbt-sequence` | `--demo` or `--input` manifest, `--output` fresh directory |
+| `arc-rgbt-admission` | `--input` metadata JSON, optional `--output` new report file |
 
 **Python/API launcher:** `arc-rgbt`, listed above; direct module
 entry points are in `src/arc_rgbt/`. Supported inputs, outputs and
