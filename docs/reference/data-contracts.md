@@ -26,6 +26,24 @@ Global duplicate image hashes, duplicate per-stream IDs, duplicate track IDs wit
 
 The optional output is created exclusively and never overwrites existing files. This tool cannot establish actual frame-to-frame identity correctness, measured exposure synchronization, annotation completeness or dataset permission. It does not calculate AP/HOTA/IDF1 or automatically allocate splits. See [dataset admission policy](../experiments/datasets.md).
 
+## Proposed split and metric contracts (M1, implemented)
+
+The `arc-rgbt split` (also `arc-rgbt-split`) command takes the **same** metadata-only admission inventory, checks it through the existing `admission.analyze`, then groups sequences into connected components by shared `flight_group` or `scene_group`. With `--device-disjoint`, shared `device_id` also joins components. A seeded SHA-256 ordering assigns entire components to train/validation/test. Minimum three independent groups required; a complete 3-way split is **impossible** with fewer. This is a **proposal only**, not an automatic update of the original manifest or empirical approval.
+
+```bash
+arc-rgbt split --input datasets/manifests/split-synthetic.json --seed 17
+# For an actual 3-way proposal, provide at least three independently declared flight/scene groups.
+arc-rgbt split --input local-metadata.json --seed 17 --device-disjoint --output reports/split-proposal.json
+```
+
+Requested `--proportions TRAIN VAL TEST` are positive and must sum to 1; assignment quotas count **connected groups**, not frame or class proportions. Actual flight/device identities, near-duplicate imagery and cross-UAV scene overlap still demand independent manual or image-based provenance checks. The report is never equivalent to a licence or native-dataset admission.
+
+Python evaluators in `arc_rgbt.evaluation_contracts` extend existing `bench.evaluate` without replacing its TP/FP/FN matching. `detection_contract(frames, annotation_status='complete', iou_threshold=0.5, operating_score=0.0)` computes per-class **all-points interpolated AP at the specified single IoU threshold**, mean across GT-present classes, recall and FP/frame at the declared score threshold. It is **not** COCO AP@[.50:.95]. With no GT, AP/recall are null; with no predictions, precision is null; complete-negative frames remain in the FP/frame denominator. Annotation completeness remains a declaration.
+
+`tracking_reference_contract(frames)` verifies monotonically increasing frame indices, complete GT, nonduplicate identities per frame and valid per-sequence tracking boxes. It returns `hota: null` and `idf1: null`: **neither HOTA nor IDF1 is implemented**. Scientific tracking evaluation requires a separately pinned and independently validated TrackEval reference implementation with real sequence IDs, original annotations and accepted access terms.
+
+These tools do not open external archives, measure physical clocks, or promote B01/G06. Full AP/HOTA claims still require source evidence and benchmark protocol review.
+
 ## Detection benchmark JSON
 
 ```json
