@@ -114,3 +114,17 @@ def test_split_cli_creates_report_without_changing_metadata(tmp_path, capsys):
     with pytest.raises(SystemExit) as raised:
         cli.main(["split", "--input", str(src), "--output", str(dst)])
     assert raised.value.code == 1
+
+
+def test_committed_synthetic_three_group_example_is_runnable():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    example = json.loads(
+        (root / "datasets" / "manifests" / "split-synthetic.json").read_text(encoding="utf-8")
+    )
+    result = propose_splits(example)
+    assert result["component_count"] == 3
+    assert result["split_sequence_counts"] == {"train": 1, "validation": 1, "test": 1}
+    assert result["empirical_admission"] is False

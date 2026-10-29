@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "data_origin": "metadata_only",
+  "dataset": {
+    "id": "synthetic-split-three-group-demo",
+    "release": "synthetic-v1",
+    "owner_url": "https://example.org/synthetic-rgbt-demo",
+    "licence_url": null,
+    "rights_status": "needs_review",
+    "archive_sha256": null
+  },
+  "sequences": [
+    {
+      "id": "synthetic-flight-0",
+      "flight_group": "synthetic-flight-0",
+      "scene_group": "synthetic-scene-0",
+      "device_id": "synthetic-device-0",
+      "split": "train",
+      "rgb": {
+        "band": "rgb",
+        "native_grid_wh": [
+          80,
+          60
+        ],
+        "processed_grid_wh": [
+          80,
+          60
+        ],
+        "grid_origin": "original_native"
+      },
+      "thermal": {
+        "band": "lwir",
+        "native_grid_wh": [
+          40,
+          30
+        ],
+        "processed_grid_wh": [
+          40,
+          30
+        ],
+        "grid_origin": "original_native"
+      },
+      "pairing_origin": "manual",
+      "exposure_clock": "unknown",
+      "frames": [
+        {
+          "pair_id": "s0-p0",
+          "frame_index": 0,
+          "rgb_id": "s0-rgb0",
+          "thermal_id": "s0-ir0",
+          "rgb_sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+          "thermal_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+          "annotation_status": "complete",
+          "objects": [
+            {
+              "modality": "rgb",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                10,
+                10,
+                20,
+                20
+              ]
+            },
+            {
+              "modality": "thermal",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                5,
+                5,
+                10,
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-flight-1",
+      "flight_group": "synthetic-flight-1",
+      "scene_group": "synthetic-scene-1",
+      "device_id": "synthetic-device-1",
+      "split": "train",
+      "rgb": {
+        "band": "rgb",
+        "native_grid_wh": [
+          80,
+          60
+        ],
+        "processed_grid_wh": [
+          80,
+          60
+        ],
+        "grid_origin": "original_native"
+      },
+      "thermal": {
+        "band": "lwir",
+        "native_grid_wh": [
+          40,
+          30
+        ],
+        "processed_grid_wh": [
+          40,
+          30
+        ],
+        "grid_origin": "original_native"
+      },
+      "pairing_origin": "manual",
+      "exposure_clock": "unknown",
+      "frames": [
+        {
+          "pair_id": "s1-p0",
+          "frame_index": 0,
+          "rgb_id": "s1-rgb0",
+          "thermal_id": "s1-ir0",
+          "rgb_sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+          "thermal_sha256": "0000000000000000000000000000000000000000000000000000000000000004",
+          "annotation_status": "complete",
+          "objects": [
+            {
+              "modality": "rgb",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                10,
+                10,
+                20,
+                20
+              ]
+            },
+            {
+              "modality": "thermal",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                5,
+                5,
+                10,
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-flight-2",
+      "flight_group": "synthetic-flight-2",
+      "scene_group": "synthetic-scene-2",
+      "device_id": "synthetic-device-2",
+      "split": "train",
+      "rgb": {
+        "band": "rgb",
+        "native_grid_wh": [
+          80,
+          60
+        ],
+        "processed_grid_wh": [
+          80,
+          60
+        ],
+        "grid_origin": "original_native"
+      },
+      "thermal": {
+        "band": "lwir",
+        "native_grid_wh": [
+          40,
+          30
+        ],
+        "processed_grid_wh": [
+          40,
+          30
+        ],
+        "grid_origin": "original_native"
+      },
+      "pairing_origin": "manual",
+      "exposure_clock": "unknown",
+      "frames": [
+        {
+          "pair_id": "s2-p0",
+          "frame_index": 0,
+          "rgb_id": "s2-rgb0",
+          "thermal_id": "s2-ir0",
+          "rgb_sha256": "0000000000000000000000000000000000000000000000000000000000000005",
+          "thermal_sha256": "0000000000000000000000000000000000000000000000000000000000000006",
+          "annotation_status": "complete",
+          "objects": [
+            {
+              "modality": "rgb",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                10,
+                10,
+                20,
+                20
+              ]
+            },
+            {
+              "modality": "thermal",
+              "track_id": "synthetic-1",
+              "label": "synthetic_vehicle",
+              "bbox_xywh": [
+                5,
+                5,
+                10,
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

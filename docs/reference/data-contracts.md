@@ -31,7 +31,7 @@ The optional output is created exclusively and never overwrites existing files. 
 The `arc-rgbt split` (also `arc-rgbt-split`) command takes the **same** metadata-only admission inventory, checks it through the existing `admission.analyze`, then groups sequences into connected components by shared `flight_group` or `scene_group`. With `--device-disjoint`, shared `device_id` also joins components. A seeded SHA-256 ordering assigns entire components to train/validation/test. Minimum three independent groups required; a complete 3-way split is **impossible** with fewer. This is a **proposal only**, not an automatic update of the original manifest or empirical approval.
 
 ```bash
-arc-rgbt split --input datasets/manifests/admission-synthetic.json --seed 17
+arc-rgbt split --input datasets/manifests/split-synthetic.json --seed 17
 # For an actual 3-way proposal, provide at least three independently declared flight/scene groups.
 arc-rgbt split --input local-metadata.json --seed 17 --device-disjoint --output reports/split-proposal.json
 ```
