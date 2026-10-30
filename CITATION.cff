@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use the RGB–thermal research tools, experiments, or protocols, please cite this repository and any relevant published manuscript."
+title: "ARC-RGBT: Reproducible RGB and Thermal Fusion Research Tools"
+type: software
+authors:
+  - family-names: Pomianek
+    given-names: Mateusz
+    affiliation: Politechnika Rzeszowska
+repository-code: https://github.com/MatPomGit/arc-rgbt
+version: "0.1.0"
+license: Apache-2.0
