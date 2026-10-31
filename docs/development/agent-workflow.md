@@ -1,6 +1,6 @@
 # Autonomiczna praca agentów i rygor badawczy
 
-Wersja 1.0.0 (2026-10-31). Uzupełnienie [AGENTS.md](../../AGENTS.md), nie zastępuje szczególnych kontraktów projektu.
+Wersja 1.0.0 (2026-10-31). Uzupełnienie `AGENTS.md` w katalogu głównym, nie zastępuje szczególnych kontraktów projektu.
 
 ## Rozpoznaj, wybierz, zarezerwuj
 
