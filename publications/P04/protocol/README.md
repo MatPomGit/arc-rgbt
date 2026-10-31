@@ -34,6 +34,13 @@ Lock RGB-only, LWIR-only, fixed fusion, adaptive P02 fusion and failure-aware se
 - [ ] Report physical measurements separately from synthetic E00–E02 or host benchmarks.
 - [ ] Document negative and null results, scene-level confidence intervals and independent novelty review.
 
+## Denominators and selective-risk safeguards (draft, not frozen)
+
+- Predeclare the decision unit (frame or full source sequence), denominator of eligible opportunities and what constitutes an actionable response versus explicit abstention. Missing/dropped frames remain eligible if their reference labels exist.
+- Report **two different outcomes**: (a) operational detection miss rate using every labelled target, including all targets in abstained opportunities as not detected; and (b) conditional selective risk among accepted opportunities, always with achieved coverage. Never present the conditional metric alone as overall detection reliability.
+- Define minimum decision coverage on the same eligible population for all models, and hold the FP/frame budget on the complete eligible-frame denominator, including unaffected negative frames. Disclose empty-label and missing-input handling.
+- If no method satisfies both operational constraints in a predefined fault stratum, mark that stratum **infeasible**, not improved. Compute uncertainty over independent acquisition groups; do not bootstrap correlated adjacent frames.
+
 ## GO/NO-GO
 
 **G04: independent scene-level detection labels, frozen fault strata, held-out reliability estimator and matched operational baselines; synthetic failures alone do not support field-safety claims.**
