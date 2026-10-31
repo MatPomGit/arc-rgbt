@@ -14,6 +14,12 @@ Modality redundancy does not automatically produce graceful degradation. A detec
 
 The paper's research question and falsifiable null and alternative hypotheses are defined in the [hypothesis register](hypotheses/README.md). A protocol freeze and a literature novelty audit must precede any confirmatory claim. Do not cite references until their bibliographic metadata and relevance have been checked.
 
+## Related work and testable contribution
+
+Geifman and El-Yaniv, *SelectiveNet: A Deep Neural Network with an Integrated Reject Option* ([ICML 2019, PMLR 97](https://proceedings.mlr.press/v97/geifman19a.html)), established the risk-coverage framing for selective prediction on classification and regression tasks. This is methodological context, **not a published baseline for RGB/LWIR object-detection failures**. The proposed novelty is failure-conditioned, object-level miss risk subject to a simultaneously locked false-alarm budget and a minimum usable-coverage constraint.
+
+Define coverage as the proportion of eligible decision opportunities receiving an actionable prediction; report rejected opportunities explicitly. The system-level denominator must include every independently annotated target in eligible scenes, including targets in rejected frames. Otherwise a policy could superficially reduce miss risk by discarding difficult examples. In addition, report conditional risk on accepted opportunities, so the distinction between safe refusal and genuine successful detection remains inspectable. All fault strata and the definition of an actionable abstention must be fixed before test.
+
 ## Methods: planned manuscript content
 
 1. Predeclare physically observed versus synthetically injected failure categories, severity thresholds, minimum coverage and FP/frame ceiling. Define treatment of missing frames and unscored predictions.

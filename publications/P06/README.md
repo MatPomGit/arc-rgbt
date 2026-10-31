@@ -14,6 +14,12 @@ A detection pipeline can report high average precision while repeatedly swapping
 
 The paper's research question and falsifiable null and alternative hypotheses are defined in the [hypothesis register](hypotheses/README.md). A protocol freeze and a literature novelty audit must precede any confirmatory claim. Do not cite references until their bibliographic metadata and relevance have been checked.
 
+## Related work and testable contribution
+
+Luiten et al., *HOTA: A Higher Order Metric for Evaluating Multi-object Tracking* ([International Journal of Computer Vision, 2021](https://doi.org/10.1007/s11263-020-01375-2)), show that HOTA combines detection and association quality; consequently a higher overall HOTA score does not alone isolate an association improvement. The candidate dataset described by Nie et al., *M3OT* ([Scientific Data, 2025](https://doi.org/10.1038/s41597-025-06204-0)), contains paired aerial RGB/thermal imagery with tracking annotations. Its **exact archive, licence, identity continuity and split integrity remain unverified in this repository**.
+
+The central comparison therefore holds candidate detections and temporal input fixed across association methods, reports HOTA alongside **AssA, DetA and IDF1**, and separately benchmarks end-to-end detector+tracker configurations. The matching thresholds, ignore-region handling and treatment of missing frames require verified reference fixtures. Annotated frames from the same flight must not leak across train and test.
+
 ## Methods: planned manuscript content
 
 1. Audit exact paired RGB/LWIR sequence releases, rights, frame keys, track-ID conventions, ignored regions, gaps and native-versus-registered geometry before dataset admission. M3OT is a metadata candidate, not yet an approved source.

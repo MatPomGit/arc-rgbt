@@ -38,6 +38,13 @@ Leave-one-device/source-out evaluation; fixed dataset/label mapping and train/va
 - [ ] Report physical measurements separately from synthetic E00–E02 or host benchmarks.
 - [ ] Document negative and null results, scene-level confidence intervals and independent novelty review.
 
+## Transfer estimand and confounder audit (draft, not frozen)
+
+- Keep the stated primary out-of-domain AP drop relative to source-domain performance, but report the **paired adaptation-versus-source-only AP difference on the identical held-out target group** to identify any proposed mitigation effect. Do not compare different class prevalences without an explicit label-mapping policy.
+- For every train/test source pair record physical sensor ID, band, optics/crop status, classes, viewpoint, time/illumination and annotation conventions. Categorize the contrast as *sensor-specific identified*, *joint domain shift* or *not interpretable* before looking at test AP.
+- Two independent sources with different target classes or incompatible views do not identify a causal sensor effect. Never report generalization to an unseen physical device based on merely simulated resize/corruption.
+- Source-disjoint splits require source- and acquisition-aware uncertainty; with very few source domains, acknowledge that cluster confidence bounds and claims about a population of unseen devices may be unstable or non-identifiable.
+
 ## GO/NO-GO
 
 **G05: two or more licensed, independent sensor/domain cohorts with compatible complete annotations and leakage-free source holdouts.**

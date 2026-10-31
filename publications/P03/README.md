@@ -14,6 +14,12 @@ The feasibility of an embedded RGB-LWIR detector is determined by whole-system b
 
 The paper's research question and falsifiable null and alternative hypotheses are defined in the [hypothesis register](hypotheses/README.md). A protocol freeze and a literature novelty audit must precede any confirmatory claim. Do not cite references until their bibliographic metadata and relevance have been checked.
 
+## Related work and testable contribution
+
+Banbury et al., *MLPerf Tiny Benchmark* ([NeurIPS Datasets and Benchmarks 2021](https://datasets-benchmarks-proceedings.neurips.cc/paper_files/paper/2021/hash/da4fb5c6e93e74d3df8527599fa62642-Abstract-round1.html)), formalized reproducible accuracy, latency and energy comparisons for tiny inference systems. That benchmark provides an important measurement precedent, but **inference energy is not automatically the complete RGB/LWIR capture-to-output energy** claimed by this proposed paper.
+
+Specify every included rail and subsystem, the power integration window, treatment of idle baseline, any non-metered peripherals, and repeatability before comparing devices. If sensor acquisition or fusion runs outside the measured supply boundary, present the reported quantity as partial energy, not system joules per completed frame. Any extension beyond standard TinyML benchmarks must come from measured multi-sensor system overhead and detection-quality constraints, not model specifications.
+
 ## Methods: planned manuscript content
 
 1. Identify one reproducible target board and revision, processor/accelerator, operating system, sensors, input resolutions, interfaces, device power rails and allowable precision/quantization settings before benchmarking.

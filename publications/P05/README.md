@@ -14,6 +14,12 @@ Strong in-domain performance does not establish external validity across thermal
 
 The paper's research question and falsifiable null and alternative hypotheses are defined in the [hypothesis register](hypotheses/README.md). A protocol freeze and a literature novelty audit must precede any confirmatory claim. Do not cite references until their bibliographic metadata and relevance have been checked.
 
+## Related work and testable contribution
+
+Seemakurthy et al., *Domain Generalised Faster R-CNN* ([AAAI 2023](https://doi.org/10.1609/aaai.v37i2.25312)), evaluated object detection under domain shift, providing an appropriate conceptual point of comparison rather than direct proof of RGB/LWIR sensor transfer. A physically new camera need not create an identifiable **sensor-only** contrast: a change in object classes, image scale, environment or labels can yield the same apparent AP deterioration.
+
+Define an estimand for each allowed source-to-target transfer and preserve a table of class, viewpoint, optical and annotation comparability. Compare adaptation gain against the source-only model **on the same held-out target cohort**, in addition to reporting the preregistered out-of-domain AP drop. Distinguish source/domain transfer from causal attribution to sensor hardware; if source confounding is uncontrolled, the latter claim is disallowed. Never tune adaptation using target-test ground truth.
+
 ## Methods: planned manuscript content
 
 1. Independently verify source identities, native RGB/LWIR band and optics, exact archive rights, annotations, source versions and class harmonization. NIR is not an LWIR replacement.

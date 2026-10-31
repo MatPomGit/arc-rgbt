@@ -14,6 +14,12 @@ Mobile perception stacks can receive RGB and LWIR observations whose quality var
 
 The paper's research question and falsifiable null and alternative hypotheses are defined in the [hypothesis register](hypotheses/README.md). A protocol freeze and a literature novelty audit must precede any confirmatory claim. Do not cite references until their bibliographic metadata and relevance have been checked.
 
+## Related work and testable contribution
+
+Hwang et al., *Multispectral Pedestrian Detection: Benchmark Dataset and Baseline* ([CVPR 2015](https://openaccess.thecvf.com/content_cvpr_2015/html/Hwang_Multispectral_Pedestrian_Detection_2015_CVPR_paper.html)), demonstrated the importance of paired visible and thermal pedestrian imagery and multispectral detection baselines. Their benchmark does not, by itself, establish that arbitrary subsequently used paired files have physically verified common exposure times. The distinctive question here is whether a **non-oracle**, development-trained reliability estimate produces a held-out gain over fixed fusion at a common false-alarm budget, while measured timing/registration residuals are treated as separate explanatory variables.
+
+The review must distinguish improvements arising from detector tuning, registration, and modality weights. A gain from privileged ground-truth-derived weights is not an independent adaptive fusion result. If physical exposure timestamps are absent, restrict the temporal analysis to available pairing quality and identify exposure skew as unmeasured. A prospective novelty claim is not a verified priority claim.
+
 ## Methods: planned manuscript content
 
 1. Register the acquisition unit (session/scene/flight), complete positive and negative labels, native spectral band, image geometry, clock domain and availability of capture-exposure timestamps. Treat missing clock provenance explicitly as unknown.
