@@ -55,6 +55,7 @@ validation:
     unrecognized_links: warn
 
 nav:
+  - Agent workflow: development/agent-workflow.md
   - Overview: index.md
   - Getting started: getting-started.md
   - Foundations:

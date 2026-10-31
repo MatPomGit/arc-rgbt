@@ -54,3 +54,7 @@
 - Avoid salami slicing: require a distinct primary outcome, adequate independent evidence and novelty review before a new paper is treated as submission-ready.
 - Link to canonical material rather than repeating methods, flags, formulas or scientific claims.
 - Keep editable Markdown, not generated HTML/build assets. Each MkDocs page must be in `mkdocs.yml` and pass the documentation checks.
+
+## Dodatkowy kontrakt operacyjny (2026-10-31)
+- Przed nowym zadaniem, rezerwacją Issue, użyciem skilli, zmianą kodu, testami i PR czytaj [procedurę autonomiczną](docs/development/agent-workflow.md). Wszystkie powyższe reguły projektu nadal obowiązują.
+- Weryfikuj exact SHA, pochodzenie danych, wymagane zatwierdzenia GitHub i różnicę między merge, badaniem a wdrożeniem.

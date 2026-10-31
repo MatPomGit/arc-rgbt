@@ -42,3 +42,5 @@ python -m ruff check src tests tools
 All generated artifacts belong under the ignored `reports/` directory.
 **Synthetic E00/E01/E02 and host profiling are not evidence of sensor,
 human/vehicle detection or microcontroller performance.**
+
+Praca agentów: [AGENTS.md](AGENTS.md), [procedura autonomiczna](docs/development/agent-workflow.md).
