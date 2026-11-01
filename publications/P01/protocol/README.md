@@ -81,6 +81,45 @@ Changes after that point must be logged as deviations, not silently applied.
    separate analysis. Neither validates optical point-spread, thermal
    noise, calibration, actual target range nor robot deployment.
 
+### Candidate primary analysis contract (author review required)
+
+These are **prospective numerical defaults**, not a frozen protocol or a claim
+that any eligible real data exist. They are recorded before test-data access
+to make the pending author decision concrete. If the author rejects a default,
+record the replacement and rationale in #35 before unblinding test outcomes.
+
+| Item | Proposed prespecification | Gate |
+| --- | --- | --- |
+| Primary modality | Physically acquired native **LWIR** only. RGB is a prespecified secondary comparison; fusion belongs to P02 unless a separate P01 ablation is justified. | Native LWIR and original labels verified |
+| Independent outcome | Held-out difference in **per-object recall**: small minus reference footprint at the same frozen LWIR checkpoint and confidence threshold; expected sign negative. | Eligible groups and full target labels |
+| Footprint proxy | `s = sqrt(w_native * h_native)` in pixels from the original-grid target bounding box. Small: `s < 8`; intermediate: `8 <= s < 16`; reference: `s >= 16`. Only small vs reference is confirmatory. | Original grid and annotation conventions independently checked |
+| Match rule | Class-aware, one-to-one IoU `>= 0.50` with deterministic score-ordered greedy matching. A target can contribute at most one true positive. | Shared metric contract #23 reference tests |
+| False-alert budget | Candidate ceiling `0.10 FP/frame`. On independent **validation** frames, select the lowest confidence threshold satisfying the ceiling (ties resolved by higher threshold). Keep it unchanged on test. | Fully labelled negative and positive frames; fixed checkpoint |
+| Test reporting | Report observed test FP/frame even if above `0.10`, plus all target and frame denominators. Exceeding the ceiling means the target operating condition was **not met**, not that the test threshold may be retuned. | No test-outcome-driven threshold selection |
+| Uncertainty | Two-sided 95% percentile interval from 2000 bootstrap replicates of **whole independent acquisition groups**, fixed seed `20261101`, preserving all frames and targets within each sampled group. | At least 10 distinct groups contributing targets to each compared bin; otherwise descriptive only |
+| Sensitivity | Intermediate footprint bin, RGB modality, IoU `0.25` for localization sensitivity, AP and contrast/occlusion strata are secondary/exploratory unless separately prespecified. | No post hoc confirmatory promotion |
+
+**Interpretation safeguards.** The annotated bounding box is an observable
+*image-plane footprint proxy*, not an independent optical point-spread
+measurement or a calibrated physical object extent. For occluded or clipped
+objects, the annotation may describe the visible region or the inferred full
+extent; record that convention and predefine exclusion/sensitivity handling
+before freeze. No physical distance threshold follows from `s` alone.
+If a source offers only resized/cropped images with unknown native geometry,
+it cannot enter the confirmatory population.
+
+**Denominators and stop rules.** Every eligible, independently annotated
+target is counted in the recall denominator, including misses. FP/frame uses
+all eligible and completely annotated test frames, including empty frames.
+Record unmatched predictions on both positive and negative frames. Do not
+select an operating threshold from the test set. If validation permits only
+the no-detection solution, or the required independent groups, native labels
+or negative-frame completeness are unavailable, report **BLOCKED** rather
+than a physical detection-limit estimate. If bootstrap replicates omit a
+comparison bin, report the invalid count and do not silently replace them
+with frame-wise resampling. The author must still approve bin edges, IoU,
+FP/frame, group minimum and inference plan before freeze.
+
 ### Decisions still required before freeze
 
 - [ ] Identify lawful original dataset release(s), sensor calibration,

@@ -10,7 +10,7 @@
 
 ## Outcomes and controls
 
-- **Primary:** Change in real-sensor recall at a predeclared FP/frame budget between defined native-pixel-footprint strata, with sequence/scene as independent unit.
+- **Primary candidate (pending author freeze):** LWIR-only difference in held-out per-object recall between native-footprint strata at a validation-locked FP/frame ceiling, with acquisition/scene as the independent resampling unit. RGB-only comparisons are secondary to avoid unplanned multiple primary tests. Numerical defaults and failure gates are in the [P01 protocol](../protocol/README.md).
 - **Secondary:** AP at specified IoU, box localization error, modality dependence, occlusion and viewing-angle strata, and confidence intervals clustered by acquisition.
 - **Controls:** original native images, same checkpoint and test labels, consistent thresholds/FP budgets, independent sensor/projection metadata; report simulated E00 degradation separately from actual low-resolution acquisitions.
 - **Stopping / negative evidence:** if native source geometry, complete labels or independent holdout cannot be verified, do not publish claims about physical distance or sensor resolution limits.

@@ -40,6 +40,30 @@ summary of completed experiments. All numerical results and claims of
 physical detection limits are withheld until the [P01 protocol](protocol/README.md)
 and independent data/evidence gates pass.
 
+## Literature-grounded gap and novelty boundary (2026-11-01)
+
+Poster, Hu and Nasrabadi (2023),
+[doi:10.3390/s23187806](https://doi.org/10.3390/s23187806),
+studied long-range small-target detection and restricted receptive fields.
+Their DSIAC example uses **MWIR**, not LWIR; it is a useful pixels-on-target
+methodological precedent but cannot validate LWIR sensor-specific limits.
+Ying et al., [RGBT-Tiny (arXiv:2406.14482)](https://arxiv.org/abs/2406.14482),
+present a visible-thermal tiny-object benchmark with paired annotations;
+the cited preprint does **not** establish original-archive image/label
+licences, native optical geometry or independent sensor exposure timing for
+P01. Recent [RAPT-Net (2026)](https://www.mdpi.com/2072-4292/18/3/449)
+also studies multimodal tiny-target detection, so novelty cannot rest on
+combining RGB and thermal inputs or on small-object detection alone.
+
+The proposed contribution is an **acquisition-aware operating-envelope
+analysis**: a fixed, validation-selected false-alert budget, target footprint
+measured on verified original sensor grids, independent acquisition-group
+uncertainty, and explicit separation of physical imaging evidence from
+software downsampling. This is a proposed distinction, **not a completed
+novelty or reproducibility review**. The exact eligible data and the
+applicability of these comparisons still require #10/#36 admission and #29
+independent review.
+
 ## Planned manuscript outline
 
 1. Introduction: physical target observability and robot perception relevance.
