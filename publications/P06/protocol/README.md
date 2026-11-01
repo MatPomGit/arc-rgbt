@@ -51,6 +51,13 @@ First compare association methods with fixed detector proposals; then separately
 - [ ] Report physical measurements separately from synthetic E00–E02 or host benchmarks.
 - [ ] Document negative and null results, scene-level confidence intervals and independent novelty review.
 
+## Association-specific evaluation checks (draft, not frozen)
+
+- HOTA is not association-only: report its detection and association components (**DetA and AssA**) and IDF1, and identify the reference metric's aggregation and localisation thresholds.
+- For the association comparison, freeze all input candidate boxes, scores, timestamps and permissible pair keys across tracker variants. Mark any upstream detector or postprocessing changes as a separate full-pipeline experiment, not an isolated association effect.
+- Validate ignore regions, empty frames, duplicate track IDs, identity continuation, temporal gaps and class mapping on independently checked reference fixtures. Record the pinned evaluator revision and executable environment.
+- Cluster uncertainty by genuinely independent sequence/flight groups; adjacent frames are not independent replicates. The M3OT publication is useful metadata, but cannot replace examination of the actual released tracking archive, rights and source partitions.
+
 ## GO/NO-GO
 
 **G06: licensed, real identity-labelled sequences with correct RGB/LWIR pairing and verified HOTA evaluator; vehicle-mounted results must not be claimed as aerial results.**
