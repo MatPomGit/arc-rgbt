@@ -55,7 +55,9 @@ def _wilson_interval(successes: int, trials: int) -> tuple[float, float]:
     centre = (p + z * z / (2 * trials)) / denom
     half = z * math.sqrt(p * (1 - p) / trials +
                          z * z / (4 * trials * trials)) / denom
-    return max(0.0, centre - half), min(1.0, centre + half)
+    lower = 0.0 if successes == 0 else max(0.0, centre - half)
+    upper = 1.0 if successes == trials else min(1.0, centre + half)
+    return lower, upper
 
 
 def _trial_differences(
