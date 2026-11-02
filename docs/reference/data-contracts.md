@@ -48,8 +48,12 @@ These tools do not open external archives, measure physical clocks, or promote B
 
 The `arc_rgbt.p01_metrics` helpers provide GT-indexed native footprint
 bins, deterministic IoU matching and paired acquisition-level recall;
-validation-only threshold selection remains an **observed point-estimate**
-FP/frame criterion, not a prospective false-alert guarantee. No original
+validation-only threshold selection requires adequate negative-frame
+exposure and reports a descriptive **group-bootstrap interval** for
+FP/frame. This is an observed point-estimate operating criterion, not a
+prospective false-alert guarantee. A held-out FP/frame budget violation
+suppresses the primary candidate CI but preserves descriptive rates and
+per-group counts, including target-empty acquisition groups. No original
 LWIR image, licence, source identity or geometry is independently verified
 by these helpers; `empirical_admission=false` is unconditional.
 See [P01 protocol](https://github.com/MatPomGit/arc-rgbt/blob/main/publications/P01/protocol/README.md).
