@@ -1,6 +1,6 @@
 # Autonomiczna praca agentów i rygor badawczy
 
-Wersja 1.1.0 (2026-11-02). Uzupełnienie `AGENTS.md` w katalogu głównym, nie zastępuje szczególnych kontraktów projektu.
+Wersja 1.1.1 (2026-11-02). Uzupełnienie `AGENTS.md` w katalogu głównym, nie zastępuje szczególnych kontraktów projektu.
 
 ## Rozpoznaj, wybierz, zarezerwuj
 
@@ -29,6 +29,8 @@ Dla P01 pierwszenstwo ma przeglad i naprawa istniejacego PR #44, nastepnie #45 i
 ## Bezplatne GitHub Actions w publicznym repozytorium
 
 Dokumentacja GitHub potwierdzona 2026-11-02: standardowe GitHub-hosted runnery dla publicznych repozytoriow maja **bezplatne, nielimitowane miesiecznie minuty wykonania**. Bezplatnosc nie znosi limitow rownoleglosci, czasu, przestrzeni artefaktow i zasad uzytkowania. Dla self-hosted brak oplaty za minute Actions, ale istnieje koszt lokalnej infrastruktury. **Larger runners, platne uslugi, nadmiar przechowywanych artefaktow i inne oplaty pozostaja zabronione bez oddzielnej autoryzacji.**
+
+**Interpretacja zasady zero-cost:** bezpłatne wykonywanie standardowych `GitHub Actions` w publicznym `arc-rgbt` jest dozwolone i **nie narusza zasady zero-cost**. Agenci moga uruchamiac i ponawiac konieczne testy, lint, walidacje i dokumentacje bez sztucznego oszczedzania minut; musza jednak przestrzegac limitow technicznych, regulaminu GitHub, uprawnien i bezpieczenstwa. Wlasciciel deklaruje aktywny pakiet edukatorski GitHub Education. Uprawnienia edukatorskie moga obejmowac dodatkowe darmowe uslugi, lecz nie stanowia automatycznej gwarancji darmowosci `larger runners`, uslug platnych, nadmiarowego storage ani limitow innych repozytoriow. Rozliczenie darmowego CI wynika tutaj przede wszystkim z PUBLICZNEGO statusu repozytorium. Zero-cost nie upowaznia do wydatkow.
 
 W tym repozytorium `research-pr-validation.yml` i `pages.yml` korzystaja ze standardowego `ubuntu-latest`. `offline-tests.yml` i `docs-check.yml` sa zastrzezone do recznego uruchamiania na zaufanym runnerze self-hosted dla `main`. Nie otwieraj stalego runnera na kod niezaufanego PR. Preferuj izolowane standardowe runnery dla CI PR, exact SHA, krotkie timeouty i `concurrency` z anulowaniem starszych przebiegow. Zasady finansowania APC przez uczelnie sa zapisane w planie i nie autoryzuja platnosci ani wyslania manuskryptu.
 
