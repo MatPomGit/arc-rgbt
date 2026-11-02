@@ -39,9 +39,11 @@ def native_footprint_recall(
     grid_origin: str, operating_score: float = 0.5, iou_threshold: float = 0.5,
     small_limit: float = 8, reference_limit: float = 16,
     minimum_paired_groups: int = 10, replicates: int = 2000, seed: int = 20261101,
+    max_fp_per_frame: float = 0.1,
 ) -> dict:
     """Per-GT IoU matching and acquisition-paired recall; declarations unverified."""
     cutoff, iou = _rate(operating_score), _rate(iou_threshold, positive=True)
+    fp_ceiling = _rate(max_fp_per_frame)
     _validate(frames, acquisition_ids, annotation_status, iou)
     if grid_origin != "original_native":
         raise ValueError("Original-native GT grid required")
@@ -58,7 +60,12 @@ def native_footprint_recall(
                                    "reference": [0, 0]})
     objects = []
     false_positives = 0
+    frame_counts: dict[str, int] = defaultdict(int)
+    fp_counts: dict[str, int] = defaultdict(int)
     for frame, group in zip(frames, acquisition_ids, strict=True):
+        # Register groups even when all their frames contain no targets.
+        group_bins = grouped[group]
+        frame_counts[group] += 1
         truth = frame["ground_truth"]
         matched = set()
         proposals = sorted(enumerate(frame["predictions"]),
@@ -76,13 +83,14 @@ def native_footprint_recall(
                 matched.add(best[0])
             else:
                 false_positives += 1
+                fp_counts[group] += 1
         for idx, target in enumerate(truth):
             footprint = math.sqrt(target["bbox"][2] * target["bbox"][3])
             bin_name = ("small" if footprint < small_limit else
                         "intermediate" if footprint < reference_limit else "reference")
             hit = idx in matched
-            grouped[group][bin_name][0] += int(hit)
-            grouped[group][bin_name][1] += 1
+            group_bins[bin_name][0] += int(hit)
+            group_bins[bin_name][1] += 1
             objects.append({"frame_id": frame["id"], "acquisition_id": group,
                             "gt_index": idx, "label": target["label"],
                             "footprint_px": footprint, "bin": bin_name, "matched": hit})
@@ -97,6 +105,10 @@ def native_footprint_recall(
     deltas = {g: (grouped[g]["small"][0] / grouped[g]["small"][1]
                   - grouped[g]["reference"][0] / grouped[g]["reference"][1])
               for g in paired_groups}
+    # A test sample over budget cannot support the proposed operating condition,
+    # even if its acquisition-paired recall difference remains descriptive.
+    test_fp_rate = false_positives / len(frames)
+    budget_met = test_fp_rate <= fp_ceiling
     eligible = len(paired_groups) >= minimum_paired_groups
     point, interval = None, None
     if eligible:
@@ -105,22 +117,34 @@ def native_footprint_recall(
         rng = random.Random(seed)
         samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
                          for _ in range(replicates))
-        interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
+        if budget_met:
+            interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
+    report_status = (
+        "OPERATING_CONDITION_NOT_MET" if not budget_met else
+        "PROSPECTIVE_UNFROZEN" if eligible else "DESCRIPTIVE_ONLY"
+    )
     return {
-        "status": "PROSPECTIVE_UNFROZEN" if eligible else "DESCRIPTIVE_ONLY",
+        "status": report_status,
+        "operating_condition_met": budget_met,
+        "candidate_fp_ceiling": fp_ceiling,
         "empirical_admission": False,
         "grid_origin": "declared_original_native_unverified",
         "per_object": objects, "per_bin": per_bin,
         "per_group": {
-            group: {name: {"tp": values[name][0], "targets": values[name][1]}
-                    for name in ("small", "intermediate", "reference")}
+            group: {**{name: {"tp": values[name][0], "targets": values[name][1]}
+                       for name in ("small", "intermediate", "reference")},
+                    "frames": frame_counts[group], "fp": fp_counts[group]}
             for group, values in sorted(grouped.items())
         },
         "groups_total": len(grouped), "groups_with_both_bins": len(paired_groups),
+        "groups_without_targets": sum(
+            all(counts[name][1] == 0 for name in counts)
+            for counts in grouped.values()
+        ),
         "group_differences": deltas, "primary_group_mean_delta": point,
         "candidate_percentile_ci_95": interval, "replicates": replicates if eligible else 0,
         "fp": false_positives, "frames": len(frames),
-        "fp_per_frame": false_positives / len(frames),
+        "fp_per_frame": test_fp_rate,
         "notes": "Within-acquisition association only; no causal resolution attribution.",
     }
 
@@ -129,19 +153,36 @@ def choose_validation_threshold(
     frames: list[dict], *, acquisition_ids: list[str], annotation_status: str,
     max_fp_per_frame: float = 0.1, iou_threshold: float = 0.5,
     minimum_groups: int = 10, minimum_frames: int = 200,
+    minimum_negative_frames: int = 20, replicates: int = 2000,
+    seed: int = 20261101,
 ) -> dict:
     """Select observed FP/frame operating point on validation only, never test."""
     ceiling, iou = _rate(max_fp_per_frame), _rate(iou_threshold, positive=True)
     _validate(frames, acquisition_ids, annotation_status, iou)
     if (type(minimum_groups) is not int or minimum_groups < 2
-            or type(minimum_frames) is not int or minimum_frames < 1):
-        raise ValueError("Invalid validation group/frame minimums")
+            or type(minimum_frames) is not int or minimum_frames < 1
+            or type(minimum_negative_frames) is not int
+            or minimum_negative_frames < 1
+            or type(replicates) is not int or replicates < 100
+            or type(seed) is not int):
+        raise ValueError("Invalid validation exposure/bootstrap parameters")
     result = {"status": "BLOCKED_VALIDATION_SIZE", "threshold": None,
               "empirical_admission": False, "frames": len(frames),
               "groups": len(set(acquisition_ids)),
               "limitations": "Observed validation FP/frame is not a future upper bound"}
     if len(frames) < minimum_frames or len(set(acquisition_ids)) < minimum_groups:
         return result
+    negative_groups = {group for frame, group in zip(frames, acquisition_ids, strict=True)
+                       if not frame["ground_truth"]}
+    negative_frames = sum(not frame["ground_truth"] for frame in frames)
+    result.update(negative_frames=negative_frames, negative_groups=len(negative_groups))
+    if negative_frames < minimum_negative_frames or len(negative_groups) < 2:
+        result["status"] = "BLOCKED_NEGATIVE_EXPOSURE"
+        return result
+    # Pre-aggregate original frames by acquisition to retain cluster covariance.
+    groups = defaultdict(list)
+    for frame, group in zip(frames, acquisition_ids, strict=True):
+        groups[group].append(frame)
     candidates = {0.0, 1.0}
     for frame in frames:
         candidates.update(p["score"] for p in frame["predictions"])
@@ -155,8 +196,35 @@ def choose_validation_threshold(
             if counts["tp"] == 0:
                 result["status"] = "BLOCKED_NO_TRUE_POSITIVES"
             else:
-                result.update(status="CANDIDATE_ONLY", threshold=cutoff,
-                              validation_fp_per_frame=rate, validation_tp=counts["tp"])
+                # FP/frame is a ratio of totals. Resample acquisition groups
+                # jointly: never treat neighboring frames as IID observations.
+                cluster_rates = []
+                for group in sorted(groups):
+                    group_frames = [
+                        {**f, "predictions": [p for p in f["predictions"]
+                                              if p["score"] >= cutoff]}
+                        for f in groups[group]
+                    ]
+                    measured = evaluate(group_frames, iou_threshold=iou)
+                    cluster_rates.append((measured["fp"], len(group_frames)))
+                rng = random.Random(seed)
+                bootstrap_rates = []
+                for _ in range(replicates):
+                    sampled = rng.choices(cluster_rates, k=len(cluster_rates))
+                    bootstrap_rates.append(
+                        sum(item[0] for item in sampled) /
+                        sum(item[1] for item in sampled)
+                    )
+                bootstrap_rates.sort()
+                interval = [_percentile(bootstrap_rates, 0.025),
+                            _percentile(bootstrap_rates, 0.975)]
+                result.update(
+                    status="CANDIDATE_ONLY", threshold=cutoff,
+                    validation_fp_per_frame=rate, validation_tp=counts["tp"],
+                    validation_fp_bootstrap_ci_95=interval,
+                    validation_fp_upper_ci_exceeds_ceiling=interval[1] > ceiling,
+                    bootstrap_replicates=replicates,
+                )
             return result
     result["status"] = "BLOCKED_NO_FEASIBLE_THRESHOLD"
     return result
