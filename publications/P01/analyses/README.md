@@ -8,3 +8,21 @@ python publications/P01/analyses/summarize_e00.py --experiment-dir reports/E00 -
 ```
 
 For real camera studies, new scripts and preregistered analyses will be required. These E00 point estimates are not empirical detection performance.
+
+## Native LWIR footprint analysis contract (prospective, UNFROZEN)
+
+`arc_rgbt.p01_metrics.native_footprint_recall` accepts existing Bench-style
+GT/prediction frames, a parallel list of acquisition IDs,
+`annotation_status="complete"` and `grid_origin="original_native"`.
+It returns per-GT IoU-matched flags and original-grid footprint bins,
+including misses, all-frame FP/frame, and equal-acquisition-weighted
+small-minus-reference differences. A candidate 2000-replicate group
+bootstrap interval is produced only for >=10 *declared* groups containing
+both bins. `choose_validation_threshold` chooses a validation-only
+candidate cutoff with a 0.10 FP/frame point ceiling, provisional >=10
+groups and >=200 fully labelled frames, and no trivial zero-TP solution.
+Neither function verifies real original images, group independence,
+annotation completeness, optical calibration, permissions or test quality;
+both explicitly mark `empirical_admission=false`. The executable
+synthetic regression cases are in `tests/test_p01_metrics.py`.
+The [study protocol](../protocol/README.md) retains all scientific gates.
