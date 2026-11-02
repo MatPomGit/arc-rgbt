@@ -20,7 +20,13 @@ small-minus-reference differences. A candidate 2000-replicate group
 bootstrap interval is produced only for >=10 *declared* groups containing
 both bins. `choose_validation_threshold` chooses a validation-only
 candidate cutoff with a 0.10 FP/frame point ceiling, provisional >=10
-groups and >=200 fully labelled frames, and no trivial zero-TP solution.
+groups and >=200 fully labelled frames, **including >=20 fully negative
+frames in >=2 groups**, and no trivial zero-TP solution. It also reports
+an acquisition-bootstrap CI for observed validation FP/frame; its upper
+bound can exceed the candidate budget even if the point estimate meets
+it. The held-out metric helper retains negative-only acquisitions in
+FP/frame counts and marks `OPERATING_CONDITION_NOT_MET` if the test rate
+is excessive, suppressing any candidate confirmatory CI.
 Neither function verifies real original images, group independence,
 annotation completeness, optical calibration, permissions or test quality;
 both explicitly mark `empirical_admission=false`. The executable
