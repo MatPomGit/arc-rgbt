@@ -56,6 +56,18 @@ def test_ten_paired_groups_equal_weight_bootstrap_seed():
     assert result["candidate_percentile_ci_95"][1] > 0
 
 
+def test_tiny_target_localization_iou_sensitivity_and_group_denominators():
+    # Shift by two pixels: IoU = 8 / 24, misses at 0.50 but hits at 0.25.
+    frames = [frame("small", [box(0, 4), box(40, 20)],
+                    [box(2, 4, 0.9), box(40, 20, 0.9)])]
+    at_half = run(frames, ["g"], iou_threshold=0.5)
+    at_quarter = run(frames, ["g"], iou_threshold=0.25)
+    assert at_half["per_bin"]["small"]["recall"] == 0.0
+    assert at_quarter["per_bin"]["small"]["recall"] == 1.0
+    assert at_half["per_group"]["g"]["small"] == {"tp": 0, "targets": 1}
+    assert at_half["per_group"]["g"]["reference"] == {"tp": 1, "targets": 1}
+
+
 def test_unpaired_groups_are_not_pseudopaired():
     result = run([frame("a", [box(0, 4)], []),
                   frame("b", [box(0, 20)], [])], ["a", "b"])
