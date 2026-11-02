@@ -111,6 +111,11 @@ def native_footprint_recall(
         "empirical_admission": False,
         "grid_origin": "declared_original_native_unverified",
         "per_object": objects, "per_bin": per_bin,
+        "per_group": {
+            group: {name: {"tp": values[name][0], "targets": values[name][1]}
+                    for name in ("small", "intermediate", "reference")}
+            for group, values in sorted(grouped.items())
+        },
         "groups_total": len(grouped), "groups_with_both_bins": len(paired_groups),
         "group_differences": deltas, "primary_group_mean_delta": point,
         "candidate_percentile_ci_95": interval, "replicates": replicates if eligible else 0,
