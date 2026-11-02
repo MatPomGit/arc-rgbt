@@ -114,10 +114,10 @@ def native_footprint_recall(
     if eligible:
         values = list(deltas.values())
         point = sum(values) / len(values)
-        rng = random.Random(seed)
-        samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
-                         for _ in range(replicates))
         if budget_met:
+            rng = random.Random(seed)
+            samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
+                             for _ in range(replicates))
             interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
     report_status = (
         "OPERATING_CONDITION_NOT_MET" if not budget_met else
@@ -142,7 +142,8 @@ def native_footprint_recall(
             for counts in grouped.values()
         ),
         "group_differences": deltas, "primary_group_mean_delta": point,
-        "candidate_percentile_ci_95": interval, "replicates": replicates if eligible else 0,
+        "candidate_percentile_ci_95": interval,
+        "replicates": replicates if interval is not None else 0,
         "fp": false_positives, "frames": len(frames),
         "fp_per_frame": test_fp_rate,
         "notes": "Within-acquisition association only; no causal resolution attribution.",
