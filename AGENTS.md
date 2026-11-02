@@ -13,6 +13,14 @@
 - Follow the [shared delivery pipeline](https://github.com/MatPomGit/research-autopilot/blob/41ddb950a363df2ef78850ac9766c130880b2fd9/docs/architecture/DELIVERY_PIPELINE.md). Research Autopilot is the sole controller.
 - Act autonomously within existing user authorization. Do not ask again for authorization already given.
 
+
+### Mandatory current plan (every agent, every run)
+- **Always read the latest [AUTOPILOT_PLAN.md](AUTOPILOT_PLAN.md), including its dated `Mandatory agent execution plan`, BEFORE selecting, reserving, implementing, reviewing or merging any work.** Also read `PROJECT_STATE.yaml`, the [M0-M6 issue tracker #21](https://github.com/MatPomGit/arc-rgbt/issues/21), the active issue, open PRs and the applicable scientific protocol. Record the plan version/SHA in the run evidence. Re-read after plan changes; never rely on an old cached summary.
+- Follow the plan's ordered priorities, prerequisites, deadlines and STOP/GO criteria. Current P01 sequence is [#45-#62](https://github.com/MatPomGit/arc-rgbt/issues/21) under #35-#40; an outdated priority sentence elsewhere does not override the current dated plan. Research gates and independent review remain mandatory, including FROZEN/CONDITIONAL/NO-GO distinctions.
+- Use [GitHub Actions cost policy](AUTOPILOT_PLAN.md#github-actions-free-use-and-billing-policy-verified-2026-11-02): public standard GitHub-hosted runner minutes are free without a monthly cap, but larger runners/storage/paid integrations are not automatically free. Preserve existing self-hosted trust and isolation constraints.
+- **Zero-cost clarification:** standard GitHub-hosted GitHub Actions in this public repository are approved under `zero-cost`, including repeat CI checks and reruns needed for quality; do not refuse necessary free validation to save minutes. Owner declares GitHub Education educator benefits. Those benefits do not automatically make paid large runners, private-repository overages, artifacts/storage overages or paid APIs free. Check actual eligibility before use. Keep all existing security, trusted-runner and payment rules unchanged.
+- For P01 *Sensors*, university APC funding is a **planning assumption**, not payment or separate authorization to commit funds or submit. See the current plan. Do not change any security rule, payment permission, scientific gate or deployment requirement on this basis.
+
 ## Finish before starting
 
 - Read the active [research issue and milestone tracker M0–M6](https://github.com/MatPomGit/arc-rgbt/issues/21) **after** `PROJECT_STATE.yaml` and `AUTOPILOT_PLAN.md`. Follow dependency and evidence gates in the linked issue before selecting a task. Use the existing issue (and PR, if any) rather than opening a duplicate.
