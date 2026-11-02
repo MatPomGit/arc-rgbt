@@ -30,15 +30,52 @@ editorial office responds; no inquiry has been sent.
 
 ## Provisional title and scope-check abstract (draft, not sent)
 
-**Native-Pixel Footprint and Detection Reliability in RGB–Thermal
-Perception for Mobile Robotics**
+**Native LWIR Target Footprint and Localization-Qualified Detection
+Reliability for Mobile Robotic Perception**
 
-Low-cost RGB and long-wave infrared (LWIR) cameras are candidates for object detection in mobile-robot perception, yet the influence of physically acquired native target size on detection reliability remains difficult to isolate. Image resizing alone cannot reproduce changes in optics, sensor noise, thermal contrast, or acquisition geometry. This planned study will quantify the association between native target pixel footprint and held-out object-detection recall at a prespecified false-positive-per-frame operating point. Subject to verification of suitable original acquisitions and annotation rights, we will evaluate RGB-only and LWIR-only baselines, and a matched-budget fusion baseline where valid pairing is available. Target footprint will be measured in each sensor's original image grid and interpreted alongside view angle, occlusion, optical parameters, thermal contrast, and object class. Training, validation, and testing will be separated by independent acquisition or scene groups; thresholds and footprint strata will be fixed before inspecting the held-out test outcomes. We will report detection failures, false alarms, localization error, average precision, and uncertainty estimated over independent acquisition groups rather than treating adjacent frames as independent observations. Software downsampling will be analyzed only as a separate controlled ablation and will not support physical range-limit claims. The intended contribution is a reproducible, sensor-aware evaluation of where RGB and thermal detection becomes unreliable under documented acquisition conditions, with implications for the design and operating envelopes of mobile robotic perception systems. Empirical results, numerical limits, and deployment claims remain contingent on real-data admission and independent validation.
+Long-wave infrared (LWIR) cameras are considered for mobile-robot perception, but physically acquired target size must not be confused with resized detector inputs. This prospective study will investigate the association between native-grid LWIR object footprint and held-out localization-qualified detection recall, comparing small and reference target strata. The candidate primary contrast is an equally weighted mean of within-acquisition recall differences, restricted to independently verified acquisitions containing both bins. A fixed LWIR model will be evaluated at a confidence threshold selected exclusively on fully labelled validation frames using a prespecified false-positive-per-frame criterion. Held-out detection thresholds will not be retuned, including when the false-alert condition is missed. Detection outcomes will be allocated to independently annotated original-grid objects; we will report missed targets, false alarms, localization-tolerance sensitivity, and variation by class, thermal contrast, viewpoint and occlusion. Uncertainty will be estimated by resampling independent acquisitions, not adjacent video frames. RGB-only evaluation will be secondary; RGB–thermal fusion is treated in a separate study. Source permissions, native optics, spectral band, annotations and acquisition identities must pass independent verification before physical data are admitted. The measured image-plane footprint is not a calibrated range or a causal sensor-resolution effect. All numerical analysis choices remain pending author approval. No observed performance results, physical distance limits or robot deployment claims are asserted.
 
 **Status of this abstract:** prospective research design only, not a
 summary of completed experiments. All numerical results and claims of
 physical detection limits are withheld until the [P01 protocol](protocol/README.md)
 and independent data/evidence gates pass.
+
+## Literature-grounded gap and novelty boundary (2026-11-01)
+
+Poster, Hu and Nasrabadi (2023),
+[doi:10.3390/s23187806](https://doi.org/10.3390/s23187806),
+studied long-range small-target detection and restricted receptive fields.
+Their DSIAC example uses **MWIR**, not LWIR; it is a useful pixels-on-target
+methodological precedent but cannot validate LWIR sensor-specific limits.
+Ying et al., [RGBT-Tiny (arXiv:2406.14482)](https://arxiv.org/abs/2406.14482),
+present a visible-thermal tiny-object benchmark with paired annotations;
+the cited preprint does **not** establish original-archive image/label
+licences, native optical geometry or independent sensor exposure timing for
+P01. Recent [RAPT-Net (2026)](https://www.mdpi.com/2072-4292/18/3/449)
+also studies multimodal tiny-target detection with scale-specific evaluation;
+novelty cannot rest on tiny-object bins or RGB/thermal combination alone.
+
+The proposed contribution is an **acquisition-aware operating-envelope
+analysis**: a fixed, validation-selected false-alert budget, target footprint
+measured on verified original sensor grids, independent acquisition-group
+uncertainty, and explicit separation of physical imaging evidence from
+software downsampling. This is a proposed distinction, **not a completed
+novelty or reproducibility review**. The exact eligible data and the
+applicability of these comparisons still require #10/#36 admission and #29
+independent review.
+
+### Candidate novelty matrix (no originality claim yet)
+
+| Prior work | Established precedent | Evidence required for P01 distinction |
+| --- | --- | --- |
+| Poster et al. (Sensors 2023) | Long-range small targets, including **MWIR** | Actual native **LWIR** geometry and sensor-specific applicability |
+| Ying et al. (RGBT-Tiny) | Tiny visible-thermal benchmark and annotations | Independently confirmed original-grid labels, rights and acquisition IDs |
+| RAPT-Net (Remote Sensing 2026) | Multimodal detection with tiny-target evaluation | A distinct, source-audited within-acquisition fixed-FP operating analysis |
+| P01 candidate | Proposed combined LWIR native-footprint / fixed FP/frame / group-based uncertainty contract | Reproducible real-data admission, matching, comparisons and methodological novelty audit |
+
+The table is prospective, not a systematic review or demonstrated
+novelty. Comparator definitions, spectral bands, licences and native
+acquisition metadata remain subject to direct verification.
 
 ## Planned manuscript outline
 
@@ -47,7 +84,7 @@ and independent data/evidence gates pass.
 3. Materials: admitted original datasets, sensor geometry, rights and labels.
 4. Methods: native-footprint strata, operating-point calibration, independent
    splits, baselines, uncertainty and software-only ablations.
-5. Results: per-modality detection and failure distributions (pending evidence).
+5. Results: LWIR within-acquisition recall, false alerts and secondary RGB comparisons (pending evidence).
 6. Discussion: confounding, limitations, reproducibility and applicability.
 7. Conclusions: evidence-bounded findings only (pending evidence).
 
