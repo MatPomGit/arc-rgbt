@@ -16,6 +16,7 @@ _interval = module._interval
 _t_interval = module._t_interval
 _trial_differences = module._trial_differences
 run_pilot = module.run_pilot
+_wilson_interval = module._wilson_interval
 
 
 def test_constant_acquisition_contrast_has_zero_width_interval():
@@ -50,3 +51,46 @@ def test_group_differences_are_valid_recall_differences():
 def test_invalid_pilot_configuration_rejected(kwargs):
     with pytest.raises(ValueError, match="Invalid pilot"):
         run_pilot(**kwargs)
+
+
+def test_wilson_monte_carlo_intervals_are_bounded():
+    lower, upper = _wilson_interval(0, 250)
+    assert lower == 0
+    assert 0 < upper < 0.03
+    lower, upper = _wilson_interval(250, 250)
+    assert 0.97 < lower < 1
+    assert upper == 1
+    lower, upper = _wilson_interval(125, 250)
+    assert lower < 0.5 < upper
+
+
+def test_stress_scenarios_reproducible_and_well_formed():
+    result = run_pilot(trials=5, bootstrap=100, seed=17, stress=True)
+    assert result == run_pilot(trials=5, bootstrap=100, seed=17, stress=True)
+    assert result["stress_scenarios_enabled"] is True
+    assert len(result["scenarios"]) == 24
+    assert {scenario["design"] for scenario in result["scenarios"]} == {
+        "balanced", "unequal_counts_shared_shock",
+    }
+    for scenario in result["scenarios"]:
+        for method in scenario["methods"].values():
+            lo, hi = method["coverage_mc_95_interval"]
+            assert 0 <= lo <= method["coverage_95_fraction"] <= hi <= 1
+            lo, hi = method["negative_ci_mc_95_interval"]
+            assert 0 <= lo <= method["negative_ci_fraction"] <= hi <= 1
+
+
+def test_stress_preserves_population_difference_with_many_independent_groups():
+    result = _trial_differences(
+        2000, 20, -0.15, random.Random(20261102),
+        unequal_counts=True, correlated_hits=True,
+    )
+    assert len(result) == 2000
+    assert all(-1 <= difference <= 1 for difference in result)
+    assert abs(sum(result) / len(result) + 0.15) < 0.03
+
+
+@pytest.mark.parametrize("kwargs", [{"stress": 1}, {"stress": None}])
+def test_invalid_stress_options_rejected(kwargs):
+    with pytest.raises(ValueError, match="Invalid pilot"):
+        run_pilot(trials=1, bootstrap=100, **kwargs)
