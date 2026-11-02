@@ -22,8 +22,8 @@ and [screened literature](../../../docs/experiments/literature-screening.md).
 
 ## Planned confirmatory study (not yet preregistered)
 
-- **Primary endpoint:** recall at the same preregistered FP/frame ceiling across native pixel-footprint bins, stratified by physical viewpoint, object class, modality and independent scene/acquisition.
-- **Baselines:** RGB-only and LWIR-only with fixed checkpoints and documented pre-processing. Artificial downsampling is a separate controlled software ablation and must not be confused with measured physical low-resolution performance.
+- **Primary candidate:** equal-weight mean of within-acquisition LWIR small-minus-reference IoU-0.50 recall differences at a validation-locked FP/frame operating point. This is an observational association, not a causal effect of image resolution. Class, contrast, geometry and viewpoint balance must be assessed.
+- **Baselines:** LWIR-only fixed checkpoint for the single primary analysis, RGB-only as secondary; RGB/LWIR fusion belongs to P02. Artificial downsampling remains a separate software ablation, not measured physical low-resolution performance.
 - **Controls:** native focal length/pixel pitch, projection geometry, image-frame orientation, blur, occlusion, thermal contrast and completeness of negative frames.
 - **Evaluation:** freeze inclusion/exclusion policy and footprint strata before analyzing held-out data. Use acquisition/sequence-group intervals, report detection failures and avoid frame-wise IID inference.
 - **GO:** physically acquired native frames, source/annotation licences, complete independent labels, test splits and uncertainty PASS. Otherwise NO-GO for physical detection-limit claims.
@@ -39,13 +39,13 @@ Changes after that point must be logged as deviations, not silently applied.
 
 | Decision | Proposed rule | Freeze status |
 | --- | --- | --- |
-| Population | Objects with verified class labels in physically acquired original RGB or LWIR frames, including fully labelled negative frames | PENDING source and class mapping |
-| Primary estimand | Difference in per-object held-out recall between preregistered smaller and reference *native projected pixel-footprint* strata, evaluated at a common FP/frame ceiling, separately by modality | PENDING strata, FP ceiling and IoU |
+| Population | Verified native LWIR objects from independent acquisition groups with fully labelled positive and negative frames; RGB only secondary | PENDING source and class mapping |
+| Primary estimand | Equal-acquisition-weighted mean of within-group small minus reference LWIR GT recall differences, both bins in each contributing acquisition | PENDING eligible groups and author freeze |
 | Independent unit | Original acquisition/scene or flight group; adjacent frames from one acquisition are not independent replicates | PENDING source IDs |
 | Operating point | Select detector thresholds on validation groups only, targeting the same FP/frame ceiling; never tune on held-out test data | PENDING numerical ceiling |
 | Native footprint | Derive visible annotated target width/height/area on each modality's **original** grid; retain calibrated geometry and visibility metadata; do not use resized detector input as native footprint | PENDING native grid and optics |
-| Baselines | Fixed RGB-only and LWIR-only checkpoints; include paired fusion only where alignment and pairing are independently verified | PENDING admissible data |
-| Primary uncertainty | Resample independent acquisition groups (not individual frames) and report interval and group count; no precision claim if independent groups are insufficient | PENDING sample-size/interval specification |
+| Baselines | LWIR-only fixed primary checkpoint; RGB secondary; pairing/fusion belongs to P02 | PENDING admissible data |
+| Primary uncertainty | Bootstrap independent **paired acquisition** differences, equal group weights, not objects/frames; report effective group count | PENDING support and pilot precision audit |
 | Secondary analyses | Class, view, occlusion, contrast, localization error, AP at named IoU and software degradation; explicitly exploratory unless prespecified and multiplicity handled | PENDING prespecification |
 
 ### Admission, selection and measurement rules
@@ -91,13 +91,83 @@ record the replacement and rationale in #35 before unblinding test outcomes.
 | Item | Proposed prespecification | Gate |
 | --- | --- | --- |
 | Primary modality | Physically acquired native **LWIR** only. RGB is a prespecified secondary comparison; fusion belongs to P02 unless a separate P01 ablation is justified. | Native LWIR and original labels verified |
-| Independent outcome | Held-out difference in **per-object recall**: small minus reference footprint at the same frozen LWIR checkpoint and confidence threshold; expected sign negative. | Eligible groups and full target labels |
+| Independent outcome | Within-acquisition **IoU-0.50 localization-qualified** GT recall difference (small minus reference), averaged equally across acquisitions. Expected sign negative, no causal interpretation. | Source-verified acquisitions with both bins and complete labels |
 | Footprint proxy | `s = sqrt(w_native * h_native)` in pixels from the original-grid target bounding box. Small: `s < 8`; intermediate: `8 <= s < 16`; reference: `s >= 16`. Only small vs reference is confirmatory. | Original grid and annotation conventions independently checked |
-| Match rule | Class-aware, one-to-one IoU `>= 0.50` with deterministic score-ordered greedy matching. A target can contribute at most one true positive. | Shared metric contract #23 reference tests |
-| False-alert budget | Candidate ceiling `0.10 FP/frame`. On independent **validation** frames, select the lowest confidence threshold satisfying the ceiling (ties resolved by higher threshold). Keep it unchanged on test. | Fully labelled negative and positive frames; fixed checkpoint |
-| Test reporting | Report observed test FP/frame even if above `0.10`, plus all target and frame denominators. Exceeding the ceiling means the target operating condition was **not met**, not that the test threshold may be retuned. | No test-outcome-driven threshold selection |
-| Uncertainty | Two-sided 95% percentile interval from 2000 bootstrap replicates of **whole independent acquisition groups**, fixed seed `20261101`, preserving all frames and targets within each sampled group. | At least 10 distinct groups contributing targets to each compared bin; otherwise descriptive only |
-| Sensitivity | Intermediate footprint bin, RGB modality, IoU `0.25` for localization sensitivity, AP and contrast/occlusion strata are secondary/exploratory unless separately prespecified. | No post hoc confirmatory promotion |
+| Match rule | Class-aware, score-descending one-to-one IoU `>= 0.50`, original prediction order breaks ties. Each GT is counted once and assigned to a bin by its **original-grid GT box** before matching. | [P01 metrics tests](../analyses/README.md), plus shared #23 reference audit |
+| False-alert budget | Candidate `0.10 FP/frame`. Choose lowest validation-only score threshold meeting observed ceiling using sorted unique prediction scores plus 0 and 1; no zero-TP solution. Keep fixed on test; this is not a guarantee of future FP/frame. | Complete validation frames and adequate exposure/groups |
+| Test reporting | Report observed held-out FP/frame over all eligible positive and empty frames. If above `0.10`, label **OPERATING_CONDITION_NOT_MET**; report fixed-threshold recall descriptively, never retune test. | No test-outcome-driven threshold selection |
+| Uncertainty | Candidate 2000 resamples of paired **whole acquisition differences**, seed `20261101`, 2.5/97.5% linearly interpolated percentiles, equal group weights. | Provisional >=10 *same* independent groups with both bins; pilot precision and coverage audit still required |
+| Sensitivity | IoU `0.25` for tiny-target localization, intermediate bin, RGB, per-class and contrast/occlusion/view strata, AP, group-vs-object weighting all secondary/exploratory. | No post hoc confirmatory promotion |
+
+#### Paired group estimand and causal limits (candidate)
+
+For every independently verified LWIR acquisition group `g` containing at
+least one **small** and one **reference** GT, compute
+`r_small,g = TP_small,g / GT_small,g` and
+`r_ref,g = TP_ref,g / GT_ref,g`. The primary candidate is
+`Delta = mean_g(r_small,g - r_ref,g)`, with exactly **one equal weight per
+acquisition**, not an object-pooled difference. Matching is assigned to
+original-grid GT objects, including misses. Acquisitions lacking one bin
+contribute only descriptive denominators and must be reported separately.
+The current >=10 **paired** groups criterion is a *provisional minimum*,
+not a sufficient-power guarantee; report effective group counts, counts
+of objects per group/bin and exclusion frequencies.
+
+The contrast is **observational**. Small targets can have different class,
+orientation, thermal contrast, occlusion, distance, motion blur and annotation
+quality from larger ones within the same acquisition. This design does
+not isolate a causal native-resolution effect. Before freezing, specify
+class-/contrast-/viewpoint-specific sensitivity, balance tables and any
+covariate-standardized comparison with a demonstrated common-support region.
+Without support, report the limitations rather than a purported physical
+detection limit. H0: `Delta = 0`; directional H1: `Delta < 0` is proposed,
+not preregistered.
+
+#### FP/frame calibration on validation only (candidate)
+
+The engineering selector in `arc_rgbt.p01_metrics.choose_validation_threshold`
+takes fully annotated validation frames and a declared group ID per frame.
+Its **provisional** minimum is >=10 independent groups and >=200 frames,
+including all fully labelled empty frames; these floors alone do not
+establish a reliable validation false-alert rate. Candidate confidence
+thresholds are the sorted unique observed validation prediction scores
+and 0/1 bounds, with inclusion rule `score >= threshold`. Select the lowest
+threshold yielding observed `FP / all_validation_frames <= 0.10`.
+Reject no-feasible and zero-TP solutions, including a trivial no-detection
+threshold. Check negative/positive-frame composition, acquisition
+exposure, FP/frame variability and group-bootstrap uncertainty **on
+validation** before author freeze. A point estimate of 0.10 FP/frame
+does not guarantee test coverage. The held-out threshold and checkpoint
+cannot be adjusted after seeing the test results.
+
+#### Group bootstrap and localization sensitivity (candidate)
+
+Resample **whole eligible paired acquisition IDs** with replacement and
+compute the mean of their entire per-group recall differences. Candidate
+settings are 2000 replicates, fixed seed `20261101`, 95% percentile
+limits at 0.025/0.975 with linear interpolation. Paired sampling avoids
+empty-bin resamples; malformed or insufficient group support leads to
+`DESCRIPTIVE_ONLY`, never frame-wise IID substitution. Ten acquisitions
+may still yield poor interval coverage. Before held-out access, run a
+pilot/simulation-based precision and coverage check and freeze any
+small-cluster alternative interval. Report group variation, bin counts,
+interval width and null findings. At `s < 8` pixels, a 1-pixel box
+localization discrepancy can dramatically change IoU-0.50 recall:
+interpret the primary endpoint as *localization-qualified detection*,
+and prespecify IoU-0.25 and visible/amodal annotation sensitivity.
+If ignore/crowd regions, ambiguous boxes or native vs processed geometry
+cannot be resolved, exclude by a frozen policy or mark **BLOCKED**.
+
+#### Implementation and evidence boundary
+
+`native_footprint_recall` provides per-GT native footprint, match flags,
+group-paired differences and deterministic bootstrap. Unlike aggregate
+`detection_contract` it retains original GT indices. It does **not**
+independently verify image pixels, original grid, source identities,
+licences, calibration or annotation completeness; its outputs always mark
+`empirical_admission=false`. Both code helpers and all numeric choices
+remain *prospective and unfrozen*. Reference tests using only synthetic
+boxes provide engineering evidence, not real LWIR scientific GO.
 
 **Interpretation safeguards.** The annotated bounding box is an observable
 *image-plane footprint proxy*, not an independent optical point-spread
@@ -115,9 +185,10 @@ Record unmatched predictions on both positive and negative frames. Do not
 select an operating threshold from the test set. If validation permits only
 the no-detection solution, or the required independent groups, native labels
 or negative-frame completeness are unavailable, report **BLOCKED** rather
-than a physical detection-limit estimate. If bootstrap replicates omit a
-comparison bin, report the invalid count and do not silently replace them
-with frame-wise resampling. The author must still approve bin edges, IoU,
+than a physical detection-limit estimate. Only groups containing both bins can contribute to the proposed paired
+bootstrap; if there are too few or pilot precision is insufficient,
+report DESCRIPTIVE_ONLY without a confirmatory interval. Author approval
+is still required for bin edges, IoU,
 FP/frame, group minimum and inference plan before freeze.
 
 ### Decisions still required before freeze
@@ -126,8 +197,10 @@ FP/frame, group minimum and inference plan before freeze.
       complete labels and independent acquisition identifiers (#10, #36).
 - [ ] Fix the numerical FP/frame ceiling, IoU, footprint bins and sample
       adequacy criteria *without looking at held-out outcomes*.
-- [ ] Fix the group-resampling method, interval level, missingness rules
-      and any multiplicity adjustment for confirmatory secondary tests.
+- [ ] Freeze the paired-group estimand, overlap policy, class/contrast balance,
+      validation exposure and threshold candidate grid.
+- [ ] Audit pilot-based group-bootstrap precision, missingness and ignore-region
+      rules; freeze multiplicity handling for any confirmatory extension.
 - [ ] Obtain explicit author approval of the frozen protocol and store
       its commit SHA and date in [issue #35](https://github.com/MatPomGit/arc-rgbt/issues/35).
 - [ ] Obtain independent evidence GO before reporting physical limits
