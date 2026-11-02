@@ -156,6 +156,7 @@ def test_over_budget_test_is_not_misreported_as_candidate_inference():
     assert result["status"] == "OPERATING_CONDITION_NOT_MET"
     assert result["primary_group_mean_delta"] == 0.0
     assert result["candidate_percentile_ci_95"] is None
+    assert result["replicates"] == 0
 
 
 def test_no_negative_validation_exposure_blocks_even_at_zero_false_alarms():
