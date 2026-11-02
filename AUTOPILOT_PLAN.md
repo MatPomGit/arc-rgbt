@@ -1,6 +1,6 @@
 # arc-rgbt research work plan
 
-**Version 1.3.0 · updated 2026-11-02.** Six CORE planned studies P01–P06 and two OPTIONAL HOLD studies P07–P08. This file owns work packages, not a second copy of research methods: use [RESEARCH.md](RESEARCH.md), the individual protocols and machine-readable [PROJECT_STATE.yaml](PROJECT_STATE.yaml).
+**Version 1.3.1 · updated 2026-11-02.** Six CORE planned studies P01–P06 and two OPTIONAL HOLD studies P07–P08. This file owns work packages, not a second copy of research methods: use [RESEARCH.md](RESEARCH.md), the individual protocols and machine-readable [PROJECT_STATE.yaml](PROJECT_STATE.yaml).
 
 ## Current execution queue and issue milestones
 
@@ -39,6 +39,10 @@
 
 The repository is **public**. Standard GitHub-hosted runner labels (including `ubuntu-latest`, `windows-latest`, standard macOS and GitHub-provided standard ARM64 labels) have **$0 Actions compute cost, without a monthly minutes cap** in public repositories. The commonly quoted private-repo 2000/3000-minute monthly allowances DO NOT cap this public-repository standard-runner usage. Self-hosted runner usage currently also incurs no GitHub Actions runtime charge, but electricity, hardware and local maintenance are not free. Larger GitHub-hosted runners, external paid APIs, private-repo minutes, artifact/package storage beyond the relevant allowance, and other metered services may incur charges. No paid runners, service purchases or unlimited storage without explicit budget authorization. If repository visibility changes, re-evaluate this policy *before* running jobs.
 
+**Zero-cost rule (explicit):** Standard GitHub Actions execution on GitHub-hosted standard runners in this PUBLIC repository, including regular CI, repeat tests, documentation checks and necessary re-runs, is an **approved zero-cost activity** and DOES NOT conflict with the project's `zero-cost` / `zero-spend` policy. There is **no monthly Actions-minute quota to conserve for this public standard-runner use**. Agents may invoke these free workflows as often as reasonably required to validate changes and exact SHA, subject to GitHub technical limits, acceptable use, security policy, workflow triggers and repository permissions. Free compute does not authorize paid tools or unlimited artifacts/storage.
+
+**Education entitlement (owner-declared):** The repository owner has the **GitHub Education educator/teacher package**. GitHub Education teacher benefits can include access to free GitHub Team (on eligible, separately enabled organizations) and educator Copilot Pro. Do not infer that any particular benefit, organization entitlement, private-repository allowance or additional service is active or free without checking the actual account/organization billing settings. **The zero-cost permission for standard-runner CI here follows from repository PUBLIC visibility, independent of Education.** Educator benefits are additional potential allowances, not authorization to spend.
+
 **Reviewed workflow labels (2026-11-02):** `.github/workflows/research-pr-validation.yml` and `pages.yml` use `ubuntu-latest` (standard public hosted runner); `offline-tests.yml` and `docs-check.yml` use a trusted `[self-hosted, linux, x64]` runner and are `workflow_dispatch` plus main-ref guarded. **Do not loosen these existing trust boundaries solely for free CI usage.** PR code must never execute on persistent self-hosted runners.
 
 **Operational rule:** use standard GitHub-hosted ephemeral runners for trustworthy or isolated PR lint/unit/docs checks, with exact head SHA, least permissions, pinned actions, short job timeouts and cancel-in-progress for superseded PR runs. More free runs are allowed when they improve reliability; don't intentionally spam or overload public infrastructure. Preserve storage limits through minimal retained artifacts and short retention; monitor GitHub concurrency, service usage and billing controls. Avoid charging Copilot/LLM APIs, large-runner labels and other metered providers just because Actions minutes are free.
@@ -48,6 +52,8 @@ Official sources (checked 2026-11-02):
 - https://docs.github.com/en/actions/reference/runners/github-hosted-runners
 - https://docs.github.com/en/billing/concepts/product-billing/github-actions
 - https://docs.github.com/en/actions/reference/limits
+- https://docs.github.com/en/education/about-github-education/github-education-for-teachers/about-github-education-for-teachers
+- https://docs.github.com/en/education/about-github-education/github-education-for-teachers/apply-to-github-education-as-a-teacher
 - https://github.blog/changelog/2025-12-16-coming-soon-simpler-pricing-and-a-better-experience-for-github-actions/
 
 ## Work packages
