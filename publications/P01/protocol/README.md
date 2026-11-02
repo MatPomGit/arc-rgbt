@@ -111,7 +111,10 @@ original-grid GT objects, including misses. Acquisitions lacking one bin
 contribute only descriptive denominators and must be reported separately.
 The current >=10 **paired** groups criterion is a *provisional minimum*,
 not a sufficient-power guarantee; report effective group counts, counts
-of objects per group/bin and exclusion frequencies.
+of objects per group/bin and exclusion frequencies. Include acquisition
+groups consisting solely of fully labelled negative frames in the
+FP/frame denominator and total acquisition count, but **not** as
+pseudo-paired units in the primary recall contrast.
 
 The contrast is **observational**. Small targets can have different class,
 orientation, thermal contrast, occlusion, distance, motion blur and annotation
@@ -127,18 +130,26 @@ not preregistered.
 
 The engineering selector in `arc_rgbt.p01_metrics.choose_validation_threshold`
 takes fully annotated validation frames and a declared group ID per frame.
-Its **provisional** minimum is >=10 independent groups and >=200 frames,
-including all fully labelled empty frames; these floors alone do not
-establish a reliable validation false-alert rate. Candidate confidence
+Its **provisional** minimum is >=10 declared acquisition groups and >=200
+frames, **including >=20 negative frames from >=2 acquisition groups**.
+If negative-frame exposure is insufficient, return
+`BLOCKED_NEGATIVE_EXPOSURE`, never a nominal 0-FP success. These floors
+alone do not establish a reliable validation false-alert rate. Candidate confidence
 thresholds are the sorted unique observed validation prediction scores
 and 0/1 bounds, with inclusion rule `score >= threshold`. Select the lowest
 threshold yielding observed `FP / all_validation_frames <= 0.10`.
 Reject no-feasible and zero-TP solutions, including a trivial no-detection
-threshold. Check negative/positive-frame composition, acquisition
-exposure, FP/frame variability and group-bootstrap uncertainty **on
-validation** before author freeze. A point estimate of 0.10 FP/frame
-does not guarantee test coverage. The held-out threshold and checkpoint
-cannot be adjusted after seeing the test results.
+threshold. The selector now reports a candidate 2000-replicate **acquisition-cluster
+bootstrap percentile interval** for validation FP/frame (seed `20261101`).
+Each replicate samples groups with replacement and computes
+`sum(FP_g) / sum(frames_g)`, preserving the all-frame denominator.
+If its upper 95% bound exceeds 0.10, flag
+`validation_fp_upper_ci_exceeds_ceiling=true` and require review of
+false-alert uncertainty before protocol freeze. This bound is a
+descriptive validation uncertainty diagnostic, **not** a guarantee of
+test performance. Review positive/negative-frame prevalence, unequal
+acquisition sizes and negative-frame exposure. The held-out threshold
+and checkpoint cannot be adjusted after seeing test results.
 
 #### Group bootstrap and localization sensitivity (candidate)
 
@@ -157,6 +168,9 @@ interpret the primary endpoint as *localization-qualified detection*,
 and prespecify IoU-0.25 and visible/amodal annotation sensitivity.
 If ignore/crowd regions, ambiguous boxes or native vs processed geometry
 cannot be resolved, exclude by a frozen policy or mark **BLOCKED**.
+On a fixed-threshold held-out sample exceeding `0.10 FP/frame`, mark
+`OPERATING_CONDITION_NOT_MET` and retain the point contrast only as
+descriptive; do not present a confirmatory candidate CI or retune test.
 
 #### Implementation and evidence boundary
 
@@ -165,8 +179,12 @@ group-paired differences and deterministic bootstrap. Unlike aggregate
 `detection_contract` it retains original GT indices. It does **not**
 independently verify image pixels, original grid, source identities,
 licences, calibration or annotation completeness; its outputs always mark
-`empirical_admission=false`. Both code helpers and all numeric choices
-remain *prospective and unfrozen*. Reference tests using only synthetic
+`empirical_admission=false`. The metric helper retains per-acquisition
+FP and frame counts even for fully negative groups; a test budget
+violation suppresses the proposed CI while preserving descriptive
+counts. The validation helper provides a source-group bootstrap
+uncertainty *diagnostic*, not guaranteed false-alarm control. Both code
+helpers and all numeric choices remain *prospective and unfrozen*. Reference tests using only synthetic
 boxes provide engineering evidence, not real LWIR scientific GO.
 
 **Interpretation safeguards.** The annotated bounding box is an observable
@@ -185,8 +203,9 @@ Record unmatched predictions on both positive and negative frames. Do not
 select an operating threshold from the test set. If validation permits only
 the no-detection solution, or the required independent groups, native labels
 or negative-frame completeness are unavailable, report **BLOCKED** rather
-than a physical detection-limit estimate. Only groups containing both bins can contribute to the proposed paired
-bootstrap; if there are too few or pilot precision is insufficient,
+than a physical detection-limit estimate. Only groups containing both
+bins can contribute to the proposed paired bootstrap; if there are too
+few or pilot precision is insufficient,
 report DESCRIPTIVE_ONLY without a confirmatory interval. Author approval
 is still required for bin edges, IoU,
 FP/frame, group minimum and inference plan before freeze.
