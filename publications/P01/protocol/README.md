@@ -226,7 +226,11 @@ source-informed group heterogeneity, bin counts, clinically/robotically
 meaningful effect size, target precision, and an independently reviewed
 inferential method. The simulation does not include the validation FP/frame
 selector or real optical evidence; its coverage is not a guarantee for the
-eventual study.
+eventual study. Optional stress cases assess imbalanced bin denominators and
+extra acquisition-shared probability variation. Finite-trial simulation
+uncertainty is reported using Wilson bounds. These sensitivity checks cannot
+replace a preregistered source-informed precision target, independent
+acquisition audit, author sign-off or a separately reviewed statistical rule.
 
 ### Decisions still required before freeze
 
