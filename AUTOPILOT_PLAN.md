@@ -1,6 +1,6 @@
 # arc-rgbt research work plan
 
-**Version 1.3.1 · updated 2026-11-02.** Six CORE planned studies P01–P06 and two OPTIONAL HOLD studies P07–P08. This file owns work packages, not a second copy of research methods: use [RESEARCH.md](RESEARCH.md), the individual protocols and machine-readable [PROJECT_STATE.yaml](PROJECT_STATE.yaml).
+**Version 1.3.2 · updated 2026-11-02.** Six CORE planned studies P01–P06 and two OPTIONAL HOLD studies P07–P08. This file owns work packages, not a second copy of research methods: use [RESEARCH.md](RESEARCH.md), the individual protocols and machine-readable [PROJECT_STATE.yaml](PROJECT_STATE.yaml).
 
 ## Current execution queue and issue milestones
 
@@ -15,13 +15,13 @@
 
 **Owner-approved planning assumption:** the university will cover the APC for the P01 submission to *Sensors*. Treat this as a funding assumption, **not payment made or university administrative approval already issued**. Current editorial estimate is 2600 CHF before any adjustments (check actual price and billing requirements before submission). APC is **not a scientific blocker** and must not motivate lower-quality methodology or premature submission. Agents may not pay, enter financial commitments, send emails, contact editors or submit manuscripts without separate action authorization.
 
-**Current scientific state:** #42 and #43 merged; [PR #44](https://github.com/MatPomGit/arc-rgbt/pull/44) is an open draft with a synthetic-only cluster confidence-interval coverage audit. P01 remains **UNFROZEN / G01 DATA BLOCKED**. Never convert CI PASS into dataset or scientific GO; no numerical physical detection limits have been measured.
+**Current scientific state:** #42 and #43 merged; [PR #44](https://github.com/MatPomGit/arc-rgbt/pull/44) was **MERGED** as a synthetic-only CI-coverage pilot (squash main `18c9b754164fc5208ce7c8aaa3f81c8d6ade9e66`; 324 passed, 7 skipped on exact PR head `52afdc657e6769f789beb5bf40572b57ebea604e`). Independent scientific methods review remains open in #49. P01 remains **UNFROZEN / G01 DATA BLOCKED**. Never convert CI PASS into dataset or scientific GO; no numerical physical detection limits have been measured.
 
 ### Next executable actions (top-down priority, bounded, revisit at each run)
 
 | Order / due | Existing task | Concrete next action | Stop/exit evidence |
 | --- | --- | --- | --- |
-| 0 / immediately | [PR #44](https://github.com/MatPomGit/arc-rgbt/pull/44) | Read current PR head, reviewer findings and tests; complete independent methods review, address defects on its existing branch before opening any additional implementation PR | Review verdict on exact SHA; never merge as empirical GO |
+| 0 / completed Nov 02 | [PR #44](https://github.com/MatPomGit/arc-rgbt/pull/44) | Synthetic pilot, stress scenarios and CI numerical regression fixes merged on main; its old branch deleted | Engineering CI PASS; scientific review and author freeze still pending in #49/#35 |
 | 1 / Nov 05 | [#45](https://github.com/MatPomGit/arc-rgbt/issues/45) + [#49](https://github.com/MatPomGit/arc-rgbt/issues/49) | Verify lawful original LWIR dataset/source candidates and independently reproduce synthetic CI undercoverage; use **parallel research tasks, not parallel feature PRs** | Rights/source shortlist; independently reviewed interval methods |
 | 2 / Nov 07 | [#46](https://github.com/MatPomGit/arc-rgbt/issues/46) + [#50](https://github.com/MatPomGit/arc-rgbt/issues/50) | Verify original LWIR spectral/native-grid geometry, settle paired acquisition estimand, confounding, H0/H1 and test alpha | Signed-off *candidate* decision sheet and source geometry evidence |
 | 3 / Nov 09-10 | [#47](https://github.com/MatPomGit/arc-rgbt/issues/47), [#51](https://github.com/MatPomGit/arc-rgbt/issues/51), [#48](https://github.com/MatPomGit/arc-rgbt/issues/48) | Complete GT/negative-frame convention, FP/frame/IoU/threshold rules, authentic independent group counts and sample-size feasibility using non-test material | Exclusion sheet, operating-point draft and source-informed precision gate |
@@ -33,7 +33,7 @@
 
 **Critical path:** independently admissible original LWIR source and sufficient acquisition groups -> defensible CI/inference and author freeze -> source/split G01 -> validation-only threshold -> untouched held-out outcome -> independent reproduction -> author submission decision. If source evidence fails by Dec 11, report scientific NO-GO for native physical limits; consider legal new independent measurements (only with separate authorization) or explicitly narrower *descriptive/simulation* article with re-evaluated novelty/venue. Never fabricate physical data or reclassify simulation as sensor proof.
 
-**Execution discipline:** complete and review current PR first; use the current issue rather than creating duplicates; one bounded JUMP at a time; independent review, exact-SHA validation, cleanup of merged branches, no speculative new branches. Concurrency may be increased for independent GitHub-hosted validation **jobs**, not automatically for Git branches/PRs or uncontrolled agent tasks. Maintain existing security policy and approvals in AGENTS.md.
+**Execution discipline:** #44 is closed and its branch cleaned; next active research tasks are #45 and #49, subject to review of any newly opened PR. Complete and review current PR first; use the current issue rather than creating duplicates; one bounded JUMP at a time; independent review, exact-SHA validation, cleanup of merged branches, no speculative new branches. Concurrency may be increased for independent GitHub-hosted validation **jobs**, not automatically for Git branches/PRs or uncontrolled agent tasks. Maintain existing security policy and approvals in AGENTS.md.
 
 ## GitHub Actions free-use and billing policy (verified 2026-11-02)
 
