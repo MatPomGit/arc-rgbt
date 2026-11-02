@@ -19,6 +19,9 @@ The call explicitly includes object detection and multi-sensor analysis.
 The journal invites a proposed title and approximately 250-word abstract
 for an editorial scope assessment.
 
+**Funding planning assumption (owner decision 2026-11-02):** The university will cover the *Sensors* article processing charge for P01. Treat the APC as **institutionally funded in the project plan**, not an unfunded research blocker. This statement is **not proof of payment, a signed funding agreement or authority for an agent to purchase or submit**. The corresponding author must verify the final payable rate, current university payment procedure, invoice recipient and administrative requirements before any authorized submission. No agency/editor outreach or invoice request has been sent by this update. [Current agent execution plan](../../AUTOPILOT_PLAN.md).
+
+
 **Scope argument:** P01 studies native RGB/LWIR observability and detection
 failure under documented imaging conditions relevant to perception on
 mobile robots. The contribution must be framed as a *sensor-aware detection
