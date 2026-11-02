@@ -56,7 +56,7 @@ suppresses the primary candidate CI but preserves descriptive rates and
 per-group counts, including target-empty acquisition groups. No original
 LWIR image, licence, source identity or geometry is independently verified
 by these helpers; `empirical_admission=false` is unconditional.
-See [P01 protocol](https://github.com/MatPomGit/arc-rgbt/blob/main/publications/P01/protocol/README.md).
+See the P01 protocol in `publications/P01/protocol/README.md`.
 
 ## Local image near-duplicate audit (R3.1, implemented)
 
