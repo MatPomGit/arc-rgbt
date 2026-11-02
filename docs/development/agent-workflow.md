@@ -1,6 +1,6 @@
 # Autonomiczna praca agentów i rygor badawczy
 
-Wersja 1.1.1 (2026-11-02). Uzupełnienie `AGENTS.md` w katalogu głównym, nie zastępuje szczególnych kontraktów projektu.
+Wersja 1.1.2 (2026-11-02). Uzupełnienie `AGENTS.md` w katalogu głównym, nie zastępuje szczególnych kontraktów projektu.
 
 ## Rozpoznaj, wybierz, zarezerwuj
 
@@ -24,7 +24,7 @@ Teksty dla użytkownika: poprawna polszczyzna, zdaniowe nagłówki, bez U+2013 i
 
 Przed wybraniem Issue lub wykonaniem jakiejkolwiek pracy **zawsze odczytaj najnowszy [AUTOPILOT_PLAN.md](https://github.com/MatPomGit/arc-rgbt/blob/main/AUTOPILOT_PLAN.md)**, aktualny `PROJECT_STATE.yaml`, [tracker M0-M6 #21](https://github.com/MatPomGit/arc-rgbt/issues/21), biezace PR i protokol konkretnego badania. W logu zapisz wersje/SHA planu, numer zadania i warunek zakonczenia. Plan stanowi aktualna kolejke wykonawcza, nie zastawia bezpieczenstwa `AGENTS.md`, merytorycznych protokolow ani statusow dowodow. Po zmianie planu ponow odczyt przy kolejnym JUMP.
 
-Dla P01 pierwszenstwo ma przeglad i naprawa istniejacego PR #44, nastepnie #45 i #49, kolejne zadania #46-#53 przed 2026-11-13, #54-#57 do 2026-12-11, #58-#60 po rzeczywistym G01 PASS, #61-#62 przed recenzja i #40 przed podjeciem decyzji o zgloszeniu. Wpis terminu nie jest zgoda na obejscie bramki naukowej. Przestrzegaj zaleznosci opisanych w planie; nie uruchamiaj na raz wielu nowych PR.
+Dla P01 PR #44 zostal scalony jako kod syntetycznego audytu (main SHA `18c9b754164fc5208ce7c8aaa3f81c8d6ade9e66`), a jego galaz usunieta. Kolejne priorytety to #45 (zrodla danych) i #49 (NIEZAKONCZONA niezalezna recenzja metod), kolejne zadania #46-#53 przed 2026-11-13, #54-#57 do 2026-12-11, #58-#60 po rzeczywistym G01 PASS, #61-#62 przed recenzja i #40 przed podjeciem decyzji o zgloszeniu. Wpis terminu nie jest zgoda na obejscie bramki naukowej. Przestrzegaj zaleznosci opisanych w planie; nie uruchamiaj na raz wielu nowych PR.
 
 ## Bezplatne GitHub Actions w publicznym repozytorium
 
