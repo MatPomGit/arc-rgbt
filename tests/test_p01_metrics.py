@@ -37,6 +37,9 @@ def test_gt_footprint_bins_duplicates_wrong_class_and_negative_frames():
     assert result["per_bin"]["reference"]["recall"] == 0.0
     assert result["fp"] == 3 and result["fp_per_frame"] == 1.5
     assert result["primary_group_mean_delta"] is None
+    assert result["status"] == "OPERATING_CONDITION_NOT_MET"
+    assert result["operating_condition_met"] is False
+    assert result["candidate_percentile_ci_95"] is None
     assert result["empirical_admission"] is False
 
 
@@ -123,3 +126,87 @@ def test_validation_size_and_no_tp_block_selection():
 def test_bin_edges_are_unambiguous():
     result = run([frame("x", [box(0, 8), box(20, 16)], [])], ["g"])
     assert [x["bin"] for x in result["per_object"]] == ["intermediate", "reference"]
+
+
+def test_negative_only_acquisition_is_retained_in_all_frame_denominators():
+    frames = [
+        frame("positive", [box(0, 4), box(40, 20)],
+              [box(0, 4, 0.9), box(40, 20, 0.9)]),
+        frame("empty", [], []),
+    ]
+    result = run(frames, ["acquisition-1", "acquisition-2"])
+    assert result["groups_total"] == 2
+    assert result["groups_without_targets"] == 1
+    assert result["per_group"]["acquisition-2"]["frames"] == 1
+    assert result["per_group"]["acquisition-2"]["small"]["targets"] == 0
+    assert result["fp_per_frame"] == 0.0
+
+
+def test_over_budget_test_is_not_misreported_as_candidate_inference():
+    frames = []
+    groups = []
+    for idx in range(10):
+        frames.append(frame(str(idx), [box(0, 4), box(40, 20)],
+                            [box(0, 4, 0.9), box(40, 20, 0.9),
+                             box(200, 4, 0.9)]))
+        groups.append(f"g{idx}")
+    result = run(frames, groups)
+    assert result["groups_with_both_bins"] == 10
+    assert result["operating_condition_met"] is False
+    assert result["status"] == "OPERATING_CONDITION_NOT_MET"
+    assert result["primary_group_mean_delta"] == 0.0
+    assert result["candidate_percentile_ci_95"] is None
+
+
+def test_no_negative_validation_exposure_blocks_even_at_zero_false_alarms():
+    frames = [frame(str(i), [box(0, 4)], [box(0, 4, 0.8)])
+              for i in range(200)]
+    result = choose_validation_threshold(
+        frames, acquisition_ids=[f"group-{i // 20}" for i in range(200)],
+        annotation_status="complete",
+    )
+    assert result["status"] == "BLOCKED_NEGATIVE_EXPOSURE"
+    assert result["threshold"] is None
+    assert result["negative_frames"] == 0
+
+
+def test_validation_group_bootstrap_detects_clustered_false_alarms():
+    frames = [frame(str(i), [], []) for i in range(200)]
+    frames[0]["ground_truth"] = [box(0, 4)]
+    frames[0]["predictions"] = [box(0, 4, 0.9)]
+    for i in range(1, 11):
+        frames[i]["predictions"] = [box(50, 4, 0.7)]
+    kwargs = {"acquisition_ids": [f"g{i // 20}" for i in range(200)],
+              "annotation_status": "complete"}
+    result = choose_validation_threshold(frames, **kwargs)
+    assert result["status"] == "CANDIDATE_ONLY"
+    assert result["threshold"] == 0.0
+    assert result["validation_fp_per_frame"] == 0.05
+    assert result["validation_fp_bootstrap_ci_95"][1] > 0.1
+    assert result["validation_fp_upper_ci_exceeds_ceiling"] is True
+    assert result["validation_fp_bootstrap_ci_95"] == (
+        choose_validation_threshold(frames, **kwargs)["validation_fp_bootstrap_ci_95"]
+    )
+
+
+def test_p01_gt_matching_agrees_with_shared_bench_confusion_counts():
+    from arc_rgbt.bench import evaluate
+
+    frames = [
+        frame("a", [box(0, 4), box(30, 20), box(90, 16)],
+              [box(0, 4, 0.7), box(30, 20, 0.9), box(0, 4, 0.7),
+               box(90, 16, 0.3), box(200, 4, 0.9)]),
+        frame("b", [], [box(20, 4, 0.8)]),
+        frame("c", [box(10, 10)], [box(10, 10, 0.4)]),
+    ]
+    cutoff = 0.5
+    filtered = [{**f, "predictions": [
+        p for p in f["predictions"] if p["score"] >= cutoff
+    ]} for f in frames]
+    expected = evaluate(filtered)
+    report = run(frames, ["g", "h", "g"], operating_score=cutoff)
+    assert sum(v["tp"] for v in report["per_bin"].values()) == expected["tp"]
+    assert report["fp"] == expected["fp"]
+    assert sum(v["targets"] for v in report["per_bin"].values()) == (
+        expected["tp"] + expected["fn"]
+    )
