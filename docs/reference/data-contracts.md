@@ -44,6 +44,16 @@ Python evaluators in `arc_rgbt.evaluation_contracts` extend existing `bench.eval
 
 These tools do not open external archives, measure physical clocks, or promote B01/G06. Full AP/HOTA claims still require source evidence and benchmark protocol review.
 
+## P01 provisional footprint metric contract
+
+The `arc_rgbt.p01_metrics` helpers provide GT-indexed native footprint
+bins, deterministic IoU matching and paired acquisition-level recall;
+validation-only threshold selection remains an **observed point-estimate**
+FP/frame criterion, not a prospective false-alert guarantee. No original
+LWIR image, licence, source identity or geometry is independently verified
+by these helpers; `empirical_admission=false` is unconditional.
+See [P01 protocol](../../publications/P01/protocol/README.md).
+
 ## Local image near-duplicate audit (R3.1, implemented)
 
 `arc-rgbt near-duplicates` is separate from metadata-only `arc-rgbt admission` and the `.npy` `arc-rgbt sequence` audit. Use it **only on a local subset whose licence permits access and analysis**. It does not download source images or upload images, derived thumbnails, or model weights. The input admission inventory must already pass the strict metadata schema and split guard. A second small JSON mapping identifies local images without modifying source manifests.
