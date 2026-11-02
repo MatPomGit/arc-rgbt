@@ -68,3 +68,27 @@ missing annotations, source rights or real sensor measurements. The
 precision assumptions and author sign-off before a confidence-interval
 method, effect threshold or minimum group count is frozen. No generated
 JSON, images or results are committed.
+
+### Methodological sensitivity and Monte Carlo precision
+
+The same script accepts `--stress` to append 12 additional **synthetic-only**
+scenarios. These vary small/reference GT denominators between independent
+acquisitions and add a zero-mean, shared acquisition probability shock. They
+stress the nominal 95% CI under unbalanced target counts and stronger
+within-acquisition outcome dependence; the population acquisition-weighted
+contrast remains fixed. Original 12 balanced scenarios remain unchanged when
+the flag is absent.
+
+```bash
+python publications/P01/analyses/pilot_cluster_precision.py --trials 250 --bootstrap 2000 --seed 20261102 --stress
+```
+
+Both estimated coverage and the frequency of a negative upper confidence limit
+now include a **95% Wilson interval for finite Monte Carlo uncertainty**, in
+addition to MCSE. These intervals describe simulation estimation error,
+**not** confidence in physical LWIR performance. With only 250 trials they are
+relatively wide; no interval family or group count is approved by this pilot.
+The stress model remains intentionally simplified and does not evaluate
+FP/frame threshold selection, real labels, optics or scene dependence. It may
+guide a source-informed, pre-unblinding follow-up under #49/#48, not a
+confirmatory preregistration or empirical GO.
