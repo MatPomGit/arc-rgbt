@@ -210,6 +210,24 @@ report DESCRIPTIVE_ONLY without a confirmatory interval. Author approval
 is still required for bin edges, IoU,
 FP/frame, group minimum and inference plan before freeze.
 
+#### Synthetic cluster precision audit before freeze (2026-11-02)
+
+A deterministic [acquisition-level precision pilot](../analyses/README.md)
+now compares the candidate percentile bootstrap with a cluster-level
+Student t interval across 10/20/40 independent paired groups, 4/20
+targets per bin, and true mean contrasts 0 and -0.15. It assesses nominal
+coverage, interval width and directional decision frequency under a
+**specified synthetic generating model**. The pilot flags possible
+undercoverage of the percentile interval when the provisional minimum of
+ten groups is used. Thus **>=10 paired groups is not validated as a
+confirmatory sample-size rule**. Neither interval is frozen or approved by
+this audit. Before seeing held-out outcomes, the author must specify
+source-informed group heterogeneity, bin counts, clinically/robotically
+meaningful effect size, target precision, and an independently reviewed
+inferential method. The simulation does not include the validation FP/frame
+selector or real optical evidence; its coverage is not a guarantee for the
+eventual study.
+
 ### Decisions still required before freeze
 
 - [ ] Identify lawful original dataset release(s), sensor calibration,
