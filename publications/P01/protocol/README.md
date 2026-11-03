@@ -30,6 +30,52 @@ and [screened literature](../../../docs/experiments/literature-screening.md).
 
 [Hypothesis and estimands](../hypotheses/README.md) · [portfolio boundary](../../../RESEARCH.md).
 
+## D1/D2/D10 decision sheet for author review (2026-11-03; UNFROZEN)
+
+This sheet resolves the *candidate interpretation* of the P01 primary
+question, not its scientific approval. No source-verified acquisition
+inventory, non-test pilot variance or independent method sign-off is
+available. It therefore **must not** be called preregistration.
+
+| ID | Candidate decision | Evidence still needed before freeze |
+| --- | --- | --- |
+| D1: target population | Lawfully usable original-grid LWIR acquisitions with complete eligible GT and verified acquisition identifiers. For the primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified native-footprint bins. Frames with zero GT remain in FP/frame assessment. | Original archive, spectral band, annotation/negative completeness, independent group keys and class mapping (#45-#48). |
+| D2: contrast | For acquisition `g`, compute `d_g = TP_small,g / N_small,g - TP_reference,g / N_reference,g` at the **same** validation-locked LWIR detector threshold. Primary estimand is `Delta = mean_g(d_g)`, giving each eligible acquisition equal weight, not each target. The population is the eligible paired-bin acquisition cohort, **not** all LWIR scenes. | Counts by acquisition/bin and overlap of class, contrast, viewpoint and occlusion; review potential selection induced by requiring both bins (#48/#50). |
+| D10: inference | Directional candidate `H1: Delta < 0`; proposed one-sided alpha `0.05`. A two-sided 95% interval is **descriptive** and is not interchangeable with a one-sided alpha-0.05 decision. Candidate confirmatory test: one-sided acquisition-level Student t test of mean `d_g` against zero, with `G-1` degrees of freedom; its validity requires an independently justified group-level approximation and source-informed precision/coverage audit. | Independent group count, group heterogeneity, distributional diagnostics, finite-sample type-I error and power simulations informed by non-test data, independent scientific review and author approval (#49/#50/#53). |
+
+**Inferential compatibility and stop rule.** If the t procedure is eventually
+approved, use the predeclared one-sided p-value with alpha 0.05 and optionally
+the corresponding one-sided 95% upper confidence bound for the same test;
+`upper_bound < 0` is the equivalent directional decision. A symmetric
+two-sided 95% t interval corresponds to a stricter directional crossing
+criterion and cannot silently replace that test. The current 2000-replicate
+percentile cluster bootstrap is a **sensitivity/precision candidate only**,
+because synthetic small-group coverage was inadequate; do not label its
+two-sided 95% interval as a calibrated confirmatory procedure. No
+parametric normality, group exchangeability or independent-acquisition
+assumption has yet been established on admitted data.
+
+**Confounding and common support.** Within-acquisition comparison removes
+some between-acquisition variation but does not randomize footprint.
+Differences in class, occlusion, contrast, viewing geometry, range or
+annotation convention may still explain the contrast. Report distributions
+of these factors by bin and acquisition *without using held-out detection
+outcomes* to choose exclusions or bin edges. If class/geometry overlap is
+insufficient, describe the contrast as observational or mark the planned
+primary inference `DESCRIPTIVE_ONLY`; any class-standardized estimate is
+secondary unless separately prespecified and supported by source counts.
+Never interpret a significant `Delta` as a causal pixel-resolution effect,
+physical maximum range or demonstrated mobile-robot deployment.
+
+**Selection and multiplicity.** There is one LWIR-only directional primary
+test, conditional on valid source admission and the fixed FP/frame operating
+condition. RGB, fusion, alternate IoU thresholds, bin edges, weighting and
+covariate-adjusted estimates do not supply replacement confirmatory tests.
+If the frozen held-out FP/frame condition is violated, preserve the
+descriptive contrast and label the confirmatory operating condition unmet,
+without retuning or switching to another endpoint. Author signature,
+reviewer identity, source SHA and decision date remain **PENDING**.
+
 ## Operational preregistration decision register (draft 2026-10-31)
 
 This is a **draft design**, not a frozen preregistration or permission to
