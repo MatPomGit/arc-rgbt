@@ -16,9 +16,13 @@ GT/prediction frames, a parallel list of acquisition IDs,
 `annotation_status="complete"` and `grid_origin="original_native"`.
 It returns per-GT IoU-matched flags and original-grid footprint bins,
 including misses, all-frame FP/frame, and equal-acquisition-weighted
-small-minus-reference differences. A candidate 2000-replicate group
-bootstrap interval is produced only for >=10 *declared* groups containing
-both bins. `choose_validation_threshold` chooses a validation-only
+small-minus-reference differences. It also returns per-paired-acquisition
+target counts, singleton-bin and excluded-acquisition counts, and an
+exploratory **paired-only target-pooled contrast** to diagnose group
+weighting. With fewer than the provisional 10 paired groups, the
+difference is retained descriptively but its candidate 2000-replicate
+bootstrap interval is suppressed. A computed interval is descriptive,
+not a calibrated directional test. `choose_validation_threshold` chooses a validation-only
 candidate cutoff with a 0.10 FP/frame point ceiling, provisional >=10
 groups and >=200 fully labelled frames, **including >=20 fully negative
 frames in >=2 groups**, and no trivial zero-TP solution. It also reports
@@ -53,10 +57,17 @@ Bernoulli outcomes. The true mean contrast is known from the generating
 model, so repeated trials estimate interval coverage, mean width and the
 frequency of an upper interval limit below zero.
 
-The script compares the **candidate whole-acquisition percentile bootstrap**
-against a **whole-acquisition Student t interval**. These are methodological
-stress tests, not a preregistration decision or a data-derived sample-size
-justification. Under some simulated ten-group settings, nominal 95% percentile
+The script compares **two-sided 95%** whole-acquisition percentile
+bootstrap and acquisition-level Student t intervals. Independently, it
+evaluates the **proposed one-sided alpha-0.05 acquisition-level t decision**
+against the boundary of `H0: Delta >= 0`. The decision rejects only
+when its one-sided 95% upper confidence bound lies below zero; zero
+sample variance yields an undefined test rather than a positive finding.
+For `Delta=0` scenarios the rejection fraction estimates synthetic
+type-I error at the null boundary; for `Delta=-0.15` it estimates
+directional detection frequency. Both include Wilson Monte Carlo
+uncertainty. These are methodological stress tests, not preregistration
+or data-derived sample-size justification. Under some simulated ten-group settings, nominal 95% percentile
 coverage falls below 95%; ten groups cannot be treated as a sufficient
 confirmatory minimum merely because the software can compute an interval.
 The t comparison is not automatically a validated replacement.
@@ -71,24 +82,46 @@ JSON, images or results are committed.
 
 ### Methodological sensitivity and Monte Carlo precision
 
-The same script accepts `--stress` to append 12 additional **synthetic-only**
-scenarios. These vary small/reference GT denominators between independent
-acquisitions and add a zero-mean, shared acquisition probability shock. They
-stress the nominal 95% CI under unbalanced target counts and stronger
-within-acquisition outcome dependence; the population acquisition-weighted
-contrast remains fixed. Original 12 balanced scenarios remain unchanged when
-the flag is absent.
+The same script accepts `--stress` to append 24 additional
+**synthetic-only** scenarios: 12 with unequal group/bin denominators and
+a shared acquisition probability shock, and 12 with asymmetric zero-mean
+contrast shocks plus groups containing only one GT per bin. These stress
+both interval coverage and one-sided test calibration when paired-group
+differences are skewed or denominators highly unbalanced. The generating
+population mean contrast remains fixed. The original 12 balanced scenarios
+remain available when the flag is absent.
 
 ```bash
 python publications/P01/analyses/pilot_cluster_precision.py --trials 250 --bootstrap 2000 --seed 20261102 --stress
 ```
 
-Both estimated coverage and the frequency of a negative upper confidence limit
-now include a **95% Wilson interval for finite Monte Carlo uncertainty**, in
-addition to MCSE. These intervals describe simulation estimation error,
+Two-sided CI coverage, two-sided negative upper bounds and **one-sided
+directional rejection** each include 95% Wilson Monte Carlo intervals and
+MCSE. These intervals describe uncertainty of simulation-based rates,
 **not** confidence in physical LWIR performance. With only 250 trials they are
 relatively wide; no interval family or group count is approved by this pilot.
 The stress model remains intentionally simplified and does not evaluate
 FP/frame threshold selection, real labels, optics or scene dependence. It may
 guide a source-informed, pre-unblinding follow-up under #49/#48, not a
 confirmatory preregistration or empirical GO.
+
+
+## Minimum paired-bin support before a scientific freeze
+
+The estimator currently accepts at least one GT in each bin to calculate
+a per-acquisition difference; this is a **computational definition**, not a
+scientific sample-size minimum. The report exposes
+`paired_group_target_counts`, `paired_groups_with_singleton_bin`,
+`acquisitions_excluded_from_paired_contrast` and the exploratory
+`paired_object_pooled_delta_sensitivity`. The pooled sensitivity is
+restricted to the **same paired acquisitions**, preserving the cohort
+when comparing weighting conventions.
+
+Before any confirmatory analysis, #48/#49/#50 must document an authentic,
+**non-test** acquisition inventory, per-bin count distributions, class and
+viewpoint common support, group-level variance/effect assumptions, and a
+source-informed minimum count and group-size decision with evaluated type-I
+error, power and interval coverage. A small software-sufficient group count
+cannot authorize empirical inference; if feasibility or overlap is inadequate,
+report `DESCRIPTIVE_ONLY`. No frozen sample-size or alpha approval is
+implied by the synthetic pilot.
