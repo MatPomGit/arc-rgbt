@@ -105,20 +105,33 @@ def native_footprint_recall(
     deltas = {g: (grouped[g]["small"][0] / grouped[g]["small"][1]
                   - grouped[g]["reference"][0] / grouped[g]["reference"][1])
               for g in paired_groups}
+    paired_group_counts = {
+        g: {"small": grouped[g]["small"][1],
+            "reference": grouped[g]["reference"][1]}
+        for g in paired_groups
+    }
+    paired_pooled_delta = None
+    if paired_groups:
+        small_tp = sum(grouped[g]["small"][0] for g in paired_groups)
+        small_n = sum(grouped[g]["small"][1] for g in paired_groups)
+        ref_tp = sum(grouped[g]["reference"][0] for g in paired_groups)
+        ref_n = sum(grouped[g]["reference"][1] for g in paired_groups)
+        paired_pooled_delta = small_tp / small_n - ref_tp / ref_n
     # A test sample over budget cannot support the proposed operating condition,
     # even if its acquisition-paired recall difference remains descriptive.
     test_fp_rate = false_positives / len(frames)
     budget_met = test_fp_rate <= fp_ceiling
     eligible = len(paired_groups) >= minimum_paired_groups
-    point, interval = None, None
-    if eligible:
-        values = list(deltas.values())
-        point = sum(values) / len(values)
-        if budget_met:
-            rng = random.Random(seed)
-            samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
-                             for _ in range(replicates))
-            interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
+    # Retain an explicitly descriptive contrast even when group support
+    # is insufficient for an interval. No scientific inference is authorized.
+    values = list(deltas.values())
+    point = sum(values) / len(values) if values else None
+    interval = None
+    if eligible and budget_met:
+        rng = random.Random(seed)
+        samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
+                         for _ in range(replicates))
+        interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
     report_status = (
         "OPERATING_CONDITION_NOT_MET" if not budget_met else
         "PROSPECTIVE_UNFROZEN" if eligible else "DESCRIPTIVE_ONLY"
@@ -142,6 +155,17 @@ def native_footprint_recall(
             for counts in grouped.values()
         ),
         "group_differences": deltas, "primary_group_mean_delta": point,
+        "paired_group_target_counts": paired_group_counts,
+        "paired_groups_with_singleton_bin": sum(
+            min(counts.values()) == 1 for counts in paired_group_counts.values()
+        ),
+        "acquisitions_excluded_from_paired_contrast": (
+            len(grouped) - len(paired_groups)
+        ),
+        "paired_object_pooled_delta_sensitivity": paired_pooled_delta,
+        "paired_weighting_difference_sensitivity": (
+            point - paired_pooled_delta if point is not None else None
+        ),
         "candidate_percentile_ci_95": interval,
         "replicates": replicates if interval is not None else 0,
         "fp": false_positives, "frames": len(frames),
