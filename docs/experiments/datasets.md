@@ -11,6 +11,32 @@ not accepted field datasets. Dataset selection is tracked under
 [RGBT-02 / A02_DATA](https://github.com/MatPomGit/arc-rgbt/blob/main/AUTOPILOT_PLAN.md)
 and [Issue #10](https://github.com/MatPomGit/arc-rgbt/issues/10).
 
+## P01 source-rights triage (2026-11-04, issue #45)
+
+The owner-controlled text linked below was re-read on 2026-11-04; this
+triage does **not** verify the downloaded archive's licence, optical
+metadata, ground-truth completeness, or independent acquisition IDs.
+`CONDITIONAL` permits only further *screening*, not experimental admission.
+No dataset, annotation archive or model was downloaded.
+
+| Candidate | Primary-source evidence checked 2026-11-04 | P01 suitability and missing evidence | Screening decision |
+| --- | --- | --- | --- |
+| **KAIST** (first ground-based candidate) | [Maintainer's licence](https://github.com/SoonminHwang/rgbt-ped-detection/blob/master/LICENSE.md) expressly applies default **CC BY-NC-SA 4.0** to repository source code and dataset; named BSD exceptions cover specified code files. | A useful RGB/thermal pedestrian cohort, but **not aerial**. Need exact release/archive terms, native *thermal* sensor grid versus aligned export, class/negative-frame annotation audit and source/drive identifiers. No inferred flight or robot deployment outcome. | **CONDITIONAL SOURCE SCREENING**, G01 **BLOCKED** |
+| **LLVIP** (backup, ground low-light) | [Owner terms](https://github.com/bupt-ai-cz/LLVIP/blob/main/Term%20of%20Use%20and%20License.md) permit non-commercial research/publications with citation, prohibit commercial use and privacy identification, and reserve ungranted rights; the owner describes **26 acquisition scenes**. | Scene grouping is a candidate only; individual independent acquisition count and paired-bin support remain unverified. Need exact image/label release, LWIR band/native detector grid, complete negative labels and rights for any derivatives. | **CONDITIONAL SOURCE SCREENING**, G01 **BLOCKED** |
+| **DroneVehicle** (aerial fallback) | [Owner repository discussion #58](https://github.com/VisDrone/DroneVehicle/issues/58) was still **open**, with zero comments at inspection, requesting image and annotation terms. | Relevant UAV geometry but original archive image/annotation licence remains unresolved; thermal spectral band, native grid, border/crop processing and independent flights need verification. | **HOLD RIGHTS**, no data import |
+| **CART** (aerial context only) | [Owner repository](https://github.com/aerorobotics/caltech-aerial-rgbt-dataset) identified; previously documented conflict between non-commercial language and CC BY-SA remains unresolved. | Original rights require clarification; segmentation labels are not automatically complete detection boxes. Native grid and independent groups remain unverified. | **HOLD LICENCE/ANNOTATIONS** |
+| **FLIR ADAS** (alternative road-scene thermal) | [Official owner dataset access page](https://oem.flir.com/en-gb/solutions/automotive/adas-dataset-form/) is already indexed; archive terms were **not** independently re-read in this pass. | Requires access/terms review, original thermal grid and negatives; same-scene RGB registration is not established. | **HOLD UNVERIFIED RIGHTS** |
+
+**Decision for #45:** prioritize KAIST original-release verification; LLVIP
+is the next legally documented academic candidate, while DroneVehicle is
+the most relevant aerial option *only after rights clarification*. These
+are **screening priorities**, not a final choice of a scientifically
+admissible P01 source. None is currently established to supply the
+independent, original-grid LWIR acquisition groups needed for D1/D2 or
+a reliable source-informed power calculation. Issue #45 remains open
+until exact archive and annotation terms are verified; #46-#48 and #36
+own geometry, ground truth, grouping and G01 admission.
+
 ## Candidate catalogue
 
 The counts below describe what the **dataset owners report** for the cited

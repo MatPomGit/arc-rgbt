@@ -80,6 +80,60 @@ The table is prospective, not a systematic review or demonstrated
 novelty. Comparator definitions, spectral bands, licences and native
 acquisition metadata remain subject to direct verification.
 
+## Unsent editorial scope-check package (2026-11-04)
+
+**Editorial fit: PROVISIONAL; no inquiry sent.** The [official Special Issue
+call](https://www.mdpi.com/journal/sensors/special_issues/XR7I5HPX5P)
+was checked on 2026-11-04. It lists a **2027-03-31** deadline, welcomes
+object detection and multi-sensor analysis for mobile robotics, and permits
+a proposed title with an **approximately 250-word abstract** for an
+initial editorial scope check. The title and prospective abstract above
+are the proposed package; they do not contain experimental findings.
+
+The [Sensors author instructions](https://www.mdpi.com/journal/sensors/instructions)
+were also checked on 2026-11-04. A *submitted manuscript* is expected to
+have an abstract of **about 200 words maximum**, which must summarize
+actual supported results and conclusions. The longer prospective
+scope-check abstract above is **not** a submission abstract. A compliant
+results-bearing abstract can be finalized only after eligible experiments.
+Submission materials must address source and code availability, ethics,
+author contributions, funding and conflicts of interest. No results, real
+sensor performance, manuscript acceptance or author approval are inferred
+from this screening.
+
+**Scope questions for a future authorized editorial inquiry** (not sent):
+
+1. Is an original-source native-LWIR target-footprint analysis of
+   localization-qualified detection at a validation-fixed false-alert
+   operating point within this Special Issue's object-detection scope
+   **without** physical mobile-robot field trials?
+2. Would a LWIR-only primary analysis with RGB-only *secondary* comparisons
+   be considered in scope, provided that RGB–LWIR fusion is addressed in a
+   separate manuscript and no multi-sensor deployment benefit is claimed?
+3. Which novelty and original-data documentation would the Editorial
+   Office expect for this observational, acquisition-grouped evaluation
+   relative to existing small-target and RGBT benchmarks?
+
+**Financial/administrative check, separate from editorial suitability.**
+The [publisher's current Sensors APC](https://www.mdpi.com/journal/sensors/apc)
+is **2600 CHF** before applicable taxes and discounts. The
+[MDPI discount guidance](https://www.mdpi.com/about/apc_faq) describes
+institutional IOAP/affiliation reductions and eligible reviewer vouchers;
+eligibility and stacking must be verified with the institution and
+publisher before acceptance. The university-coverage statement above is a
+planning assumption; neither a discount nor any charge is approved here.
+A future inquiry must not request preferential peer review or editorial
+treatment in exchange for funding, affiliation or reviewer status.
+
+**Precheck release conditions:** verify source rights and original thermal
+geometry (#45-#47), authentic independent acquisition groups and non-test
+precision (#48), independent interval-method review (#49), the numerical
+decision sheet (#50-#51), and author decision (#53). The prospective
+abstract and questions may be circulated for internal review while these
+conditions are pending. Contact with editors, payment and submission each
+require separate explicit authorization. The protocol remains **UNFROZEN /
+DATA BLOCKED**; see the [canonical decision record](protocol/README.md).
+
 ## Planned manuscript outline
 
 1. Introduction: physical target observability and robot perception relevance.
