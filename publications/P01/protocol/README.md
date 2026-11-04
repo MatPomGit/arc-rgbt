@@ -278,6 +278,47 @@ uncertainty is reported using Wilson bounds. These sensitivity checks cannot
 replace a preregistered source-informed precision target, independent
 acquisition audit, author sign-off or a separately reviewed statistical rule.
 
+### Freeze-readiness evidence ledger (2026-11-04)
+
+**Current decision: NOT SIGNED / UNFROZEN / DATA BLOCKED.**
+This ledger is a dated preparatory review for [Issue #35](https://github.com/MatPomGit/arc-rgbt/issues/35),
+not an author-approved preregistration. The final protocol revision SHA
+must be recorded after external review and final approval, not copied from
+an earlier software CI run.
+
+| Freeze gate | Evidence as of 2026-11-04 | Required exit evidence |
+| --- | --- | --- |
+| Research question and primary estimand | Candidate D1/D2/D10 above and [hypotheses](../hypotheses/README.md) are written; independent methodological sign-off missing. | Author approves cohort, observational interpretation, primary directional test and compatible alpha/CI rule; #49/#50/#53. |
+| Original LWIR source, rights and sensor geometry | Preliminary source shortlist only in [datasets](../../../docs/experiments/datasets.md); no original release admitted. | Exact original release and annotation rights, LWIR spectral band, native grid/transform and independent group IDs verified; #45/#46/#36. |
+| Annotation and negative exposure | Proposed GT matching and all-frame FP rules exist, but original labels and complete negative frames remain unverified. | Source-specific class map, visible/amodal policy, blinded QA, ignore/exclusion log, complete negative-frame audit; #47. |
+| Pairing, representativeness and precision | Paired-bin estimator and synthetic cluster pilot exist; authentic group counts, common support and source-informed precision absent. | Counts-only independent acquisition inventory, effect-size justification, pilot heterogeneity, power/coverage decision; #48/#49. |
+| Threshold and multiplicity | Numerical FP/frame, IoU and footprint values are **candidates**, not approved choices. | Author-approved D3/D4 and inference/multiplicity rules before test access; #51/#53. |
+| Publication fit and novelty | Prospective ~250-word scope text and [unsent editorial package](../README.md); fit provisional. | External originality/scope appraisal and approved inquiry if desired; #52. |
+| Independent review and author sign-off | No independent post-fix scientific approval; no signed decision or final commit SHA. | Dated reviewer identity and disposition, author identity/decision, exact reviewed protocol commit SHA recorded in #35 and #53. |
+
+**Permitted outcomes at the 2026-11-13 decision:**
+
+- `FROZEN`: only after real source eligibility, reviewable
+  feasibility/precision, all numerical and exclusion decisions, independent
+  scientific review and explicit author approval are documented **before**
+  accessing held-out detection outcomes.
+- `CONDITIONAL_DESIGN`: the proposed methods are reviewable but actual
+  source admission and/or precision remain unresolved. This is **not** a
+  completed preregistration and does not permit confirmatory held-out access.
+- `NO-GO`: the proposed question has no defensible data/source trajectory
+  or the methodological prerequisites cannot be met; physical LWIR limits
+  are not to be claimed. Any simulation-only alternative requires a new
+  novelty and journal-fit appraisal.
+
+**Final sign-off fields, currently empty:** decision = `PENDING`;
+decision date = `PENDING`; approving author = `PENDING`;
+independent reviewer = `PENDING`; final protocol commit SHA = `PENDING`;
+admitted data release/rights = `NONE`; source-informed precision evidence =
+`NONE`; unresolved blocker links = #10, #36, #45-#51, #53.
+A general request to work on this issue is not approval of these specific
+scientific decisions. Do not access untouched test outcomes or mark
+Issue #35 completed while any mandatory gate remains open.
+
 ### Decisions still required before freeze
 
 - [ ] Identify lawful original dataset release(s), sensor calibration,
