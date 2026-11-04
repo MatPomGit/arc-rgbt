@@ -6,7 +6,7 @@
 
 **H1 (directional candidate):** With a frozen LWIR detector and validation-only selected operating point, the equal-acquisition-weighted mean of within-acquisition small-minus-reference *IoU-0.50 localization-qualified* GT recall differences is negative (`Delta < 0`). This is an association, not a causal sensor-resolution effect.
 
-**H0 (candidate):** The within-acquisition LWIR contrast averaged equally across eligible paired acquisition groups is zero (`Delta = 0`). Its inferential decision rule remains subject to author freeze before any held-out outcomes.
+**H0 (candidate):** The within-acquisition LWIR contrast averaged equally across eligible paired acquisition groups is nonnegative (`Delta >= 0`); the least-favourable boundary is `Delta = 0`. The proposed one-sided acquisition-level t test uses alpha 0.05 and a corresponding 95% upper confidence bound. Its source-informed error calibration, power and author approval remain pending before held-out access.
 
 ## Outcomes and controls
 
