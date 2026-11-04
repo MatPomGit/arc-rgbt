@@ -37,6 +37,33 @@ a reliable source-informed power calculation. Issue #45 remains open
 until exact archive and annotation terms are verified; #46-#48 and #36
 own geometry, ground truth, grouping and G01 admission.
 
+### Immutable evidence required for source-rights clearance
+
+A source may move beyond conditional screening only when an evidence record
+identifies the **exact owner-issued image and annotation release**, its
+publisher-controlled terms, the rights applicable to the intended research,
+and the independent native-grid and acquisition audits. An ordinary GitHub
+`main` or `master` licence link is a mutable screening pointer and cannot
+substitute for a pinned revision.
+
+| P01 candidate | Owner terms commit/tag and recorded UTC access date | Exact image release SHA-256 | Exact annotation release SHA-256 | Rights freeze |
+| --- | --- | --- | --- | --- |
+| KAIST | **PENDING** immutable owner terms revision | **PENDING** | **PENDING** | BLOCKED: repository terms alone are insufficient |
+| LLVIP | **PENDING** immutable owner terms revision | **PENDING** | **PENDING** | BLOCKED: verify original redistribution and use terms |
+| DroneVehicle | **PENDING** rights-holder statement | **PENDING** | **PENDING** | HOLD: owner image/label terms unresolved |
+| CART | **PENDING** reconciliation of owner terms | **PENDING** | **PENDING** | HOLD: stated terms conflict |
+| FLIR ADAS | **PENDING** original archive terms | **PENDING** | **PENDING** | HOLD: access terms unverified |
+
+Before changing any entry to PASS, store the complete owner-issued licence
+text or authenticated immutable source reference, exact revision/date,
+archive and annotation release identifiers plus their separate SHA-256
+digests, applicable derivative/publication permissions, and a dated reviewer
+decision in #45. Source geometry and independently verified acquisition
+IDs belong to #46/#48; annotation/negative-frame coverage belongs to #47.
+The evidence table remains incomplete until those original source materials
+are lawfully inspected. **No actual dataset or annotation archive was
+downloaded for this remediation.**
+
 ## Candidate catalogue
 
 The counts below describe what the **dataset owners report** for the cited
