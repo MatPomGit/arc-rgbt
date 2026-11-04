@@ -36,7 +36,7 @@ def test_gt_footprint_bins_duplicates_wrong_class_and_negative_frames():
     assert result["per_bin"]["small"]["recall"] == 1.0
     assert result["per_bin"]["reference"]["recall"] == 0.0
     assert result["fp"] == 3 and result["fp_per_frame"] == 1.5
-    assert result["primary_group_mean_delta"] is None
+    assert result["primary_group_mean_delta"] == 1.0
     assert result["status"] == "OPERATING_CONDITION_NOT_MET"
     assert result["operating_condition_met"] is False
     assert result["candidate_percentile_ci_95"] is None
@@ -211,3 +211,41 @@ def test_p01_gt_matching_agrees_with_shared_bench_confusion_counts():
     assert sum(v["targets"] for v in report["per_bin"].values()) == (
         expected["tp"] + expected["fn"]
     )
+
+
+def test_paired_support_and_object_weighting_are_diagnosed_not_conflated():
+    first = frame(
+        "one", [box(0, 4), box(50, 20)], [box(0, 4, 0.9)],
+    )
+    second_small = [box(i * 100, 4) for i in range(9)]
+    second_ref = [box(i * 100 + 50, 20) for i in range(9)]
+    second = frame(
+        "many", second_small + second_ref,
+        [box(i * 100 + 50, 20, 0.9) for i in range(9)],
+    )
+    result = run([first, second], ["g1", "g2"])
+    assert result["status"] == "DESCRIPTIVE_ONLY"
+    assert result["candidate_percentile_ci_95"] is None
+    assert result["primary_group_mean_delta"] == 0.0
+    assert result["paired_group_target_counts"] == {
+        "g1": {"small": 1, "reference": 1},
+        "g2": {"small": 9, "reference": 9},
+    }
+    assert result["paired_groups_with_singleton_bin"] == 1
+    assert result["paired_object_pooled_delta_sensitivity"] == -0.8
+    assert result["paired_weighting_difference_sensitivity"] == 0.8
+
+
+def test_group_exclusions_count_all_negative_and_unpaired_acquisitions():
+    frames = [
+        frame("p", [box(0, 4), box(50, 20)], []),
+        frame("u", [box(0, 4)], []),
+        frame("n", [], []),
+    ]
+    result = run(frames, ["paired", "unpaired", "negative"])
+    assert result["groups_with_both_bins"] == 1
+    assert result["acquisitions_excluded_from_paired_contrast"] == 2
+    assert result["paired_group_target_counts"] == {
+        "paired": {"small": 1, "reference": 1},
+    }
+    assert result["primary_group_mean_delta"] == 0.0
