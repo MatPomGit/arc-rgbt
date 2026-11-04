@@ -280,7 +280,7 @@ acquisition audit, author sign-off or a separately reviewed statistical rule.
 
 ### Freeze-readiness evidence ledger (2026-11-04)
 
-**Current decision: NOT SIGNED / UNFROZEN / DATA BLOCKED.**
+**Author's interim design decision (2026-11-04): CONDITIONAL_DESIGN / UNFROZEN / DATA BLOCKED.**
 This ledger is a dated preparatory review for [Issue #35](https://github.com/MatPomGit/arc-rgbt/issues/35),
 not an author-approved preregistration. The final protocol revision SHA
 must be recorded after external review and final approval, not copied from
@@ -310,14 +310,18 @@ an earlier software CI run.
   are not to be claimed. Any simulation-only alternative requires a new
   novelty and journal-fit appraisal.
 
-**Final sign-off fields, currently empty:** decision = `PENDING`;
-decision date = `PENDING`; approving author = `PENDING`;
-independent reviewer = `PENDING`; final protocol commit SHA = `PENDING`;
-admitted data release/rights = `NONE`; source-informed precision evidence =
-`NONE`; unresolved blocker links = #10, #36, #45-#51, #53.
-A general request to work on this issue is not approval of these specific
-scientific decisions. Do not access untouched test outcomes or mark
-Issue #35 completed while any mandatory gate remains open.
+**Decision record:** status = `CONDITIONAL_DESIGN`; decision date =
+`2026-11-04`; decision source = **author's explicit chat acceptance of the
+conditional design status**, documented in [Issue #35](https://github.com/MatPomGit/arc-rgbt/issues/35).
+This decision authorizes continuing design/source screening only. It does
+**not** approve the proposed numeric FP/frame, footprint, IoU, group-size or
+alpha settings; it is not a signature approving a frozen preregistration.
+Independent scientific reviewer = `PENDING`; frozen-protocol approval =
+`PENDING`; final frozen protocol commit SHA = `PENDING`; admitted original
+LWIR data release and rights = `NONE`; source-informed precision evidence =
+`NONE`; outstanding issues = #10, #36, #45-#51, #53.
+Do not access untouched test outcomes or mark Issue #35 completed while
+mandatory freeze gates remain open.
 
 ### Decisions still required before freeze
 
