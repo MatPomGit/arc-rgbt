@@ -18,10 +18,14 @@ It returns per-GT IoU-matched flags and original-grid footprint bins,
 including misses, all-frame FP/frame, and equal-acquisition-weighted
 small-minus-reference differences. It also returns per-paired-acquisition
 target counts, singleton-bin and excluded-acquisition counts, and an
-exploratory **paired-only target-pooled contrast** to diagnose group
-weighting. With fewer than the provisional 10 paired groups, the
-difference is retained descriptively but its candidate 2000-replicate
-bootstrap interval is suppressed. A computed interval is descriptive,
+exploratory **paired-only target-pooled contrast**. Bin-specific pooling
+weights can change acquisition composition, even when all per-group
+contrasts are zero: this is an alternate estimand, not only reweighting.
+The primary difference is descriptive by default. A 2000-replicate
+candidate bootstrap interval requires >=10 paired groups **and** an
+explicit `minimum_targets_per_bin >= 2` satisfied in every paired
+acquisition. This computational floor is not a scientific sample-size
+approval; without it the interval is suppressed. A computed interval is descriptive,
 not a calibrated directional test. `choose_validation_threshold` chooses a validation-only
 candidate cutoff with a 0.10 FP/frame point ceiling, provisional >=10
 groups and >=200 fully labelled frames, **including >=20 fully negative
@@ -82,6 +86,17 @@ JSON, images or results are committed.
 
 ### Methodological sensitivity and Monte Carlo precision
 
+The script accepts `--directional-only` to skip both descriptive
+confidence-interval families and rapidly estimate directional rejection.
+For example, use `--trials 5000 --stress --directional-only` to reduce
+Monte Carlo uncertainty without performing bootstrap draws; the JSON
+reports `directional_only=true`, no descriptive methods, and zero
+bootstrap draws. For CI coverage, omit this flag and run the full
+`--trials 250 --bootstrap 2000 --stress` study. The full run is not part
+of default PR CI and must have separate exact-SHA execution evidence.
+The script reports `nominal_targets_per_bin` and actual per-bin group
+count minima, medians and maxima.
+
 The same script accepts `--stress` to append 24 additional
 **synthetic-only** scenarios: 12 with unequal group/bin denominators and
 a shared acquisition probability shock, and 12 with asymmetric zero-mean
@@ -109,13 +124,17 @@ confirmatory preregistration or empirical GO.
 ## Minimum paired-bin support before a scientific freeze
 
 The estimator currently accepts at least one GT in each bin to calculate
-a per-acquisition difference; this is a **computational definition**, not a
+a per-acquisition difference. Candidate intervals are suppressed by default
+until an explicit computational count floor (at least two targets in each
+bin of every paired acquisition) is provided; this is **not** a validated
 scientific sample-size minimum. The report exposes
 `paired_group_target_counts`, `paired_groups_with_singleton_bin`,
 `acquisitions_excluded_from_paired_contrast` and the exploratory
 `paired_object_pooled_delta_sensitivity`. The pooled sensitivity is
 restricted to the **same paired acquisitions**, preserving the cohort
-when comparing weighting conventions.
+but changing the relative contributions of acquisitions separately in
+each bin. This sensitivity measures an estimand/composition shift, not
+purely a single set of alternative acquisition weights.
 
 Before any confirmatory analysis, #48/#49/#50 must document an authentic,
 **non-test** acquisition inventory, per-bin count distributions, class and

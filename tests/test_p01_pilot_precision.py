@@ -14,6 +14,7 @@ assert spec.loader is not None
 spec.loader.exec_module(module)
 _interval = module._interval
 _t_interval = module._t_interval
+_group_bin_counts = module._group_bin_counts
 _t_one_sided_upper = module._t_one_sided_upper
 _trial_differences = module._trial_differences
 run_pilot = module.run_pilot
@@ -137,3 +138,51 @@ def test_directional_false_positive_rate_is_a_simulation_not_inference():
             assert scenario["directional_test"]["rate_kind"] == (
                 "synthetic_directional_detection"
             )
+
+
+
+def test_protocol_null_is_consistent_with_directional_test():
+    protocol = (SCRIPT.parents[1] / "protocol/README.md").read_text(
+        encoding="utf-8",
+    )
+    assert "H0: `Delta >= 0`" in protocol
+    assert "H0: `Delta = 0`" not in protocol
+
+
+def test_unsupported_t_group_count_raises_clear_error():
+    with pytest.raises(ValueError, match="Unsupported paired acquisition"):
+        _t_interval([-0.1] * 11)
+    with pytest.raises(ValueError, match="Unsupported paired acquisition"):
+        _t_one_sided_upper([-0.1] * 11)
+    with pytest.raises(ValueError, match="Unsupported paired acquisition"):
+        _t_one_sided_upper([-0.1])
+
+
+def test_directional_only_skips_ci_and_reports_actual_sparse_counts():
+    result = run_pilot(
+        trials=5, bootstrap=100, seed=17, stress=True, directional_only=True,
+    )
+    assert result["directional_only"] is True
+    assert result["bootstrap_draws_per_trial"] == 0
+    assert len(result["scenarios"]) == 36
+    assert all(not scenario["methods"] for scenario in result["scenarios"])
+    sparse = next(
+        s for s in result["scenarios"]
+        if s["design"] == "skewed_sparse"
+        and s["paired_groups"] == 10
+        and s["nominal_targets_per_bin"] == 20
+    )
+    assert sparse["actual_targets_per_bin_per_group"] == {
+        "reference": {"min": 1, "median": 30, "max": 30},
+        "small": {"min": 1, "median": 10, "max": 10},
+    }
+    assert _group_bin_counts(
+        0, 20, unequal_counts=False, skewed_sparse=True,
+    ) == (1, 1)
+
+
+def test_directional_only_option_must_be_boolean():
+    with pytest.raises(ValueError, match="Invalid pilot"):
+        run_pilot(
+            trials=1, bootstrap=100, directional_only=1,
+        )

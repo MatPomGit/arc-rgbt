@@ -171,9 +171,16 @@ inventory, prospective precision/power simulations and reviewer assessment
 before freeze. Recalculate the small-minus-reference contrast by pooling
 targets **within paired groups only** as an exploratory weighting sensitivity:
 the prespecified primary estimand remains equal-acquisition weighted.
+The target-pooled sensitivity uses different relative acquisition weights
+in the small and reference bins; it can differ even if each acquisition has
+`d_g = 0`. The difference is a **change of estimand and bin composition**,
+not merely a single alternate set of acquisition weights.
 If eligible acquisitions are sparse or common support is inadequate,
 mark the study `DESCRIPTIVE_ONLY` irrespective of software-generated
-candidate intervals. Include wholly negative acquisitions in FP/frame
+candidate intervals. The implementation requires an explicitly configured
+`minimum_targets_per_bin >= 2` before it emits even a descriptive candidate
+interval; the default is unset and therefore `DESCRIPTIVE_ONLY`. This is an
+engineering floor, **not a validated scientific sample size**. Include wholly negative acquisitions in FP/frame
 denominators and total acquisition count, never as pseudo-paired recall units.
 
 The contrast is **observational**. Small targets can have different class,
@@ -183,7 +190,7 @@ not isolate a causal native-resolution effect. Before freezing, specify
 class-/contrast-/viewpoint-specific sensitivity, balance tables and any
 covariate-standardized comparison with a demonstrated common-support region.
 Without support, report the limitations rather than a purported physical
-detection limit. H0: `Delta = 0`; directional H1: `Delta < 0` is proposed,
+detection limit. H0: `Delta >= 0`; directional H1: `Delta < 0` is proposed,
 not preregistered.
 
 #### FP/frame calibration on validation only (candidate)

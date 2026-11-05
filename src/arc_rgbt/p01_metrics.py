@@ -39,7 +39,7 @@ def native_footprint_recall(
     grid_origin: str, operating_score: float = 0.5, iou_threshold: float = 0.5,
     small_limit: float = 8, reference_limit: float = 16,
     minimum_paired_groups: int = 10, replicates: int = 2000, seed: int = 20261101,
-    max_fp_per_frame: float = 0.1,
+    max_fp_per_frame: float = 0.1, minimum_targets_per_bin: int | None = None,
 ) -> dict:
     """Per-GT IoU matching and acquisition-paired recall; declarations unverified."""
     cutoff, iou = _rate(operating_score), _rate(iou_threshold, positive=True)
@@ -55,6 +55,10 @@ def native_footprint_recall(
     if (type(minimum_paired_groups) is not int or minimum_paired_groups < 2
             or type(replicates) is not int or replicates < 100 or type(seed) is not int):
         raise ValueError("Invalid bootstrap parameters")
+    if (minimum_targets_per_bin is not None and
+            (type(minimum_targets_per_bin) is not int
+             or minimum_targets_per_bin < 2)):
+        raise ValueError("Invalid paired-bin minimum: require at least two targets")
 
     grouped = defaultdict(lambda: {"small": [0, 0], "intermediate": [0, 0],
                                    "reference": [0, 0]})
@@ -121,7 +125,15 @@ def native_footprint_recall(
     # even if its acquisition-paired recall difference remains descriptive.
     test_fp_rate = false_positives / len(frames)
     budget_met = test_fp_rate <= fp_ceiling
-    eligible = len(paired_groups) >= minimum_paired_groups
+    below_floor = (
+        sorted(g for g, counts in paired_group_counts.items()
+               if min(counts.values()) < minimum_targets_per_bin)
+        if minimum_targets_per_bin is not None else None
+    )
+    # The within-bin floor must be explicitly set from pre-test evidence.
+    # Even a satisfied computational gate does not authorize scientific inference.
+    eligible = (len(paired_groups) >= minimum_paired_groups
+                and below_floor is not None and not below_floor)
     # Retain an explicitly descriptive contrast even when group support
     # is insufficient for an interval. No scientific inference is authorized.
     values = list(deltas.values())
@@ -162,8 +174,13 @@ def native_footprint_recall(
         "acquisitions_excluded_from_paired_contrast": (
             len(grouped) - len(paired_groups)
         ),
+        "minimum_targets_per_bin": minimum_targets_per_bin,
+        "paired_groups_below_bin_floor": below_floor,
+        "candidate_interval_support_met": eligible,
         "paired_object_pooled_delta_sensitivity": paired_pooled_delta,
-        "paired_weighting_difference_sensitivity": (
+        # Bin-specific pooling weights can change the acquisition composition,
+        # even if every individual acquisition has d_g = 0.
+        "paired_estimand_shift_sensitivity": (
             point - paired_pooled_delta if point is not None else None
         ),
         "candidate_percentile_ci_95": interval,
