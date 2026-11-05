@@ -57,6 +57,8 @@ def test_ten_paired_groups_equal_weight_bootstrap_seed():
     assert result["groups_with_both_bins"] == 10
     assert result["status"] == "PROSPECTIVE_UNFROZEN"
     assert result["candidate_interval_support_met"] is True
+    assert result["candidate_interval_degenerate"] is False
+    assert result["candidate_interval_suppression_reason"] is None
     assert run(frames, groups)["status"] == "DESCRIPTIVE_ONLY"
     assert result["primary_group_mean_delta"] == 0.0
     assert result["candidate_percentile_ci_95"] == run(
@@ -251,6 +253,12 @@ def test_group_exclusions_count_all_negative_and_unpaired_acquisitions():
     result = run(frames, ["paired", "unpaired", "negative"])
     assert result["groups_with_both_bins"] == 1
     assert result["acquisitions_excluded_from_paired_contrast"] == 2
+    assert result["acquisitions_excluded_by_reason"] == {
+        "no_targets": ["negative"],
+        "small_without_reference": ["unpaired"],
+        "reference_without_small": [],
+        "intermediate_without_primary_bins": [],
+    }
     assert result["paired_group_target_counts"] == {
         "paired": {"small": 1, "reference": 1},
     }
@@ -300,3 +308,43 @@ def test_pooled_estimand_changes_with_bin_composition_even_for_zero_deltas():
     assert result["primary_group_mean_delta"] == 0.0
     assert result["paired_object_pooled_delta_sensitivity"] == pytest.approx(0.8)
     assert result["paired_estimand_shift_sensitivity"] == pytest.approx(-0.8)
+
+def test_degenerate_paired_contrasts_suppress_zero_width_interval():
+    frames = [
+        frame(
+            str(i),
+            [box(0, 4), box(20, 4), box(80, 20), box(120, 20)],
+            [box(0, 4, 0.9), box(80, 20, 0.9)],
+        )
+        for i in range(10)
+    ]
+    result = run(
+        frames, [f"g{i}" for i in range(10)], minimum_targets_per_bin=2,
+    )
+    assert result["groups_with_both_bins"] == 10
+    assert result["primary_group_mean_delta"] == 0.0
+    assert result["candidate_interval_support_met"] is True
+    assert result["candidate_interval_degenerate"] is True
+    assert result["candidate_interval_suppression_reason"] == (
+        "ZERO_BETWEEN_GROUP_VARIATION"
+    )
+    assert result["status"] == "DESCRIPTIVE_ONLY"
+    assert result["candidate_percentile_ci_95"] is None
+    assert result["replicates"] == 0
+
+
+def test_excluded_acquisitions_distinguish_reference_and_intermediate_only():
+    frames = [
+        frame("paired", [box(0, 4), box(60, 20)], []),
+        frame("reference", [box(0, 20)], []),
+        frame("intermediate", [box(0, 10)], []),
+    ]
+    result = run(frames, ["paired", "reference", "intermediate"])
+    assert result["acquisitions_excluded_from_paired_contrast"] == 2
+    assert result["acquisitions_excluded_by_reason"] == {
+        "no_targets": [],
+        "small_without_reference": [],
+        "reference_without_small": ["reference"],
+        "intermediate_without_primary_bins": ["intermediate"],
+    }
+    assert result["group_differences"] == {"paired": 0.0}

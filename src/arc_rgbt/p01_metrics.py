@@ -114,6 +114,28 @@ def native_footprint_recall(
             "reference": grouped[g]["reference"][1]}
         for g in paired_groups
     }
+    # An exclusion record makes the selected estimand cohort auditable.
+    excluded_by_reason = {
+        "no_targets": [],
+        "small_without_reference": [],
+        "reference_without_small": [],
+        "intermediate_without_primary_bins": [],
+    }
+    for group, counts in sorted(grouped.items()):
+        small_n = counts["small"][1]
+        reference_n = counts["reference"][1]
+        if small_n and reference_n:
+            continue
+        if small_n:
+            reason = "small_without_reference"
+        elif reference_n:
+            reason = "reference_without_small"
+        elif counts["intermediate"][1]:
+            reason = "intermediate_without_primary_bins"
+        else:
+            reason = "no_targets"
+        excluded_by_reason[reason].append(group)
+
     paired_pooled_delta = None
     if paired_groups:
         small_tp = sum(grouped[g]["small"][0] for g in paired_groups)
@@ -138,15 +160,23 @@ def native_footprint_recall(
     # is insufficient for an interval. No scientific inference is authorized.
     values = list(deltas.values())
     point = sum(values) / len(values) if values else None
+    # Resampling an observed constant contrast produces a zero-width interval;
+    # do not display it as uncertainty quantification for a prospective study.
+    degenerate = len(values) > 1 and all(value == values[0] for value in values[1:])
     interval = None
-    if eligible and budget_met:
+    if eligible and budget_met and not degenerate:
         rng = random.Random(seed)
         samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
                          for _ in range(replicates))
         interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
+    suppression_reason = (
+        "OPERATING_CONDITION_NOT_MET" if not budget_met else
+        "INSUFFICIENT_PAIRED_BIN_SUPPORT" if not eligible else
+        "ZERO_BETWEEN_GROUP_VARIATION" if degenerate else None
+    )
     report_status = (
         "OPERATING_CONDITION_NOT_MET" if not budget_met else
-        "PROSPECTIVE_UNFROZEN" if eligible else "DESCRIPTIVE_ONLY"
+        "PROSPECTIVE_UNFROZEN" if interval is not None else "DESCRIPTIVE_ONLY"
     )
     return {
         "status": report_status,
@@ -174,9 +204,12 @@ def native_footprint_recall(
         "acquisitions_excluded_from_paired_contrast": (
             len(grouped) - len(paired_groups)
         ),
+        "acquisitions_excluded_by_reason": excluded_by_reason,
         "minimum_targets_per_bin": minimum_targets_per_bin,
         "paired_groups_below_bin_floor": below_floor,
         "candidate_interval_support_met": eligible,
+        "candidate_interval_degenerate": degenerate,
+        "candidate_interval_suppression_reason": suppression_reason,
         "paired_object_pooled_delta_sensitivity": paired_pooled_delta,
         # Bin-specific pooling weights can change the acquisition composition,
         # even if every individual acquisition has d_g = 0.

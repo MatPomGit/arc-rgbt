@@ -25,7 +25,12 @@ The primary difference is descriptive by default. A 2000-replicate
 candidate bootstrap interval requires >=10 paired groups **and** an
 explicit `minimum_targets_per_bin >= 2` satisfied in every paired
 acquisition. This computational floor is not a scientific sample-size
-approval; without it the interval is suppressed. A computed interval is descriptive,
+approval; without it the interval is suppressed. An interval is also suppressed
+if all observed paired-acquisition contrasts are identical: a zero-width
+bootstrap distribution is not evidence of known population precision.
+Reports expose `candidate_interval_degenerate` and
+`candidate_interval_suppression_reason` separately from the numerical
+paired-bin support gate. A computed interval is descriptive,
 not a calibrated directional test. `choose_validation_threshold` chooses a validation-only
 candidate cutoff with a 0.10 FP/frame point ceiling, provisional >=10
 groups and >=200 fully labelled frames, **including >=20 fully negative
@@ -134,7 +139,11 @@ scientific sample-size minimum. The report exposes
 restricted to the **same paired acquisitions**, preserving the cohort
 but changing the relative contributions of acquisitions separately in
 each bin. This sensitivity measures an estimand/composition shift, not
-purely a single set of alternative acquisition weights.
+purely a single set of alternative acquisition weights. The
+`acquisitions_excluded_by_reason` field lists acquisition IDs separately
+for groups with no targets, a small bin without reference, a reference
+bin without small, and intermediate-only GT. These are primary-contrast
+exclusions, not exclusions from FP/frame exposure.
 
 Before any confirmatory analysis, #48/#49/#50 must document an authentic,
 **non-test** acquisition inventory, per-bin count distributions, class and
