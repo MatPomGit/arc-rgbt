@@ -39,7 +39,7 @@ def native_footprint_recall(
     grid_origin: str, operating_score: float = 0.5, iou_threshold: float = 0.5,
     small_limit: float = 8, reference_limit: float = 16,
     minimum_paired_groups: int = 10, replicates: int = 2000, seed: int = 20261101,
-    max_fp_per_frame: float = 0.1,
+    max_fp_per_frame: float = 0.1, minimum_targets_per_bin: int | None = None,
 ) -> dict:
     """Per-GT IoU matching and acquisition-paired recall; declarations unverified."""
     cutoff, iou = _rate(operating_score), _rate(iou_threshold, positive=True)
@@ -55,6 +55,10 @@ def native_footprint_recall(
     if (type(minimum_paired_groups) is not int or minimum_paired_groups < 2
             or type(replicates) is not int or replicates < 100 or type(seed) is not int):
         raise ValueError("Invalid bootstrap parameters")
+    if (minimum_targets_per_bin is not None and
+            (type(minimum_targets_per_bin) is not int
+             or minimum_targets_per_bin < 2)):
+        raise ValueError("Invalid paired-bin minimum: require at least two targets")
 
     grouped = defaultdict(lambda: {"small": [0, 0], "intermediate": [0, 0],
                                    "reference": [0, 0]})
@@ -105,23 +109,74 @@ def native_footprint_recall(
     deltas = {g: (grouped[g]["small"][0] / grouped[g]["small"][1]
                   - grouped[g]["reference"][0] / grouped[g]["reference"][1])
               for g in paired_groups}
+    paired_group_counts = {
+        g: {"small": grouped[g]["small"][1],
+            "reference": grouped[g]["reference"][1]}
+        for g in paired_groups
+    }
+    # An exclusion record makes the selected estimand cohort auditable.
+    excluded_by_reason = {
+        "no_targets": [],
+        "small_without_reference": [],
+        "reference_without_small": [],
+        "intermediate_without_primary_bins": [],
+    }
+    for group, counts in sorted(grouped.items()):
+        small_n = counts["small"][1]
+        reference_n = counts["reference"][1]
+        if small_n and reference_n:
+            continue
+        if small_n:
+            reason = "small_without_reference"
+        elif reference_n:
+            reason = "reference_without_small"
+        elif counts["intermediate"][1]:
+            reason = "intermediate_without_primary_bins"
+        else:
+            reason = "no_targets"
+        excluded_by_reason[reason].append(group)
+
+    paired_pooled_delta = None
+    if paired_groups:
+        small_tp = sum(grouped[g]["small"][0] for g in paired_groups)
+        small_n = sum(grouped[g]["small"][1] for g in paired_groups)
+        ref_tp = sum(grouped[g]["reference"][0] for g in paired_groups)
+        ref_n = sum(grouped[g]["reference"][1] for g in paired_groups)
+        paired_pooled_delta = small_tp / small_n - ref_tp / ref_n
     # A test sample over budget cannot support the proposed operating condition,
     # even if its acquisition-paired recall difference remains descriptive.
     test_fp_rate = false_positives / len(frames)
     budget_met = test_fp_rate <= fp_ceiling
-    eligible = len(paired_groups) >= minimum_paired_groups
-    point, interval = None, None
-    if eligible:
-        values = list(deltas.values())
-        point = sum(values) / len(values)
-        if budget_met:
-            rng = random.Random(seed)
-            samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
-                             for _ in range(replicates))
-            interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
+    below_floor = (
+        sorted(g for g, counts in paired_group_counts.items()
+               if min(counts.values()) < minimum_targets_per_bin)
+        if minimum_targets_per_bin is not None else None
+    )
+    # The within-bin floor must be explicitly set from pre-test evidence.
+    # Even a satisfied computational gate does not authorize scientific inference.
+    eligible = (len(paired_groups) >= minimum_paired_groups
+                and below_floor is not None and not below_floor)
+    # Retain an explicitly descriptive contrast even when group support
+    # is insufficient for an interval. No scientific inference is authorized.
+    values = list(deltas.values())
+    point = sum(values) / len(values) if values else None
+    # Resampling an observed constant contrast produces a zero-width interval;
+    # do not display it as uncertainty quantification for a prospective study.
+    degenerate = len(values) > 1 and all(value == values[0] for value in values[1:])
+    interval = None
+    if eligible and budget_met and not degenerate:
+        rng = random.Random(seed)
+        samples = sorted(sum(rng.choices(values, k=len(values))) / len(values)
+                         for _ in range(replicates))
+        interval = [_percentile(samples, 0.025), _percentile(samples, 0.975)]
+    suppression_reason = (
+        "OPERATING_CONDITION_NOT_MET" if not budget_met else
+        "INSUFFICIENT_PAIRED_BIN_SUPPORT" if not eligible else
+        "ZERO_BETWEEN_GROUP_VARIATION" if degenerate else None
+    )
     report_status = (
         "OPERATING_CONDITION_NOT_MET" if not budget_met else
-        "PROSPECTIVE_UNFROZEN" if eligible else "DESCRIPTIVE_ONLY"
+        "PROSPECTIVE_UNFROZEN" if interval is not None else "DESCRIPTIVE_ONLY"
     )
     return {
         "status": report_status,
@@ -142,6 +197,25 @@ def native_footprint_recall(
             for counts in grouped.values()
         ),
         "group_differences": deltas, "primary_group_mean_delta": point,
+        "paired_group_target_counts": paired_group_counts,
+        "paired_groups_with_singleton_bin": sum(
+            min(counts.values()) == 1 for counts in paired_group_counts.values()
+        ),
+        "acquisitions_excluded_from_paired_contrast": (
+            len(grouped) - len(paired_groups)
+        ),
+        "acquisitions_excluded_by_reason": excluded_by_reason,
+        "minimum_targets_per_bin": minimum_targets_per_bin,
+        "paired_groups_below_bin_floor": below_floor,
+        "candidate_interval_support_met": eligible,
+        "candidate_interval_degenerate": degenerate,
+        "candidate_interval_suppression_reason": suppression_reason,
+        "paired_object_pooled_delta_sensitivity": paired_pooled_delta,
+        # Bin-specific pooling weights can change the acquisition composition,
+        # even if every individual acquisition has d_g = 0.
+        "paired_estimand_shift_sensitivity": (
+            point - paired_pooled_delta if point is not None else None
+        ),
         "candidate_percentile_ci_95": interval,
         "replicates": replicates if interval is not None else 0,
         "fp": false_positives, "frames": len(frames),

@@ -14,6 +14,8 @@ assert spec.loader is not None
 spec.loader.exec_module(module)
 _interval = module._interval
 _t_interval = module._t_interval
+_group_bin_counts = module._group_bin_counts
+_t_one_sided_upper = module._t_one_sided_upper
 _trial_differences = module._trial_differences
 run_pilot = module.run_pilot
 _wilson_interval = module._wilson_interval
@@ -22,6 +24,7 @@ _wilson_interval = module._wilson_interval
 def test_constant_acquisition_contrast_has_zero_width_interval():
     assert _interval([-0.2] * 10, 200, random.Random(5)) == (-0.2, -0.2)
     assert _t_interval([-0.2] * 10) == (-0.2, -0.2)
+    assert _t_one_sided_upper([-0.2] * 10) is None
 
 
 def test_pilot_is_seeded_and_scenarios_cover_null_and_alternative():
@@ -37,6 +40,18 @@ def test_pilot_is_seeded_and_scenarios_cover_null_and_alternative():
             assert 0 <= method["negative_ci_fraction"] <= 1
             assert method["mean_ci_width"] >= 0
         assert scenario["true_group_mean_delta"] in (0, -0.15)
+        directional = scenario["directional_test"]
+        assert directional["null"] == "Delta >= 0"
+        assert directional["alpha"] == 0.05
+        assert 0 <= directional["rejection_fraction"] <= 1
+        assert 0 <= directional["undefined_fraction"] <= 1
+        assert directional["rate_kind"] == (
+            "null_boundary_type_i_error"
+            if scenario["true_group_mean_delta"] == 0
+            else "synthetic_directional_detection"
+        )
+        lower, upper = directional["rejection_mc_95_interval"]
+        assert 0 <= lower <= directional["rejection_fraction"] <= upper <= 1
 
 
 def test_group_differences_are_valid_recall_differences():
@@ -68,9 +83,9 @@ def test_stress_scenarios_reproducible_and_well_formed():
     result = run_pilot(trials=5, bootstrap=100, seed=17, stress=True)
     assert result == run_pilot(trials=5, bootstrap=100, seed=17, stress=True)
     assert result["stress_scenarios_enabled"] is True
-    assert len(result["scenarios"]) == 24
+    assert len(result["scenarios"]) == 36
     assert {scenario["design"] for scenario in result["scenarios"]} == {
-        "balanced", "unequal_counts_shared_shock",
+        "balanced", "unequal_counts_shared_shock", "skewed_sparse",
     }
     for scenario in result["scenarios"]:
         for method in scenario["methods"].values():
@@ -94,3 +109,80 @@ def test_stress_preserves_population_difference_with_many_independent_groups():
 def test_invalid_stress_options_rejected(kwargs):
     with pytest.raises(ValueError, match="Invalid pilot"):
         run_pilot(trials=1, bootstrap=100, **kwargs)
+
+
+def test_one_sided_t_decision_is_distinct_from_two_sided_95_ci():
+    # t statistic is between the one-sided and two-sided 5% cutoffs.
+    differences = [-0.12] * 5 + [0.02] * 5
+    assert _t_one_sided_upper(differences) < 0
+    assert _t_interval(differences)[1] > 0
+    assert _t_one_sided_upper([-1.0] * 5 + [1.0] * 5) > 0
+
+
+def test_skewed_sparse_generator_preserves_population_mean_in_large_pilot():
+    differences = _trial_differences(
+        4000, 20, -0.15, random.Random(20261104), skewed_sparse=True,
+    )
+    assert all(-1 <= delta <= 1 for delta in differences)
+    assert abs(sum(differences) / len(differences) + 0.15) < 0.03
+
+
+def test_directional_false_positive_rate_is_a_simulation_not_inference():
+    result = run_pilot(trials=100, bootstrap=100, seed=20261104)
+    for scenario in result["scenarios"]:
+        if scenario["true_group_mean_delta"] == 0:
+            test = scenario["directional_test"]
+            assert test["rate_kind"] == "null_boundary_type_i_error"
+            assert test["rejection_fraction"] <= 0.2
+        else:
+            assert scenario["directional_test"]["rate_kind"] == (
+                "synthetic_directional_detection"
+            )
+
+
+
+def test_protocol_null_is_consistent_with_directional_test():
+    protocol = (SCRIPT.parents[1] / "protocol/README.md").read_text(
+        encoding="utf-8",
+    )
+    assert "H0: `Delta >= 0`" in protocol
+    assert "H0: `Delta = 0`" not in protocol
+
+
+def test_unsupported_t_group_count_raises_clear_error():
+    with pytest.raises(ValueError, match="Unsupported paired acquisition"):
+        _t_interval([-0.1] * 11)
+    with pytest.raises(ValueError, match="Unsupported paired acquisition"):
+        _t_one_sided_upper([-0.1] * 11)
+    with pytest.raises(ValueError, match="Unsupported paired acquisition"):
+        _t_one_sided_upper([-0.1])
+
+
+def test_directional_only_skips_ci_and_reports_actual_sparse_counts():
+    result = run_pilot(
+        trials=5, bootstrap=100, seed=17, stress=True, directional_only=True,
+    )
+    assert result["directional_only"] is True
+    assert result["bootstrap_draws_per_trial"] == 0
+    assert len(result["scenarios"]) == 36
+    assert all(not scenario["methods"] for scenario in result["scenarios"])
+    sparse = next(
+        s for s in result["scenarios"]
+        if s["design"] == "skewed_sparse"
+        and s["paired_groups"] == 10
+        and s["nominal_targets_per_bin"] == 20
+    )
+    assert sparse["actual_targets_per_bin_per_group"] == {
+        "reference": {"min": 1, "median": 30, "max": 30},
+        "small": {"min": 1, "median": 10, "max": 10},
+    }
+    assert _group_bin_counts(
+        0, 20, unequal_counts=False, skewed_sparse=True,
+    ) == (1, 1)
+
+
+def test_directional_only_option_must_be_boolean():
+    with pytest.raises(ValueError, match="Invalid pilot"):
+        run_pilot(
+            trials=1, bootstrap=100, directional_only=1,
+        )

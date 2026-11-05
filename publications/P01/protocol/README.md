@@ -41,12 +41,15 @@ available. It therefore **must not** be called preregistration.
 | --- | --- | --- |
 | D1: target population | Lawfully usable original-grid LWIR acquisitions with complete eligible GT and verified acquisition identifiers. For the primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified native-footprint bins. Frames with zero GT remain in FP/frame assessment. | Original archive, spectral band, annotation/negative completeness, independent group keys and class mapping (#45-#48). |
 | D2: contrast | For acquisition `g`, compute `d_g = TP_small,g / N_small,g - TP_reference,g / N_reference,g` at the **same** validation-locked LWIR detector threshold. Primary estimand is `Delta = mean_g(d_g)`, giving each eligible acquisition equal weight, not each target. The population is the eligible paired-bin acquisition cohort, **not** all LWIR scenes. | Counts by acquisition/bin and overlap of class, contrast, viewpoint and occlusion; review potential selection induced by requiring both bins (#48/#50). |
-| D10: inference | Directional candidate `H1: Delta < 0`; proposed one-sided alpha `0.05`. A two-sided 95% interval is **descriptive** and is not interchangeable with a one-sided alpha-0.05 decision. Candidate confirmatory test: one-sided acquisition-level Student t test of mean `d_g` against zero, with `G-1` degrees of freedom; its validity requires an independently justified group-level approximation and source-informed precision/coverage audit. | Independent group count, group heterogeneity, distributional diagnostics, finite-sample type-I error and power simulations informed by non-test data, independent scientific review and author approval (#49/#50/#53). |
+| D10: inference | Directional candidate `H1: Delta < 0`, `H0: Delta >= 0` (calibrate at boundary `Delta = 0`); proposed one-sided alpha `0.05`. A two-sided 95% interval is **descriptive**, not the alpha-0.05 decision. Candidate confirmatory test: one-sided acquisition-level Student t of mean `d_g` against zero with `G-1` degrees of freedom; group-level validity and source-informed calibration remain unresolved. | Independent group count, group heterogeneity, distributional diagnostics, finite-sample type-I error and power simulations informed by non-test data, independent scientific review and author approval (#49/#50/#53). |
 
 **Inferential compatibility and stop rule.** If the t procedure is eventually
 approved, use the predeclared one-sided p-value with alpha 0.05 and optionally
 the corresponding one-sided 95% upper confidence bound for the same test;
-`upper_bound < 0` is the equivalent directional decision. A symmetric
+`upper_bound < 0` is the equivalent directional decision when the sample
+variance is positive and the test assumptions hold. With zero sample variance,
+mark the candidate t decision `UNDEFINED` rather than interpreting a
+degenerate interval as calibrated evidence. A symmetric
 two-sided 95% t interval corresponds to a stricter directional crossing
 criterion and cannot silently replace that test. The current 2000-replicate
 percentile cluster bootstrap is a **sensitivity/precision candidate only**,
@@ -91,7 +94,8 @@ Changes after that point must be logged as deviations, not silently applied.
 | Operating point | Select detector thresholds on validation groups only, targeting the same FP/frame ceiling; never tune on held-out test data | PENDING numerical ceiling |
 | Native footprint | Derive visible annotated target width/height/area on each modality's **original** grid; retain calibrated geometry and visibility metadata; do not use resized detector input as native footprint | PENDING native grid and optics |
 | Baselines | LWIR-only fixed primary checkpoint; RGB secondary; pairing/fusion belongs to P02 | PENDING admissible data |
-| Primary uncertainty | Bootstrap independent **paired acquisition** differences, equal group weights, not objects/frames; report effective group count | PENDING support and pilot precision audit |
+| Primary inference candidate | One-sided acquisition-level t test, alpha 0.05, conditional on calibration under source-informed bounded and heterogeneous group differences | PENDING type-I error, power, source-independent groups and approval |
+| Descriptive uncertainty | Two-sided 95% whole-acquisition percentile bootstrap and two-sided group t interval; neither serves as the primary directional decision | PENDING coverage and pilot precision audit |
 | Secondary analyses | Class, view, occlusion, contrast, localization error, AP at named IoU and software degradation; explicitly exploratory unless prespecified and multiplicity handled | PENDING prespecification |
 
 ### Admission, selection and measurement rules
@@ -142,7 +146,8 @@ record the replacement and rationale in #35 before unblinding test outcomes.
 | Match rule | Class-aware, score-descending one-to-one IoU `>= 0.50`, original prediction order breaks ties. Each GT is counted once and assigned to a bin by its **original-grid GT box** before matching. | [P01 metrics tests](../analyses/README.md), plus shared #23 reference audit |
 | False-alert budget | Candidate `0.10 FP/frame`. Choose lowest validation-only score threshold meeting observed ceiling using sorted unique prediction scores plus 0 and 1; no zero-TP solution. Keep fixed on test; this is not a guarantee of future FP/frame. | Complete validation frames and adequate exposure/groups |
 | Test reporting | Report observed held-out FP/frame over all eligible positive and empty frames. If above `0.10`, label **OPERATING_CONDITION_NOT_MET**; report fixed-threshold recall descriptively, never retune test. | No test-outcome-driven threshold selection |
-| Uncertainty | Candidate 2000 resamples of paired **whole acquisition differences**, seed `20261101`, 2.5/97.5% linearly interpolated percentiles, equal group weights. | Provisional >=10 *same* independent groups with both bins; pilot precision and coverage audit still required |
+| Directional inference | Candidate one-sided group Student t test of `Delta < 0` at alpha 0.05; reject `H0: Delta >= 0` only if its one-sided 95% upper t bound is below zero. No test if the sample variance is zero. | Minimum independent groups, empirical type-I calibration and prospective power remain pending |
+| Descriptive interval | Candidate 2000-resample whole-paired-acquisition percentile bootstrap, seed `20261101`, two-sided 95% (2.5/97.5%) endpoints. This is **not** the primary hypothesis test. | Provisional >=10 paired groups; source-informed coverage audit still required |
 | Sensitivity | IoU `0.25` for tiny-target localization, intermediate bin, RGB, per-class and contrast/occlusion/view strata, AP, group-vs-object weighting all secondary/exploratory. | No post hoc confirmatory promotion |
 
 #### Paired group estimand and causal limits (candidate)
@@ -155,12 +160,28 @@ least one **small** and one **reference** GT, compute
 acquisition**, not an object-pooled difference. Matching is assigned to
 original-grid GT objects, including misses. Acquisitions lacking one bin
 contribute only descriptive denominators and must be reported separately.
-The current >=10 **paired** groups criterion is a *provisional minimum*,
-not a sufficient-power guarantee; report effective group counts, counts
-of objects per group/bin and exclusion frequencies. Include acquisition
-groups consisting solely of fully labelled negative frames in the
-FP/frame denominator and total acquisition count, but **not** as
-pseudo-paired units in the primary recall contrast.
+The current >=10 **paired** groups criterion is a *provisional computational
+floor*, not a sufficient-power guarantee. The code permits a group with
+one target per bin and reports it explicitly; this is **not** an approved
+scientific minimum. Report paired group counts, targets per group and bin,
+the fraction of all acquisitions excluded for lacking both bins, and
+the count of paired groups with a singleton bin. Choose a justified minimum
+within-bin target count and independent-group count from non-test source
+inventory, prospective precision/power simulations and reviewer assessment
+before freeze. Recalculate the small-minus-reference contrast by pooling
+targets **within paired groups only** as an exploratory weighting sensitivity:
+the prespecified primary estimand remains equal-acquisition weighted.
+The target-pooled sensitivity uses different relative acquisition weights
+in the small and reference bins; it can differ even if each acquisition has
+`d_g = 0`. The difference is a **change of estimand and bin composition**,
+not merely a single alternate set of acquisition weights.
+If eligible acquisitions are sparse or common support is inadequate,
+mark the study `DESCRIPTIVE_ONLY` irrespective of software-generated
+candidate intervals. The implementation requires an explicitly configured
+`minimum_targets_per_bin >= 2` before it emits even a descriptive candidate
+interval; the default is unset and therefore `DESCRIPTIVE_ONLY`. This is an
+engineering floor, **not a validated scientific sample size**. Include wholly negative acquisitions in FP/frame
+denominators and total acquisition count, never as pseudo-paired recall units.
 
 The contrast is **observational**. Small targets can have different class,
 orientation, thermal contrast, occlusion, distance, motion blur and annotation
@@ -169,7 +190,7 @@ not isolate a causal native-resolution effect. Before freezing, specify
 class-/contrast-/viewpoint-specific sensitivity, balance tables and any
 covariate-standardized comparison with a demonstrated common-support region.
 Without support, report the limitations rather than a purported physical
-detection limit. H0: `Delta = 0`; directional H1: `Delta < 0` is proposed,
+detection limit. H0: `Delta >= 0`; directional H1: `Delta < 0` is proposed,
 not preregistered.
 
 #### FP/frame calibration on validation only (candidate)
@@ -197,7 +218,22 @@ test performance. Review positive/negative-frame prevalence, unequal
 acquisition sizes and negative-frame exposure. The held-out threshold
 and checkpoint cannot be adjusted after seeing test results.
 
-#### Group bootstrap and localization sensitivity (candidate)
+#### Directional inference, bootstrap sensitivity and localization (candidate)
+
+For the proposed directional hypothesis, the candidate one-sided group t
+test uses exactly one `d_g` per verified acquisition and `G-1` degrees
+of freedom. It compares the mean against the least-favourable null boundary
+zero and rejects only if the one-sided 95% upper t bound is below zero.
+The group-bootstrap interval below and the ordinary two-sided 95% group t
+interval are **descriptive sensitivity outputs**. The simulation now reports
+one-sided null-boundary rejection rates and alternative detection frequencies
+separately from two-sided CI coverage, including Monte Carlo uncertainty.
+The test is not authorized for empirical inference until its type-I error
+and power are reviewed across source-informed group sizes, asymmetric
+bounded outcomes, unequal target counts and dependence structures.
+Zero-variance groups yield an undefined t decision. No test replacement or
+post hoc change of alpha is permitted after held-out outcomes are observed.
+
 
 Resample **whole eligible paired acquisition IDs** with replacement and
 compute the mean of their entire per-group recall differences. Candidate
@@ -221,7 +257,10 @@ descriptive; do not present a confirmatory candidate CI or retune test.
 #### Implementation and evidence boundary
 
 `native_footprint_recall` provides per-GT native footprint, match flags,
-group-paired differences and deterministic bootstrap. Unlike aggregate
+paired-group target denominators, singleton-bin and excluded-acquisition
+counts, an equal-group contrast, a target-pooled contrast restricted to the
+same paired groups for exploratory weighting sensitivity, and a deterministic
+descriptive bootstrap. Unlike aggregate
 `detection_contract` it retains original GT indices. It does **not**
 independently verify image pixels, original grid, source identities,
 licences, calibration or annotation completeness; its outputs always mark
@@ -259,11 +298,15 @@ FP/frame, group minimum and inference plan before freeze.
 #### Synthetic cluster precision audit before freeze (2026-11-02)
 
 A deterministic [acquisition-level precision pilot](../analyses/README.md)
-now compares the candidate percentile bootstrap with a cluster-level
-Student t interval across 10/20/40 independent paired groups, 4/20
-targets per bin, and true mean contrasts 0 and -0.15. It assesses nominal
-coverage, interval width and directional decision frequency under a
-**specified synthetic generating model**. The pilot flags possible
+now compares two-sided percentile bootstrap and cluster t interval
+coverage with a **separate one-sided alpha-0.05 group t test** across
+10/20/40 independent paired groups, 4/20 targets per bin, and generating
+contrasts 0 and -0.15. With `--stress`, asymmetric group contrasts and
+single-target bins supplement unequal denominators and shared probability
+shocks. The pilot reports empirical simulation rates of directional
+false positives at the null boundary and directional detection under the
+synthetic alternative, with finite Monte Carlo uncertainty. It does not
+establish type-I control or power for any real source. The pilot flags possible
 undercoverage of the percentile interval when the provisional minimum of
 ten groups is used. Thus **>=10 paired groups is not validated as a
 confirmatory sample-size rule**. Neither interval is frozen or approved by
@@ -291,7 +334,7 @@ an earlier software CI run.
 | Research question and primary estimand | Candidate D1/D2/D10 above and [hypotheses](../hypotheses/README.md) are written; independent methodological sign-off missing. | Author approves cohort, observational interpretation, primary directional test and compatible alpha/CI rule; #49/#50/#53. |
 | Original LWIR source, rights and sensor geometry | Preliminary source shortlist only in [datasets](../../../docs/experiments/datasets.md); no original release admitted. | Exact original release and annotation rights, LWIR spectral band, native grid/transform and independent group IDs verified; #45/#46/#36. |
 | Annotation and negative exposure | Proposed GT matching and all-frame FP rules exist, but original labels and complete negative frames remain unverified. | Source-specific class map, visible/amodal policy, blinded QA, ignore/exclusion log, complete negative-frame audit; #47. |
-| Pairing, representativeness and precision | Paired-bin estimator and synthetic cluster pilot exist; authentic group counts, common support and source-informed precision absent. | Counts-only independent acquisition inventory, effect-size justification, pilot heterogeneity, power/coverage decision; #48/#49. |
+| Pairing, representativeness and precision | The estimator now reports singleton bins, excluded acquisitions and paired-only pooled weighting sensitivity; synthetic directional testing is available. Authentic group counts, common support and source-informed type-I/power calibration remain absent. | Counts-only independent acquisition inventory, within-bin target minimum, effect-size justification, group heterogeneity, directional type-I/power and descriptive CI coverage decision; #48/#49/#50. |
 | Threshold and multiplicity | Numerical FP/frame, IoU and footprint values are **candidates**, not approved choices. | Author-approved D3/D4 and inference/multiplicity rules before test access; #51/#53. |
 | Publication fit and novelty | Prospective ~250-word scope text and [unsent editorial package](../README.md); fit provisional. | External originality/scope appraisal and approved inquiry if desired; #52. |
 | Independent review and author sign-off | No independent post-fix scientific approval; no signed decision or final commit SHA. | Dated reviewer identity and disposition, author identity/decision, exact reviewed protocol commit SHA recorded in #35 and #53. |
@@ -327,12 +370,14 @@ mandatory freeze gates remain open.
 
 - [ ] Identify lawful original dataset release(s), sensor calibration,
       complete labels and independent acquisition identifiers (#10, #36).
-- [ ] Fix the numerical FP/frame ceiling, IoU, footprint bins and sample
-      adequacy criteria *without looking at held-out outcomes*.
+- [ ] Fix the numerical FP/frame ceiling, IoU, footprint bins, minimum
+      within-bin target counts and independent-group power/precision criteria
+      *without looking at held-out outcomes*.
 - [ ] Freeze the paired-group estimand, overlap policy, class/contrast balance,
       validation exposure and threshold candidate grid.
-- [ ] Audit pilot-based group-bootstrap precision, missingness and ignore-region
-      rules; freeze multiplicity handling for any confirmatory extension.
+- [ ] Audit one-sided t-test null-boundary calibration and synthetic power,
+      two-sided CI coverage, paired-bin support/weighting, missingness and
+      ignore-region rules; freeze the sole primary test and multiplicity.
 - [ ] Obtain explicit author approval of the frozen protocol and store
       its commit SHA and date in [issue #35](https://github.com/MatPomGit/arc-rgbt/issues/35).
 - [ ] Obtain independent evidence GO before reporting physical limits

@@ -36,7 +36,7 @@ def test_gt_footprint_bins_duplicates_wrong_class_and_negative_frames():
     assert result["per_bin"]["small"]["recall"] == 1.0
     assert result["per_bin"]["reference"]["recall"] == 0.0
     assert result["fp"] == 3 and result["fp_per_frame"] == 1.5
-    assert result["primary_group_mean_delta"] is None
+    assert result["primary_group_mean_delta"] == 1.0
     assert result["status"] == "OPERATING_CONDITION_NOT_MET"
     assert result["operating_condition_met"] is False
     assert result["candidate_percentile_ci_95"] is None
@@ -46,15 +46,23 @@ def test_gt_footprint_bins_duplicates_wrong_class_and_negative_frames():
 def test_ten_paired_groups_equal_weight_bootstrap_seed():
     frames, groups = [], []
     for idx in range(10):
-        pred = box(0, 4, 0.9) if idx < 5 else box(40, 20, 0.9)
-        frames.append(frame(str(idx), [box(0, 4), box(40, 20)], [pred]))
+        pred = box(0, 4, 0.9) if idx < 5 else box(80, 20, 0.9)
+        frames.append(frame(
+            str(idx),
+            [box(0, 4), box(20, 4), box(80, 20), box(120, 20)],
+            [pred],
+        ))
         groups.append(f"g{idx}")
-    result = run(frames, groups)
+    result = run(frames, groups, minimum_targets_per_bin=2)
     assert result["groups_with_both_bins"] == 10
     assert result["status"] == "PROSPECTIVE_UNFROZEN"
+    assert result["candidate_interval_support_met"] is True
+    assert result["candidate_interval_degenerate"] is False
+    assert result["candidate_interval_suppression_reason"] is None
+    assert run(frames, groups)["status"] == "DESCRIPTIVE_ONLY"
     assert result["primary_group_mean_delta"] == 0.0
     assert result["candidate_percentile_ci_95"] == run(
-        frames, groups)["candidate_percentile_ci_95"]
+        frames, groups, minimum_targets_per_bin=2)["candidate_percentile_ci_95"]
     assert result["candidate_percentile_ci_95"][0] < 0
     assert result["candidate_percentile_ci_95"][1] > 0
 
@@ -211,3 +219,132 @@ def test_p01_gt_matching_agrees_with_shared_bench_confusion_counts():
     assert sum(v["targets"] for v in report["per_bin"].values()) == (
         expected["tp"] + expected["fn"]
     )
+
+
+def test_paired_support_and_object_weighting_are_diagnosed_not_conflated():
+    first = frame(
+        "one", [box(0, 4), box(50, 20)], [box(0, 4, 0.9)],
+    )
+    second_small = [box(i * 100, 4) for i in range(9)]
+    second_ref = [box(i * 100 + 50, 20) for i in range(9)]
+    second = frame(
+        "many", second_small + second_ref,
+        [box(i * 100 + 50, 20, 0.9) for i in range(9)],
+    )
+    result = run([first, second], ["g1", "g2"])
+    assert result["status"] == "DESCRIPTIVE_ONLY"
+    assert result["candidate_percentile_ci_95"] is None
+    assert result["primary_group_mean_delta"] == 0.0
+    assert result["paired_group_target_counts"] == {
+        "g1": {"small": 1, "reference": 1},
+        "g2": {"small": 9, "reference": 9},
+    }
+    assert result["paired_groups_with_singleton_bin"] == 1
+    assert result["paired_object_pooled_delta_sensitivity"] == -0.8
+    assert result["paired_estimand_shift_sensitivity"] == 0.8
+
+
+def test_group_exclusions_count_all_negative_and_unpaired_acquisitions():
+    frames = [
+        frame("p", [box(0, 4), box(50, 20)], []),
+        frame("u", [box(0, 4)], []),
+        frame("n", [], []),
+    ]
+    result = run(frames, ["paired", "unpaired", "negative"])
+    assert result["groups_with_both_bins"] == 1
+    assert result["acquisitions_excluded_from_paired_contrast"] == 2
+    assert result["acquisitions_excluded_by_reason"] == {
+        "no_targets": ["negative"],
+        "small_without_reference": ["unpaired"],
+        "reference_without_small": [],
+        "intermediate_without_primary_bins": [],
+    }
+    assert result["paired_group_target_counts"] == {
+        "paired": {"small": 1, "reference": 1},
+    }
+    assert result["primary_group_mean_delta"] == 0.0
+
+
+
+def test_singletons_block_interval_even_with_ten_paired_groups():
+    frames = [
+        frame(str(i), [box(0, 4), box(40, 20)], [box(0, 4, 0.9)])
+        for i in range(10)
+    ]
+    result = run(
+        frames, [f"g{i}" for i in range(10)], minimum_targets_per_bin=2,
+    )
+    assert result["groups_with_both_bins"] == 10
+    assert result["paired_groups_below_bin_floor"] == [
+        f"g{i}" for i in range(10)
+    ]
+    assert result["status"] == "DESCRIPTIVE_ONLY"
+    assert result["primary_group_mean_delta"] == 1.0
+    assert result["candidate_interval_support_met"] is False
+    assert result["candidate_percentile_ci_95"] is None
+    assert result["replicates"] == 0
+
+
+@pytest.mark.parametrize("floor", [0, 1, True, 2.5, "2"])
+def test_invalid_paired_bin_floor_rejected(floor):
+    with pytest.raises(ValueError, match="paired-bin minimum"):
+        run([frame("a", [], [])], ["g"], minimum_targets_per_bin=floor)
+
+
+def test_pooled_estimand_changes_with_bin_composition_even_for_zero_deltas():
+    # Both group contrasts are zero, while pooled bin denominators favour
+    # the high-recall group for small objects and the low-recall group for ref.
+    group_one_small = [box(i * 100, 4) for i in range(9)]
+    group_one_ref = [box(950, 20)]
+    group_two_small = [box(0, 4)]
+    group_two_ref = [box(i * 100 + 50, 20) for i in range(9)]
+    result = run([
+        frame("high", group_one_small + group_one_ref,
+              [box(i * 100, 4, 0.9) for i in range(9)] +
+              [box(950, 20, 0.9)]),
+        frame("low", group_two_small + group_two_ref, []),
+    ], ["high", "low"])
+    assert result["group_differences"] == {"high": 0.0, "low": 0.0}
+    assert result["primary_group_mean_delta"] == 0.0
+    assert result["paired_object_pooled_delta_sensitivity"] == pytest.approx(0.8)
+    assert result["paired_estimand_shift_sensitivity"] == pytest.approx(-0.8)
+
+def test_degenerate_paired_contrasts_suppress_zero_width_interval():
+    frames = [
+        frame(
+            str(i),
+            [box(0, 4), box(20, 4), box(80, 20), box(120, 20)],
+            [box(0, 4, 0.9), box(80, 20, 0.9)],
+        )
+        for i in range(10)
+    ]
+    result = run(
+        frames, [f"g{i}" for i in range(10)], minimum_targets_per_bin=2,
+    )
+    assert result["groups_with_both_bins"] == 10
+    assert result["primary_group_mean_delta"] == 0.0
+    assert result["candidate_interval_support_met"] is True
+    assert result["candidate_interval_degenerate"] is True
+    assert result["candidate_interval_suppression_reason"] == (
+        "ZERO_BETWEEN_GROUP_VARIATION"
+    )
+    assert result["status"] == "DESCRIPTIVE_ONLY"
+    assert result["candidate_percentile_ci_95"] is None
+    assert result["replicates"] == 0
+
+
+def test_excluded_acquisitions_distinguish_reference_and_intermediate_only():
+    frames = [
+        frame("paired", [box(0, 4), box(60, 20)], []),
+        frame("reference", [box(0, 20)], []),
+        frame("intermediate", [box(0, 10)], []),
+    ]
+    result = run(frames, ["paired", "reference", "intermediate"])
+    assert result["acquisitions_excluded_from_paired_contrast"] == 2
+    assert result["acquisitions_excluded_by_reason"] == {
+        "no_targets": [],
+        "small_without_reference": [],
+        "reference_without_small": ["reference"],
+        "intermediate_without_primary_bins": ["intermediate"],
+    }
+    assert result["group_differences"] == {"paired": 0.0}
