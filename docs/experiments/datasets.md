@@ -64,6 +64,38 @@ The evidence table remains incomplete until those original source materials
 are lawfully inspected. **No actual dataset or annotation archive was
 downloaded for this remediation.**
 
+## P01 native-geometry screening contract (2026-11-05; #46)
+
+The dimensions of a distributed image, an aligned RGB/thermal pair, and the
+native photosensitive detector grid are different quantities. P01's proposed
+`sqrt(w_native * h_native)` bins require bounding boxes referenced to the
+**original LWIR detector grid** or a fully documented, independently checked
+inverse transform. An annotation on an aligned, cropped, padded or resized
+export cannot be relabelled native merely because its file dimensions are
+known. A thermal-looking or infrared image does not establish the LWIR band.
+
+| Source | Current geometry evidence | Native LWIR band, detector grid, pixel pitch/optics | Export transformations and box convention | P01 decision |
+| --- | --- | --- | --- | --- |
+| KAIST | Owner reports paired 640 x 480 imagery; distributed dimensions are not proof of the original thermal focal-plane grid. | **UNKNOWN** until original sensor specification and release mapping are pinned. | **UNKNOWN** whether original annotations describe raw, aligned, cropped or resampled LWIR; visible versus amodal boxes unverified. | **CONDITIONAL SCREENING**, not eligible for physical-footprint inference yet. |
+| LLVIP | Owner reports paired visible/infrared scenes; pair membership is not native-grid provenance. | **UNKNOWN** for original thermal band, sensor grid, pitch and optics. | **UNKNOWN** for resampling, pairing transform and occluded/amodal labels. | **CONDITIONAL SCREENING**, not admitted. |
+| DroneVehicle | Owner describes aerial visible/infrared oriented boxes; reported white borders may alter exported coordinates. | **UNKNOWN** for native thermal grid, band, pitch and optics. | **UNKNOWN** original-to-export crop/pad transform and conversion of oriented boxes to a physical footprint. | **HOLD RIGHTS AND GEOMETRY**. |
+| CART | Owner describes aerial RGB/thermal segmentation and geographic/time splits. | **UNKNOWN** for independently verified original LWIR grid, pitch and optics. | Segmentation polygons are not validated detector boxes; original-to-export mapping **UNKNOWN**. | **HOLD RIGHTS AND ANNOTATIONS**. |
+| FLIR ADAS | Owner describes thermal imagery and pre-AGC frames; exact original archive is not inspected. | **UNKNOWN** for the specific release's source detector grid and optics. | **UNKNOWN** box-coordinate provenance, crop/AGC and full negative-frame labels. | **HOLD RELEASE TERMS AND GEOMETRY**. |
+
+**Source-specific evidence required before changing a decision:** (1) exact
+archive/release and owner-controlled, immutable sensor documentation; (2)
+spectral response or verified LWIR sensor identity; (3) original detector
+width/height, optics, pixel pitch where available, bit depth and AGC status;
+(4) an explicit coordinate chain from detector pixels to distributed images
+and GT, including scale, crop, padding, warps and interpolation; (5) visible
+versus amodal box convention, orientation and annotation completeness; (6)
+an independently reproducible check on original files with release hashes.
+If a coordinate chain is unavailable, report distributed-image footprint
+only as an **export-grid proxy** and exclude it from the confirmatory
+native-footprint estimand. Do not infer metric range or optical resolution
+from exported pixel dimensions. Screening is metadata-only; G01 remains
+BLOCKED and #46 remains open until original-source verification.
+
 ## Candidate catalogue
 
 The counts below describe what the **dataset owners report** for the cited
