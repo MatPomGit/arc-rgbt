@@ -153,3 +153,65 @@ error, power and interval coverage. A small software-sufficient group count
 cannot authorize empirical inference; if feasibility or overlap is inadequate,
 report `DESCRIPTIVE_ONLY`. No frozen sample-size or alpha approval is
 implied by the synthetic pilot.
+
+## Blind annotation-QA sampling from local metadata (metadata-only)
+
+`select_blinded_qa.py` creates a **deterministic, group-capped sampling
+manifest** for source-image/label inspection. It reads JSON *metadata only*,
+never imagery or model outcomes, and will not overwrite an existing output.
+The tool is a convenience for #47/#48, **not** dataset admission or proof
+of independent acquisitions. An operator must prepare a local inventory
+from the lawful exact source release; no source is downloaded automatically.
+
+The input JSON object has `schema_version: 1`, a
+`source_release` string, `group_basis` equal to `video_id_proxy`
+or `declared_acquisition`, and nonempty `frames`. Each frame has
+`frame_id`, `group_id`, `qa_state` (`approved`, `missing`, `flagged`)
+and **boolean** `class_conflict`, `geometry_conflict`,
+`clipped_box`, `rider_only`, `candidate_negative` and
+`target_positive`. This is an explicit **operator-generated inventory
+contract**; the JSON does not establish source/label rights or QA truth.
+A candidate negative means a frame potentially contains no instances
+of the source-specific target class, **not** a verified complete negative.
+
+Example (synthetic metadata only):
+
+```json
+{
+  "schema_version": 1,
+  "source_release": "synthetic-example",
+  "group_basis": "video_id_proxy",
+  "frames": [{
+    "frame_id": "example-1", "group_id": "video-proxy-1",
+    "qa_state": "missing", "class_conflict": false,
+    "geometry_conflict": false, "clipped_box": false,
+    "rider_only": false, "candidate_negative": true,
+    "target_positive": false
+  }]
+}
+```
+
+Run after reviewing and explicitly choosing the sample seed, **four
+stratum quotas**, and a per-group cap:
+
+```bash
+python publications/P01/analyses/select_blinded_qa.py \
+  --input LOCAL_METADATA.json --output LOCAL_QA_PLAN.json \
+  --seed 20261106 --max-per-group 1 --quotas A=5,B=5,C=5,D=5
+```
+
+These values illustrate CLI syntax, **not approved sample sizes**.
+The mutually exclusive priority is A (QA missing/flagged), B (class or
+geometry conflict, clipped or rider-only), C (candidate negative), D
+(ordinary positive). Overlap is retained in risk flags; quotas that
+cannot be filled under the group cap produce `SAMPLE_PLAN_INCOMPLETE`.
+A group labelled `video_id_proxy` is **never** promoted to an independent
+physical acquisition. Sample enrichment cannot estimate source-wide
+annotation error prevalence without a separate sampling/weighting design.
+
+The output lists selected frame/group keys, review/adjudication placeholders,
+population counts, quotas and explicit shortfalls. Two truly independent
+blinded reviewers must examine lawful original images/annotations, adjudicate
+disagreements and apply an author-approved **numeric acceptance criterion**
+before any annotation-completeness claim. Keep the full input and review
+manifest outside Git and link only rights-permitted checksums/evidence to #47.
