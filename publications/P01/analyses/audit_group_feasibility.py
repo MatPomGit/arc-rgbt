@@ -105,11 +105,24 @@ def assess(inventory: dict) -> dict:
         unknown_groups = 0
         viewpoint_unknown = 0
         contrast_unknown = 0
+        joint_condition_support = 0
         for group, group_rows in groups.items():
             small = sum(row["small"] or 0 for row in group_rows)
             reference = sum(row["reference"] or 0 for row in group_rows)
             if small > 0 and reference > 0:
                 paired.append((small, reference))
+                # Candidate overlap, not standardized confounder control.
+                # Skip missing categories rather than treating "unknown"
+                # as an eligible shared condition.
+                cells = defaultdict(lambda: [0, 0])
+                for row in group_rows:
+                    if "unknown" in (row["viewpoint"], row["contrast"]):
+                        continue
+                    cell = cells[(row["viewpoint"], row["contrast"])]
+                    cell[0] += row["small"] or 0
+                    cell[1] += row["reference"] or 0
+                if any(min(cell) > 0 for cell in cells.values()):
+                    joint_condition_support += 1
             if all(row["target_state"] == "candidate_negative" for row in group_rows):
                 pure_negatives += 1
             if any(row["target_state"] == "candidate_negative" for row in group_rows):
@@ -132,6 +145,9 @@ def assess(inventory: dict) -> dict:
                 for bin_name in COUNTS
             },
             "groups_with_both_candidate_bins": len(paired),
+            "paired_groups_with_known_joint_viewpoint_contrast_support": (
+                joint_condition_support
+            ),
             "groups_with_at_least_two_per_primary_bin": sum(
                 min(small, reference) >= 2 for small, reference in paired
             ),
