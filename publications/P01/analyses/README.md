@@ -31,10 +31,17 @@ bootstrap distribution is not evidence of known population precision.
 Reports expose `candidate_interval_degenerate` and
 `candidate_interval_suppression_reason` separately from the numerical
 paired-bin support gate. A computed interval is descriptive,
-not a calibrated directional test. `choose_validation_threshold` chooses a validation-only
-candidate cutoff with a 0.10 FP/frame point ceiling, provisional >=10
-groups and >=200 fully labelled frames, **including >=20 fully negative
-frames in >=2 groups**, and no trivial zero-TP solution. It also reports
+not a calibrated directional test. `choose_validation_threshold` now requires
+an explicit `split_role="validation"` keyword before inspecting frame data:
+`train`, `test`, omitted or unknown roles are rejected. This is a
+**caller-declared guard**, not proof that the frames were actually allocated
+to the validation split; independent split-manifest and leakage verification
+remain mandatory. The function selects a validation-only candidate cutoff
+with a 0.10 FP/frame point ceiling, provisional >=10 groups and >=200 fully
+labelled frames, **including >=20 fully negative frames in >=2 groups**, and
+no trivial zero-TP solution. Its confidence threshold rule includes **all**
+predictions tied at the cutoff (`score >= threshold`). Reports retain
+`split_role="declared_validation_unverified"` and the candidate selection policy. It also reports
 an acquisition-bootstrap CI for observed validation FP/frame; its upper
 bound can exceed the candidate budget even if the point estimate meets
 it. The held-out metric helper retains negative-only acquisitions in
