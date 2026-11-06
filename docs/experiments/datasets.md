@@ -37,6 +37,22 @@ a reliable source-informed power calculation. Issue #45 remains open
 until exact archive and annotation terms are verified; #46-#48 and #36
 own geometry, ground truth, grouping and G01 admission.
 
+### P01 owner annotation-release control (2026-11-06; #45/#47)
+
+These **immutable owner-repository snapshots** were inspected without
+downloading image archives. They pin public documentation, **not** the
+image/annotation release or independently verified native LWIR geometry.
+
+| Candidate | Pinned owner evidence | Effect on source admission |
+| --- | --- | --- |
+| KAIST | [Owner README](https://github.com/SoonminHwang/rgbt-ped-detection/blob/f238a6103dce54a063fd6438d5f0d4dec8359f76/README.md) (blob `fa572999e02639493a414cf0d1b3c39aeff5bce3`) describes the 640 x 480 vehicle-mounted multispectral release, manual pedestrian/people/cyclist annotations and downloadable archive **MD5**; [owner licence](https://github.com/SoonminHwang/rgbt-ped-detection/blob/f238a6103dce54a063fd6438d5f0d4dec8359f76/LICENSE.md) (blob `98ebb42a60638241524724b5d3df642f7e806acc`) states default CC BY-NC-SA 4.0 and named BSD code exceptions. | Pin original versus sanitized/improved **label edition** with release hashes, map classes and ignores, compare original-grid bbox coordinates, and verify empty frames independently. The published MD5 is an integrity reference, not proof of annotation completeness. |
+| LLVIP | [Owner README](https://github.com/bupt-ai-cz/LLVIP/blob/c1a655cce437ebfd990a97b04fc48fbb99f4c47b/README.md) (blob `7435ad3ea8d291188287a893d62b93ce8d442150`) notes the **2023-02-21** correction of omitted pedestrians and imprecise boxes and distinct raw unregistered frames/videos; [terms](https://github.com/bupt-ai-cz/LLVIP/blob/c1a655cce437ebfd990a97b04fc48fbb99f4c47b/Term%20of%20Use%20and%20License.md) (blob `2e8ce668cda533e83aef26a1fc0f7c8803843432`) state 26 collection scenes and non-commercial/privacy restrictions. | Unspecified/older labels cannot certify negative frames. Pin corrected label and image releases together, examine native-versus-registered transforms; 26 owner-named scenes are **not** 26 proven independent acquisition groups. |
+
+**Decision:** KAIST and LLVIP stay CONDITIONAL. Neither exact dataset
+release/annotation SHA-256 nor original negative-frame completeness has
+been independently verified. The snapshots improve documentation
+traceability only; #45-#48 and G01 remain open.
+
 ### Immutable evidence required for source-rights clearance
 
 A source may move beyond conditional screening only when an evidence record
@@ -63,6 +79,34 @@ IDs belong to #46/#48; annotation/negative-frame coverage belongs to #47.
 The evidence table remains incomplete until those original source materials
 are lawfully inspected. **No actual dataset or annotation archive was
 downloaded for this remediation.**
+
+### FLIR Tau 2 manufacturer model-level geometry (checked 2026-11-06)
+
+Teledyne FLIR's [ADAS dataset specifications](https://oem.flir.com/en-gb/solutions/automotive/adas-dataset-form/)
+identify a **Tau 2 thermal camera with 640 x 512 detector**, 13 mm
+f/1.0 optics, approximately 45-degree horizontal and 37-degree vertical
+field of view, plus thermal 14-bit pre-AGC TIFF and 8-bit AGC JPEG
+exports. The [Tau 2 manufacturer's product specification](https://www.flir.eu/products/tau-2?segment=oem&vertical=lwir)
+identifies an **LWIR 7.5-13.5 micrometre** band and **17 micrometre
+pixel pitch** for the camera model. These are verifiable model-level
+specifications, not independent authentication that every file in the
+operator's 12-part local archive came from exactly that model,
+firmware, optical chain or unaltered native coordinate grid.
+
+**Release identity mismatch to resolve before P01 admission:** the
+owner page reports **9,711 thermal training/validation images**.
+The operator's reported train/validation index inventory in PR #65
+contains **10,742 + 1,144 = 11,886 thermal frame keys**. This
+difference may reflect release packaging, selection or revisions;
+the cause is currently **UNKNOWN**. Do not quietly mix publisher
+summary counts with local archive counts. Require an exact
+release-specific source manifest, release/version reconciliation,
+original archive part hashes and independently reviewed TIFF-to-COCO
+coordinate correspondence before using original-grid footprints.
+Neither the camera datasheet nor equal TIFF pixel dimensions
+establish independently verified annotation geometry, full negative
+coverage or physical acquisition identity. Current P01 status remains
+**G01 BLOCKED** and #46 remains open.
 
 ## P01 native-geometry screening contract (2026-11-05; #46)
 
