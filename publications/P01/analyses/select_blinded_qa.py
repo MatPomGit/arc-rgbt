@@ -29,6 +29,12 @@ def _unique_pairs(pairs: list[tuple[str, object]]) -> dict:
     return out
 
 
+def _rank(*parts: object) -> str:
+    """Hash structured tokens so ambiguous separators cannot change ranking."""
+    encoded = json.dumps(parts, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
 def _frame_stratum(frame: dict) -> str:
     if frame["qa_state"] in {"missing", "flagged"}:
         return "A"
@@ -93,44 +99,68 @@ def plan_sample(data: dict, *, quotas: dict[str, int], seed: int,
     group_usage: Counter = Counter()
     selected: list[dict] = []
     for stratum in STRATA:
-        candidates = sorted(
-            buckets[stratum],
-            key=lambda frame: (
-                hashlib.sha256(
-                    f"{seed}\0{data['source_release']}\0{stratum}\0"
-                    f"{frame['frame_id']}".encode("utf-8")
-                ).hexdigest(), frame["frame_id"]
-            ),
-        )
+        # Group-first ordering avoids giving long videos more chances than
+        # short videos during each pass. This is still only a proxy when
+        # physical acquisition identity is not independently established.
+        by_group: dict[str, list[dict]] = defaultdict(list)
+        for frame in buckets[stratum]:
+            by_group[frame["group_id"]].append(frame)
+        for group_frames in by_group.values():
+            group_frames.sort(key=lambda frame: (
+                _rank(seed, data["source_release"], stratum,
+                      "frame", frame["frame_id"]), frame["frame_id"]
+            ))
+        group_order = sorted(by_group, key=lambda group_id: (
+            _rank(seed, data["source_release"], stratum,
+                  "group", group_id), group_id
+        ))
         chosen = 0
-        for frame in candidates:
-            if chosen == quotas[stratum]:
+        while chosen < quotas[stratum]:
+            added = False
+            for group_id in group_order:
+                if group_usage[group_id] >= max_per_group:
+                    continue
+                if not by_group[group_id]:
+                    continue
+                frame = by_group[group_id].pop(0)
+                group_usage[group_id] += 1
+                chosen += 1
+                added = True
+                selected.append({
+                    "frame_id": frame["frame_id"],
+                    "group_id": group_id,
+                    "stratum": stratum,
+                    "risk_flags": [
+                        key for key in ("class_conflict", "geometry_conflict",
+                                        "clipped_box", "rider_only", "candidate_negative")
+                        if frame[key]
+                    ] + (["qa_" + frame["qa_state"]]
+                         if frame["qa_state"] != "approved" else []),
+                    "reviewer_a": None,
+                    "reviewer_b": None,
+                    "adjudication": None,
+                })
+                if chosen == quotas[stratum]:
+                    break
+            if not added:
                 break
-            group_id = frame["group_id"]
-            if group_usage[group_id] >= max_per_group:
-                continue
-            group_usage[group_id] += 1
-            chosen += 1
-            selected.append({
-                "frame_id": frame["frame_id"],
-                "group_id": group_id,
-                "stratum": stratum,
-                "risk_flags": [
-                    key for key in ("class_conflict", "geometry_conflict",
-                                    "clipped_box", "rider_only", "candidate_negative")
-                    if frame[key]
-                ] + (["qa_" + frame["qa_state"]]
-                     if frame["qa_state"] != "approved" else []),
-                "reviewer_a": None,
-                "reviewer_b": None,
-                "adjudication": None,
-            })
     counts = Counter(row["stratum"] for row in selected)
     shortfalls = {key: quotas[key] - counts[key] for key in STRATA}
     canonical = json.dumps(
         sorted(data["frames"], key=lambda row: row["frame_id"]),
         sort_keys=True, separators=(",", ":"), ensure_ascii=False,
     ).encode("utf-8")
+    full_inventory = json.dumps(
+        {**data, "frames": sorted(data["frames"], key=lambda row: row["frame_id"])},
+        sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+    ).encode("utf-8")
+    selected_ids = {row["frame_id"] for row in selected}
+    selected_source_frames = [f for f in data["frames"]
+                              if f["frame_id"] in selected_ids]
+    candidate_negative_selected = sum(f["candidate_negative"]
+                                      for f in selected_source_frames)
+    target_positive_selected = sum(f["target_positive"]
+                                   for f in selected_source_frames)
     return {
         "schema_version": 1,
         "status": ("SAMPLE_PLAN_INCOMPLETE" if any(shortfalls.values())
@@ -141,6 +171,7 @@ def plan_sample(data: dict, *, quotas: dict[str, int], seed: int,
         "group_basis": data["group_basis"],
         "group_basis_verified": False,
         "frame_inventory_sha256": hashlib.sha256(canonical).hexdigest(),
+        "inventory_sha256": hashlib.sha256(full_inventory).hexdigest(),
         "seed": seed,
         "max_per_group": max_per_group,
         "population_frames": len(data["frames"]),
@@ -150,9 +181,15 @@ def plan_sample(data: dict, *, quotas: dict[str, int], seed: int,
         "selected_strata": {s: counts[s] for s in STRATA},
         "shortfalls": shortfalls,
         "selected_frames": selected,
+        "selected_candidate_negative_frames": candidate_negative_selected,
+        "selected_target_positive_frames": target_positive_selected,
+        "both_target_states_represented": (
+            candidate_negative_selected > 0 and target_positive_selected > 0
+        ),
         "limitations": (
             "Operator-supplied metadata; overlapping risks assigned only once "
             "by A>B>C>D; groups and candidate negatives unverified; "
+            "group-first passes do not establish representative frame sampling; "
             "oversampling is not a population prevalence estimator; "
             "two blinded human reviews, adjudication and author-approved "
             "numeric QA criteria are still required."
