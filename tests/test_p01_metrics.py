@@ -5,6 +5,11 @@ import pytest
 from arc_rgbt.p01_metrics import choose_validation_threshold, native_footprint_recall
 
 
+def validation_threshold(frames, **kwargs):
+    """Declare validation role in every synthetic threshold-selection fixture."""
+    return choose_validation_threshold(frames, split_role="validation", **kwargs)
+
+
 def box(x, size, score=None, label="vehicle"):
     obj = {"label": label, "bbox": [x, 0, size, size]}
     if score is not None:
@@ -108,7 +113,7 @@ def test_validation_threshold_is_not_selected_from_test_frames():
               for i in range(200)]
     frames[0]["ground_truth"] = [box(0, 4)]
     frames[0]["predictions"] = [box(0, 4, 0.8)]
-    result = choose_validation_threshold(
+    result = validation_threshold(
         frames, acquisition_ids=[f"g{i // 20}" for i in range(200)],
         annotation_status="complete",
     )
@@ -119,12 +124,12 @@ def test_validation_threshold_is_not_selected_from_test_frames():
 
 def test_validation_size_and_no_tp_block_selection():
     one = [frame("a", [box(0, 4)], [box(0, 4, 0.9)])]
-    result = choose_validation_threshold(
+    result = validation_threshold(
         one, acquisition_ids=["g"], annotation_status="complete")
     assert result["status"] == "BLOCKED_VALIDATION_SIZE"
     assert result["threshold"] is None
     negatives = [frame(str(i), [], [box(0, 4, 0.9)]) for i in range(200)]
-    result = choose_validation_threshold(
+    result = validation_threshold(
         negatives, acquisition_ids=[str(i // 20) for i in range(200)],
         annotation_status="complete")
     assert result["status"] == "BLOCKED_NO_TRUE_POSITIVES"
@@ -170,7 +175,7 @@ def test_over_budget_test_is_not_misreported_as_candidate_inference():
 def test_no_negative_validation_exposure_blocks_even_at_zero_false_alarms():
     frames = [frame(str(i), [box(0, 4)], [box(0, 4, 0.8)])
               for i in range(200)]
-    result = choose_validation_threshold(
+    result = validation_threshold(
         frames, acquisition_ids=[f"group-{i // 20}" for i in range(200)],
         annotation_status="complete",
     )
@@ -187,14 +192,14 @@ def test_validation_group_bootstrap_detects_clustered_false_alarms():
         frames[i]["predictions"] = [box(50, 4, 0.7)]
     kwargs = {"acquisition_ids": [f"g{i // 20}" for i in range(200)],
               "annotation_status": "complete"}
-    result = choose_validation_threshold(frames, **kwargs)
+    result = validation_threshold(frames, **kwargs)
     assert result["status"] == "CANDIDATE_ONLY"
     assert result["threshold"] == 0.0
     assert result["validation_fp_per_frame"] == 0.05
     assert result["validation_fp_bootstrap_ci_95"][1] > 0.1
     assert result["validation_fp_upper_ci_exceeds_ceiling"] is True
     assert result["validation_fp_bootstrap_ci_95"] == (
-        choose_validation_threshold(frames, **kwargs)["validation_fp_bootstrap_ci_95"]
+        validation_threshold(frames, **kwargs)["validation_fp_bootstrap_ci_95"]
     )
 
 
@@ -348,3 +353,40 @@ def test_excluded_acquisitions_distinguish_reference_and_intermediate_only():
         "intermediate_without_primary_bins": ["intermediate"],
     }
     assert result["group_differences"] == {"paired": 0.0}
+
+
+@pytest.mark.parametrize("role", [None, "", "test", "train", "Validation", True])
+def test_validation_selector_rejects_nonvalidation_role_before_frame_access(role):
+    # Deliberately malformed data must not be parsed if role is test/train.
+    with pytest.raises(ValueError, match="split_role='validation'"):
+        choose_validation_threshold(
+            [{"id": "untouched-test-must-not-be-inspected"}],
+            acquisition_ids=["g"], annotation_status="complete", split_role=role,
+        )
+
+
+def test_validation_selector_requires_explicit_role_argument():
+    with pytest.raises(TypeError, match="split_role"):
+        choose_validation_threshold(
+            [frame("f", [], [])], acquisition_ids=["g"],
+            annotation_status="complete",
+        )
+
+
+def test_candidate_selection_documents_validation_role_and_tie_inclusion():
+    frames = [frame(str(i), [], []) for i in range(200)]
+    frames[0]["ground_truth"] = [box(0, 4)]
+    frames[0]["predictions"] = [box(0, 4, 0.8)]
+    for i in range(1, 22):
+        frames[i]["predictions"] = [box(50, 4, 0.8)]
+    report = validation_threshold(
+        frames, acquisition_ids=[f"g{i // 20}" for i in range(200)],
+        annotation_status="complete",
+    )
+    # All 22 predictions at the same confidence score must be retained
+    # together; the selector cannot cherry-pick the one true positive.
+    assert report["status"] == "BLOCKED_NO_TRUE_POSITIVES"
+    assert report["threshold"] is None
+    assert report["split_role"] == "declared_validation_unverified"
+    assert report["score_inclusion_rule"] == "score >= threshold; ties indivisible"
+    assert report["empirical_admission"] is False
