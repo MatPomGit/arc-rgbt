@@ -166,10 +166,25 @@ native geometry, sample-size sufficiency or scientific GO.
 
 Input schema v1 has `schema_version: 1`, nonempty `source_release`,
 `group_basis` (`video_id_proxy` or `declared_acquisition`),
-`grid_basis` (`export_grid_proxy`, `declared_native` or `unknown`)
-and a nonempty `frames` array. Each row must contain exactly:
+`grid_basis` (`export_grid_proxy`, `declared_native` or `unknown`),
+required `target_class_spec_sha256` and `footprint_bin_spec_sha256`
+(two lowercase, 64-character SHA-256 hex digests of locally versioned
+**target-class mapping** and **footprint-bin definition** contracts),
+and a nonempty `frames` array. A target-class contract must state
+the selected source label IDs, remaps (including rider handling),
+exclusions and target definition. A bin contract must state native/export
+grid, formula and units for the footprint, exact cutoff values and
+strict/inclusive interval boundaries. Record the exact bytes of both
+contracts and hash them locally before producing counts; hashes supplied
+by the operator are not independently checked by this tool.
 
-- `frame_id`, `group_id` (nonempty unique frame IDs; groups may recur);
+Each frame row must contain exactly:
+
+- `frame_id`, `group_id` (nonempty unique frame IDs; groups may recur).
+  IDs are opaque and **case-sensitive**, but must already be in Unicode
+  NFKC form and must not contain whitespace or invisible control/format
+  characters; noncanonical variants are rejected rather than silently
+  treated as different groups;
 - `split`: `train` or `validation` only. `test` is rejected;
 - `target_state`: `candidate_positive`, `candidate_negative` or
   `unknown` (all provisional; no state implies audited label coverage);
@@ -177,7 +192,9 @@ and a nonempty `frames` array. Each row must contain exactly:
   nonnegative integers for positive/negative candidates, three `null`
   values for `unknown`). Bins reflect the declared grid basis **only**;
 - `viewpoint` and `contrast` (nonempty operator-declared category
-  strings, or literal `unknown` when unavailable).
+  strings, or **exactly lowercase `unknown`** when unavailable).
+  Leading/trailing whitespace, Unicode compatibility aliases and
+  `Unknown` / `UNKNOWN` are rejected, not counted as known categories.
 
 The count labels describe the proposed P01 target class **only** under an
 operator-supplied taxonomy, which is still subject to #47/#51 approval.
@@ -194,6 +211,8 @@ Minimal synthetic input example:
   "source_release": "synthetic-only",
   "group_basis": "video_id_proxy",
   "grid_basis": "export_grid_proxy",
+  "target_class_spec_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "footprint_bin_spec_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "frames": [
     {
       "frame_id": "f1", "group_id": "v1", "split": "train",
@@ -211,14 +230,23 @@ Minimal synthetic input example:
 }
 ```
 
+The repeated-`a` and repeated-`b` digests above are **synthetic
+placeholders only**. Real inventories must use the SHA-256 values of
+actual, versioned local contract files. Changing the class mapping or
+a bin cutoff must change its spec digest and therefore the full
+`input_inventory_sha256`, even when the numeric rows happen to match.
+Neither fingerprint certifies correctness or source eligibility.
+
 ```bash
 python publications/P01/analyses/audit_group_feasibility.py \
   --input LOCAL_NONTEST_COUNTS.json --output LOCAL_GROUP_AUDIT.json
 ```
 
 The tool refuses to overwrite existing output, hashes the entire canonical
-inventory, rejects duplicate JSON keys/frame IDs, contradictory target states,
-incomplete bin counts, unsupported fields and test-split access.
+inventory **including both operator-declared spec digests**, rejects duplicate
+JSON keys/frame IDs, noncanonical group identifiers and missing-value
+sentinels, contradictory target states, incomplete bin counts,
+unsupported fields and test-split access.
 It reports, **separately for train/validation**, declared groups, candidate
 negative/positive/unknown frames, provisional GT-bin totals, paired-bin
 groups, per-group counts (minimum/median/maximum), computational
