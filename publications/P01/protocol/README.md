@@ -567,67 +567,124 @@ criterion or author sign-off exists. Metadata screening below does not
 replace source-specific acceptance records.
 
 ### FLIR ADAS v2 local metadata preflight (2026-11-06; operator-reported, not verified admission)
+### FLIR ADAS v2 local metadata and export reconciliation (2026-11-06; source not admitted)
 
-A local read-only audit of a 12-part FLIR ADAS v2 archive was executed on
-the train/validation metadata. These are **operator-reported descriptive
-counts**, not independently reproduced evidence or a signed rejection log.
-The test annotation partition was not opened. No image data are committed.
+This is a read-only **operator-executed** FLIR ADAS v2 12-part archive
+screening of thermal training and validation metadata, subsequently
+cross-checked for aggregate arithmetic using the two provided JSON audit
+reports (v1 SHA-256 `916180554efa19058872e5457d83ff20caacbf26561d258771cf31242fdd8360`;
+v2 SHA-256 `277475abaca08f634c09a1268593a38a28836f15caa0810c3556fd042319bde9`).
+The reports and raw dataset remain outside Git. These descriptive counts
+are **not** independently repeated source inspection, blinded source QA
+or physical detection results. The held-out test annotations were not
+opened.
 
-| Check | Thermal train | Thermal validation |
+| Metadata check | Thermal train | Thermal validation |
 | --- | ---: | ---: |
-| Frames matched between Conservator index and COCO | 10,742 | 1,144 |
-| COCO GT instances | 175,040 | 16,696 |
-| Conservator index annotations | 176,063 | 16,786 |
-| Net index-minus-COCO instances | **1,023** | **90** |
-| Frames with differing annotation counts | 645 | 50 |
-| Frames without an explicit QA status | 1,992 | 183 |
-| Flagged frames | 52 | 1 |
-| All-class COCO-empty frames (NOT verified negatives) | 264 | 16 |
-| COCO target-absent `person` / `car` candidates | 2,537 / 918 | 325 / 97 |
+| Frames with paired index/COCO identities | 10,742 | 1,144 |
+| Conservator `index.json` GT | 176,063 | 16,786 |
+| COCO `coco.json` GT | 175,040 | 16,696 |
+| Net original minus COCO | 1,023 | 90 |
+| Frames with unequal GT counts | 645 | 50 |
+| Frames missing QA status | 1,992 | 183 |
+| Frames flagged | 52 | 1 |
+| All-class COCO empty (not verified negative) | 264 | 16 |
+| COCO no-`person` / no-`car` candidates | 2,537 / 918 | 325 / 97 |
+| Original index boxes exceeding image bounds (needs policy) | 196 | 18 |
 
-The diagnostic matched original video/frame keys for all 11,886
-train/validation frames, with no shared video IDs **between** these
-partitions. Video IDs alone do not verify physical acquisition independence,
-near-duplicate absence or common-support adequacy. Candidate within-video
-small/reference support was reported for `person`: 91 train / 12
-validation; `car`: 122 train / 17 validation. These are metadata-only
-support counts, not confirmed independent groups.
+**Aggregate class mapping fully reconciles the count difference:**
 
-**Warning about unmatched boxes:** exact coordinate matching left 6,002
-index-only versus 4,979 COCO-only detections in train and 466 versus 376
-in validation. These represent **non-identical bbox records**, not 6,468
-proved omissions. Net annotation count differences total **1,113** across
-695 frames. A subsequent category-aware/IoU-tolerant reconciliation and
-review of the original annotation schema are mandatory before assigning
-rejection reasons; equality of numeric coordinates cannot establish
-semantic or native-grid alignment. Do not promote the displayed
-`unmatched_original_labels_by_bbox` diagnostic to omitted-class counts.
+| Original label operation inferred from totals | Train | Validation |
+| --- | ---: | ---: |
+| `face` absent in COCO | 752 | 73 |
+| `license plate` absent in COCO | 270 | 17 |
+| `bird` absent in COCO | 1 | 0 |
+| **Net omitted count** | **1,023** | **90** |
+| `rider` counted in COCO `person` | 5,951 | 161 |
+| `animal` counted in COCO `deer` | 8 | 0 |
 
-The operator sampled three TIFF headers per split: each declared
-640 × 512, one 16-bit grayscale sample, lossless TIFF LZW. The vendor
-states FLIR Tau 2 640 × 512, 13 mm f/1.0 with 14-bit pre-AGC TIFF
-(<https://oem.flir.com/solutions/automotive/adas-dataset-form/>). These
-are compatible statements about storage, **not** independent proof that
-COCO box geometry maps to raw sensor sites without transforms.
-Archive-part SHA-256 values were computed locally but not reported or
-matched to authoritative owner hashes. Full-member CRC was not run.
-The owner download terms for the **exact** release and annotations still
-need separate verification; an advertised free download is not a
-general-purpose licence grant.
+After applying these operations, **every aggregate category tally
+matches exactly** between the Conservator original and COCO in both
+partitions. In particular, original `person` + `rider` =
+50,478/4,470 COCO `person`; original `car` = COCO `car`
+73,623/7,133. These are **strong count-level export explanations**,
+not proof that each individual annotation was mapped correctly.
+The user-reported COCO-`person`-positive but original
+literal-`person`-absent frame counts (773 train / 28 val) are compatible
+with `rider` remapping. A P01 endpoint defined as *pedestrian* is
+not interchangeable with an endpoint defined as all COCO `person`
+(including riders). An explicit owner-approved target definition and
+per-instance class policy must be frozen before metrics.
 
-**Next bounded evidence actions:** (1) reconcile labels and altered
-coordinates by source frame and class, without reading test labels;
-(2) design a blinded reviewer sample stratified by missing QA, flagged
-frames, COCO/index disagreements and candidate negatives, with a
-predeclared numerical error criterion; (3) verify source rights,
-native-grid transform history and independent acquisition keys;
-(4) retain an immutable, rights-compliant local report and archive
-hashes. No status `complete_negative` can yet be assigned from an
-empty COCO list, `isEmpty` or `approved` alone.
+**Geometry reconciliation, separate from omitted-class arithmetic.**
+Exact bbox matching left original-only 6,002/466 and COCO-only
+4,979/376 records. A *diagnostic-only*, unvalidated greedy
+IoU-tolerant matching of the previously unmatched pairs produced:
 
-**Preflight status: `METADATA_REVIEW_REQUIRED` /
-`CONDITIONAL_DESIGN / UNFROZEN / G01 BLOCKED`.** No held-out detector
-outcomes or empirical FP/frame claims are authorized.
+| IoU status among non-exact boxes | Train | Validation |
+| --- | ---: | ---: |
+| Matched with IoU >= 0.95 | 4,416 | 307 |
+| Matched with 0.50 <= IoU < 0.95 | 484 | 61 |
+| Original unmatched after IoU >= 0.50 | 1,102 | 98 |
+| COCO unmatched after IoU >= 0.50 | 79 | 8 |
+
+Remaining original-minus-COCO records equal 1,113, consistent with
+the class mapping above, but **1,200 original and 87 COCO boxes
+remain unresolved by the diagnostic geometry matcher**. No per-object
+missing-label count, class-disagreement verdict, annotation
+uncertainty bound or rejection ledger may be inferred from this
+greedy pairing. Differences may include altered box extents,
+truncation, duplicate/overlapping annotations, category filtering
+and sub-0.5 overlaps. Original out-of-bounds bbox entries might
+encode intentional truncation; they are not automatically erroneous
+without source-specific annotation conventions. Freeze explicit
+`rider` and `animal` mappings and bbox clip/ignore semantics
+**before** an independent per-frame review.
+
+All 11,886 original train/validation frame keys aligned between
+index and COCO; no `video_id` is shared across these two partitions.
+That does not establish independence of physical acquisitions or
+exclude neighboring-scene leakage. Metadata-only within-video
+small/reference paired candidates: `person` 91/12 and `car`
+122/17 (train/validation), not independent acquisition counts.
+No COCO target-absent frame was contradicted by original target-label
+presence under the **audit script's proposed raw label comparison**;
+this is not verified exhaustive negative-frame annotation. Owner QA
+status `approved` also does not prove completeness.
+
+The archive contained 46,447 unique ZIP members. The **v2 full-member
+ZIP CRC passed**, consistent with readable uncorrupted archive contents.
+The earlier v1 report computed SHA-256 for the 12 local ZIP parts,
+but neither their digests nor the original source release/version
+were authenticated against owner-supplied checksums. Six sampled
+thermal TIFF headers reported 640x512, single-channel, 16-bit
+storage with lossless LZW. Teledyne FLIR publicly specifies Tau 2
+640x512 and pre-AGC 14-bit thermal TIFF in this dataset
+(<https://oem.flir.com/solutions/automotive/adas-dataset-form/>).
+This supports plausible sensor format, **not** a proven
+raw-sensor-coordinate correspondence for every COCO bbox.
+Owner image/annotation terms for the exact release remain
+unverified; `coco.json` had no declared licence entries in the
+reported screening. Free download does not itself grant unrestricted
+reuse.
+
+**Unresolved STOP/GO evidence:** prove source image and annotation
+licences/owner release; verify native TIFF values, image coordinate
+transforms and original box conventions; independently inspect a
+predeclared stratified set of QA-missing, flagged, filtered/
+geometry-discordant, and potential negative frames with two blinded
+reviewers and numeric acceptance criteria; adjudicate
+`person` vs `rider` and cutoff/occlusion policy; verify physically
+independent acquisitions and near-duplicate split separation.
+Do not access held-out detector outcomes to adjust these rules.
+No frame may be promoted to `complete_positive` or
+`complete_negative` solely by `approved`, `isEmpty`,
+a complete CRC, or category count identity.
+
+**Current scientific status: `METADATA_REVIEW_REQUIRED /
+CONDITIONAL_DESIGN / UNFROZEN / G01 BLOCKED`.**
+No empirical FP/frame denominator or model-detection-limit claim
+is yet admitted.
 
 
 **Gate:** #47 is only a prepared convention until a lawful exact release,
