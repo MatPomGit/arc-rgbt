@@ -46,7 +46,7 @@ def test_candidate_counts_and_no_scientific_promotion():
     assert report["independent_acquisitions_verified"] is False
     assert report["native_footprint_verified"] is False
     assert report["scientific_sample_size_approved"] is False
-    assert report["test_outcomes_accessed"] is False
+    assert report["heldout_outcomes_processed_by_tool"] is False
     assert report["frames_total"] == 4
     assert report["groups_declared_total"] == 3
     train = report["per_split"]["train"]
