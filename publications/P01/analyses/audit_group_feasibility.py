@@ -171,7 +171,7 @@ def assess(inventory: dict) -> dict:
         "independent_acquisitions_verified": False,
         "native_footprint_verified": False,
         "scientific_sample_size_approved": False,
-        "test_outcomes_accessed": False,
+        "heldout_outcomes_processed_by_tool": False,
         "source_release": inventory["source_release"],
         "group_basis": inventory["group_basis"],
         "grid_basis": inventory["grid_basis"],
