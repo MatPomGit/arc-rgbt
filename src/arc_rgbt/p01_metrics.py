@@ -226,12 +226,17 @@ def native_footprint_recall(
 
 def choose_validation_threshold(
     frames: list[dict], *, acquisition_ids: list[str], annotation_status: str,
-    max_fp_per_frame: float = 0.1, iou_threshold: float = 0.5,
+    split_role: str, max_fp_per_frame: float = 0.1, iou_threshold: float = 0.5,
     minimum_groups: int = 10, minimum_frames: int = 200,
     minimum_negative_frames: int = 20, replicates: int = 2000,
     seed: int = 20261101,
 ) -> dict:
-    """Select observed FP/frame operating point on validation only, never test."""
+    """Select a candidate validation operating point; split role is caller declared."""
+    # Check the declared split before reading any frame/prediction content.
+    # This prevents accidental test-set calibration, but cannot attest that
+    # the caller's split manifest is authentic or independently disjoint.
+    if split_role != "validation" or type(split_role) is not str:
+        raise ValueError("Explicit split_role='validation' required; train/test prohibited")
     ceiling, iou = _rate(max_fp_per_frame), _rate(iou_threshold, positive=True)
     _validate(frames, acquisition_ids, annotation_status, iou)
     if (type(minimum_groups) is not int or minimum_groups < 2
@@ -242,7 +247,11 @@ def choose_validation_threshold(
             or type(seed) is not int):
         raise ValueError("Invalid validation exposure/bootstrap parameters")
     result = {"status": "BLOCKED_VALIDATION_SIZE", "threshold": None,
-              "empirical_admission": False, "frames": len(frames),
+              "empirical_admission": False,
+              "split_role": "declared_validation_unverified",
+              "threshold_selection": "lowest_feasible_sorted_unique_score",
+              "score_inclusion_rule": "score >= threshold; ties indivisible",
+              "frames": len(frames),
               "groups": len(set(acquisition_ids)),
               "limitations": "Observed validation FP/frame is not a future upper bound"}
     if len(frames) < minimum_frames or len(set(acquisition_ids)) < minimum_groups:
