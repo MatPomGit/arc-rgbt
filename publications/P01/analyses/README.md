@@ -209,6 +209,24 @@ A group labelled `video_id_proxy` is **never** promoted to an independent
 physical acquisition. Sample enrichment cannot estimate source-wide
 annotation error prevalence without a separate sampling/weighting design.
 
+Selection uses a deterministic, **group-first order** for each stratum:
+one eligible frame from each group is drawn per pass before another frame
+from that group is considered, subject to the cap shared across strata.
+This avoids selection probability being mechanically proportional to
+the number of frames in a long video during the first pass; it does
+**not** prove the declared groups are physically independent or create
+a frame-representative probability sample. Higher-priority strata can
+exhaust the per-group cap and cause lower-priority quota shortfalls.
+
+The manifest records both `frame_inventory_sha256` (canonical sorted
+frame records only) and `inventory_sha256` (all inventory fields,
+including source release and grouping basis). It separately reports
+selected candidate-negative and target-positive counts and whether
+both target states are represented; **this is diagnostic, not a QA
+acceptance criterion**. All hashes are of operator-supplied declarations,
+not owner-verified archive bytes. Keep seed, source identity, grouping
+definition, quotas and code revision with the external audit record.
+
 The output lists selected frame/group keys, review/adjudication placeholders,
 population counts, quotas and explicit shortfalls. Two truly independent
 blinded reviewers must examine lawful original images/annotations, adjudicate
