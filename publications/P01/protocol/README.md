@@ -566,7 +566,6 @@ admitted source release, two-reviewer blind audit, numerical QA acceptance
 criterion or author sign-off exists. Metadata screening below does not
 replace source-specific acceptance records.
 
-### FLIR ADAS v2 local metadata preflight (2026-11-06; operator-reported, not verified admission)
 ### FLIR ADAS v2 local metadata and export reconciliation (2026-11-06; source not admitted)
 
 This is a read-only **operator-executed** FLIR ADAS v2 12-part archive
@@ -686,6 +685,73 @@ CONDITIONAL_DESIGN / UNFROZEN / G01 BLOCKED`.**
 No empirical FP/frame denominator or model-detection-limit claim
 is yet admitted.
 
+
+### FLIR ADAS v2 prospective blinded QA and group-feasibility audit (#47/#48; 2026-11-06)
+
+The current **operator-reported metadata** must not be used as
+source-admitted sample or false-positive exposure. Its validation split has
+1,144 candidate frames, including 183 with missing owner QA status,
+50 with original-versus-COCO total box-count differences, 325 with no
+COCO `person` and 16 with no COCO category at all. Counts overlap.
+The original `rider` category is remapped into COCO `person`;
+the P01 target therefore requires an explicit *pedestrian-only versus
+person-plus-rider* decision **before** even qualifying a negative frame.
+
+**Pre-outcome, source-local review plan (candidate, not executed):**
+
+1. Obtain permitted exact original image and label releases, authenticated
+   source terms, image and annotation hashes, original-coordinate
+   transforms and physical acquisition IDs. Never read test detector
+   outcomes to choose eligibility or review samples.
+2. Form a **single unique frame-key** inventory, storing original and
+   COCO class/box conflicts, QA state, candidate-negative status,
+   `video_id`, possible acquisition group, split and footprint status.
+   Assign one sampling stratum in this fixed priority: A = missing/
+   flagged owner QA; B = original/COCO class or geometry discrepancy
+   (including clipped boxes and rider-only frames); C = target-absent
+   candidate; D = remaining target-positive. Preserve all overlapping
+   risk flags separately. Do **not** sum raw stratum counts before
+   deduplicating by frame key.
+3. Freeze sampling seed, per-stratum counts/quotas, group-level sampling
+   unit and reviewed frame keys **before inspecting sampled images**.
+   Oversample high-risk records but also sample standard positives
+   and target-absent candidates. An enriched sample cannot estimate
+   population error prevalence without appropriate selection weights;
+   adjacent frames are correlated, not independent Bernoulli trials.
+4. Have two reviewers independently inspect source frames and labels,
+   blinded to detector predictions and each other's decisions. Record
+   missing targets, duplicates, class mismatches, box extents,
+   truncation, ignore regions and `complete_positive`,
+   `complete_negative` or `unknown`. Adjudicate disagreement,
+   preserve a versioned audit trail and keep unresolved frames UNKNOWN.
+5. Author and independent reviewer must fix a **numeric** annotation
+   discrepancy acceptance criterion and sampling-based uncertainty
+   method using *authenticated independent acquisition groups* before
+   QA results. Zero failures in a convenience sample does not prove
+   exhaustive annotations. If full population completeness cannot
+   be defended, admit only a prospectively defined, individually
+   verified subset with acknowledged selection bias, or keep G01
+   blocked. Do not use merely `approved`, ZIP CRC or matched
+   aggregate category counts as completeness evidence.
+
+**Preliminary grouping feasibility:** the operator reports only
+91 train / 12 validation distinct `video_id` values with candidate
+small-and-reference COCO-`person` observations, and 122 / 17
+for COCO-`car`. These are **potential video-level strata, not
+independent physical acquisitions**. Merging videos from the same
+acquisition can reduce the independent group count; native footprint,
+class mapping and label QA can remove eligible groups. Therefore the
+12 validation video IDs **do not establish** the proposed >=10
+independent paired-acquisition floor, a meaningful power estimate or
+FP/frame negative exposure. #48 remains counts-only until authentic
+source group IDs and per-bin target counts are available.
+
+**Acceptance output:** immutable sampling manifest; source-specific
+class map; two blinded review decisions and adjudication per selected
+frame; unique inclusion/exclusion counts by group and target bin;
+fully annotated negative exposure; acquisition-disjoint split evidence;
+pre-outcome numerical QA criterion and signed review. All remain
+PENDING, with `SOURCE_QA_NOT_EXECUTED / UNFROZEN / G01 BLOCKED`.
 
 **Gate:** #47 is only a prepared convention until a lawful exact release,
 independent QA and the author-approved source-specific rules exist. #36
