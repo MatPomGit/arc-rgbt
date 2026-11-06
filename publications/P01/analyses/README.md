@@ -157,38 +157,38 @@ implied by the synthetic pilot.
 
 ## Pre-test acquisition-group feasibility from metadata (#48)
 
-Run the offline \`audit_group_feasibility.py\` after independently preparing a
+Run the offline `audit_group_feasibility.py` after independently preparing a
 **local, non-test** frame-count inventory. It never opens source images,
 model predictions or held-out test outcomes. This audit is a
 **count-only planning aid**; even an overlap-free report cannot prove true
 independent physical acquisitions, source rights, complete annotations,
 native geometry, sample-size sufficiency or scientific GO.
 
-Input schema v1 has \`schema_version: 1\`, nonempty \`source_release\`,
-\`group_basis\` (\`video_id_proxy\` or \`declared_acquisition\`),
-\`grid_basis\` (\`export_grid_proxy\`, \`declared_native\` or \`unknown\`)
-and a nonempty \`frames\` array. Each row must contain exactly:
+Input schema v1 has `schema_version: 1`, nonempty `source_release`,
+`group_basis` (`video_id_proxy` or `declared_acquisition`),
+`grid_basis` (`export_grid_proxy`, `declared_native` or `unknown`)
+and a nonempty `frames` array. Each row must contain exactly:
 
-- \`frame_id\`, \`group_id\` (nonempty unique frame IDs; groups may recur);
-- \`split\`: \`train\` or \`validation\` only. \`test\` is rejected;
-- \`target_state\`: \`candidate_positive\`, \`candidate_negative\` or
-  \`unknown\` (all provisional; no state implies audited label coverage);
-- candidate \`small\`, \`intermediate\`, \`reference\` GT-bin counts (three
-  nonnegative integers for positive/negative candidates, three \`null\`
-  values for \`unknown\`). Bins reflect the declared grid basis **only**;
-- \`viewpoint\` and \`contrast\` (nonempty operator-declared category
-  strings, or literal \`unknown\` when unavailable).
+- `frame_id`, `group_id` (nonempty unique frame IDs; groups may recur);
+- `split`: `train` or `validation` only. `test` is rejected;
+- `target_state`: `candidate_positive`, `candidate_negative` or
+  `unknown` (all provisional; no state implies audited label coverage);
+- candidate `small`, `intermediate`, `reference` GT-bin counts (three
+  nonnegative integers for positive/negative candidates, three `null`
+  values for `unknown`). Bins reflect the declared grid basis **only**;
+- `viewpoint` and `contrast` (nonempty operator-declared category
+  strings, or literal `unknown` when unavailable).
 
 The count labels describe the proposed P01 target class **only** under an
 operator-supplied taxonomy, which is still subject to #47/#51 approval.
-Use \`candidate_negative\` only for records with zero candidate GT:
+Use `candidate_negative` only for records with zero candidate GT:
 this is **not** an independently verified complete negative frame.
-With \`grid_basis: unknown\`, nonzero footprint counts are rejected.
+With `grid_basis: unknown`, nonzero footprint counts are rejected.
 Never derive candidate counts from held-out detector outcomes.
 
 Minimal synthetic input example:
 
-\`\`\`json
+```json
 {
   "schema_version": 1,
   "source_release": "synthetic-only",
@@ -209,12 +209,12 @@ Minimal synthetic input example:
     }
   ]
 }
-\`\`\`
+```
 
-\`\`\`bash
+```bash
 python publications/P01/analyses/audit_group_feasibility.py \
   --input LOCAL_NONTEST_COUNTS.json --output LOCAL_GROUP_AUDIT.json
-\`\`\`
+```
 
 The tool refuses to overwrite existing output, hashes the entire canonical
 inventory, rejects duplicate JSON keys/frame IDs, contradictory target states,
@@ -222,10 +222,10 @@ incomplete bin counts, unsupported fields and test-split access.
 It reports, **separately for train/validation**, declared groups, candidate
 negative/positive/unknown frames, provisional GT-bin totals, paired-bin
 groups, per-group counts (minimum/median/maximum), computational
-\`>=2\` bin support, candidate negative-only groups and missing
+`>=2` bin support, candidate negative-only groups and missing
 viewpoint/contrast metadata. A declared group appearing in both splits
-produces \`BLOCKED_SPLIT_GROUP_OVERLAP\`; otherwise the result is
-\`PROVISIONAL_METADATA_ONLY\`, never empirical PASS. The output contains
+produces `BLOCKED_SPLIT_GROUP_OVERLAP`; otherwise the result is
+`PROVISIONAL_METADATA_ONLY`, never empirical PASS. The output contains
 aggregates, not frame/group identifiers or physical data.
 
 **Not provided by this tool:** genuinely independent acquisition proof,
