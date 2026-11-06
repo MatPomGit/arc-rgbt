@@ -222,8 +222,13 @@ incomplete bin counts, unsupported fields and test-split access.
 It reports, **separately for train/validation**, declared groups, candidate
 negative/positive/unknown frames, provisional GT-bin totals, paired-bin
 groups, per-group counts (minimum/median/maximum), computational
-`>=2` bin support, candidate negative-only groups and missing
-viewpoint/contrast metadata. A declared group appearing in both splits
+`>=2` bin support, candidate negative-only groups, missing
+viewpoint/contrast metadata and **candidate paired-bin overlap within the
+same known viewpoint-and-contrast category in each declared group**.
+Groups whose two bins appear only under different or unknown conditions
+do not count as joint-condition support. The categories remain
+operator-declared proxies, not validated measurement comparability.
+A declared group appearing in both splits
 produces `BLOCKED_SPLIT_GROUP_OVERLAP`; otherwise the result is
 `PROVISIONAL_METADATA_ONLY`, never empirical PASS. The output contains
 aggregates, not frame/group identifiers or physical data.
