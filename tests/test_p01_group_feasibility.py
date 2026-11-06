@@ -27,6 +27,8 @@ def inventory():
     return {
         "schema_version": 1, "source_release": "synthetic-only",
         "group_basis": "video_id_proxy", "grid_basis": "export_grid_proxy",
+        "target_class_spec_sha256": "a" * 64,
+        "footprint_bin_spec_sha256": "b" * 64,
         "frames": [
             frame("1", "g1", "train", small=2, reference=3),
             frame("2", "g1", "train", state="candidate_negative",
@@ -111,6 +113,58 @@ def test_inventory_fingerprint_is_order_independent_but_binds_declarations():
     changed = audit.assess(data)
     assert changed["input_inventory_sha256"] != first["input_inventory_sha256"]
     assert changed["independent_acquisitions_verified"] is False
+    data["target_class_spec_sha256"] = "c" * 64
+    remapped = audit.assess(data)
+    assert remapped["input_inventory_sha256"] != changed["input_inventory_sha256"]
+    assert remapped["target_class_spec_sha256"] == "c" * 64
+    data["footprint_bin_spec_sha256"] = "d" * 64
+    rebinned = audit.assess(data)
+    assert rebinned["input_inventory_sha256"] != remapped["input_inventory_sha256"]
+    assert rebinned["footprint_bin_spec_sha256"] == "d" * 64
+
+
+def test_reviewer_p1_whitespace_alias_does_not_evade_split_overlap():
+    data = inventory()
+    data["frames"][2]["group_id"] = "g1 "
+    # Fail closed: do not report a misleading overlap-free provisional result.
+    with pytest.raises(ValueError, match="Noncanonical group_id"):
+        audit.assess(data)
+    data["frames"][2]["group_id"] = "g1"
+    assert audit.assess(data)["status"] == "BLOCKED_SPLIT_GROUP_OVERLAP"
+
+
+@pytest.mark.parametrize("field,bad", [
+    ("viewpoint", " unknown "),
+    ("viewpoint", "Unknown"),
+    ("viewpoint", "UNKNOWN"),
+    ("contrast", " unknown "),
+    ("contrast", "Unknown"),
+    ("contrast", "UnKnOwN"),
+    ("viewpoint", "unknown\u200b"),
+])
+def test_reviewer_p2_noncanonical_unknown_is_rejected(field, bad):
+    data = inventory()
+    data["frames"][0][field] = bad
+    with pytest.raises(ValueError, match=f"Noncanonical {field}"):
+        audit.assess(data)
+    data["frames"][0][field] = "unknown"
+    report = audit.assess(data)
+    assert report["per_split"]["train"][
+        "paired_groups_with_known_joint_viewpoint_contrast_support"
+    ] == 0
+    assert report["per_split"]["train"][f"groups_missing_{field}"] == 1
+
+
+@pytest.mark.parametrize("field,bad", [
+    ("frame_id", " 1"), ("frame_id", "1 "),
+    ("group_id", "g1 "), ("group_id", "g 1"),
+    ("group_id", "ｇ１"), ("group_id", "g1\u200b"),
+])
+def test_noncanonical_identifiers_are_rejected(field, bad):
+    data = inventory()
+    data["frames"][0][field] = bad
+    with pytest.raises(ValueError, match=f"Noncanonical {field}"):
+        audit.assess(data)
 
 
 @pytest.mark.parametrize("mutation", [
@@ -125,6 +179,11 @@ def test_inventory_fingerprint_is_order_independent_but_binds_declarations():
     lambda d: d.update(grid_basis="unknown"),
     lambda d: d.update(group_basis="verified_independent"),
     lambda d: d.update(schema_version=True),
+    lambda d: d.pop("target_class_spec_sha256"),
+    lambda d: d.update(target_class_spec_sha256=""),
+    lambda d: d.update(target_class_spec_sha256="A" * 64),
+    lambda d: d.update(footprint_bin_spec_sha256="f" * 63),
+    lambda d: d.update(footprint_bin_spec_sha256=None),
 ])
 def test_invalid_metadata_fails_closed(mutation):
     data = inventory()
