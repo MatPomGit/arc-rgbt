@@ -106,7 +106,7 @@ def assess(inventory: dict) -> dict:
         viewpoint_unknown = 0
         contrast_unknown = 0
         joint_condition_support = 0
-        for group, group_rows in groups.items():
+        for group_rows in groups.values():
             small = sum(row["small"] or 0 for row in group_rows)
             reference = sum(row["reference"] or 0 for row in group_rows)
             if small > 0 and reference > 0:
