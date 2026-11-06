@@ -561,10 +561,74 @@ reason to remove otherwise fully annotated frames from FP/frame.
 Reconcile source/split/acquisition totals and independent review
 decisions before use.
 
-**Log state on 2026-11-06: `NOT_EXECUTED`.** There is no exact admitted
-release, source-specific frame inventory, blinded two-reviewer audit,
-justified numerical QA criterion, signed decision or verified rejection
-counts. This is an operational template, not fictional source evidence.
+**Log state on 2026-11-06: `SOURCE_QA_NOT_EXECUTED`.** No independently
+admitted source release, two-reviewer blind audit, numerical QA acceptance
+criterion or author sign-off exists. Metadata screening below does not
+replace source-specific acceptance records.
+
+### FLIR ADAS v2 local metadata preflight (2026-11-06; operator-reported, not verified admission)
+
+A local read-only audit of a 12-part FLIR ADAS v2 archive was executed on
+the train/validation metadata. These are **operator-reported descriptive
+counts**, not independently reproduced evidence or a signed rejection log.
+The test annotation partition was not opened. No image data are committed.
+
+| Check | Thermal train | Thermal validation |
+| --- | ---: | ---: |
+| Frames matched between Conservator index and COCO | 10,742 | 1,144 |
+| COCO GT instances | 175,040 | 16,696 |
+| Conservator index annotations | 176,063 | 16,786 |
+| Net index-minus-COCO instances | **1,023** | **90** |
+| Frames with differing annotation counts | 645 | 50 |
+| Frames without an explicit QA status | 1,992 | 183 |
+| Flagged frames | 52 | 1 |
+| All-class COCO-empty frames (NOT verified negatives) | 264 | 16 |
+| COCO target-absent `person` / `car` candidates | 2,537 / 918 | 325 / 97 |
+
+The diagnostic matched original video/frame keys for all 11,886
+train/validation frames, with no shared video IDs **between** these
+partitions. Video IDs alone do not verify physical acquisition independence,
+near-duplicate absence or common-support adequacy. Candidate within-video
+small/reference support was reported for `person`: 91 train / 12
+validation; `car`: 122 train / 17 validation. These are metadata-only
+support counts, not confirmed independent groups.
+
+**Warning about unmatched boxes:** exact coordinate matching left 6,002
+index-only versus 4,979 COCO-only detections in train and 466 versus 376
+in validation. These represent **non-identical bbox records**, not 6,468
+proved omissions. Net annotation count differences total **1,113** across
+695 frames. A subsequent category-aware/IoU-tolerant reconciliation and
+review of the original annotation schema are mandatory before assigning
+rejection reasons; equality of numeric coordinates cannot establish
+semantic or native-grid alignment. Do not promote the displayed
+`unmatched_original_labels_by_bbox` diagnostic to omitted-class counts.
+
+The operator sampled three TIFF headers per split: each declared
+640 × 512, one 16-bit grayscale sample, lossless TIFF LZW. The vendor
+states FLIR Tau 2 640 × 512, 13 mm f/1.0 with 14-bit pre-AGC TIFF
+(<https://oem.flir.com/solutions/automotive/adas-dataset-form/>). These
+are compatible statements about storage, **not** independent proof that
+COCO box geometry maps to raw sensor sites without transforms.
+Archive-part SHA-256 values were computed locally but not reported or
+matched to authoritative owner hashes. Full-member CRC was not run.
+The owner download terms for the **exact** release and annotations still
+need separate verification; an advertised free download is not a
+general-purpose licence grant.
+
+**Next bounded evidence actions:** (1) reconcile labels and altered
+coordinates by source frame and class, without reading test labels;
+(2) design a blinded reviewer sample stratified by missing QA, flagged
+frames, COCO/index disagreements and candidate negatives, with a
+predeclared numerical error criterion; (3) verify source rights,
+native-grid transform history and independent acquisition keys;
+(4) retain an immutable, rights-compliant local report and archive
+hashes. No status `complete_negative` can yet be assigned from an
+empty COCO list, `isEmpty` or `approved` alone.
+
+**Preflight status: `METADATA_REVIEW_REQUIRED` /
+`CONDITIONAL_DESIGN / UNFROZEN / G01 BLOCKED`.** No held-out detector
+outcomes or empirical FP/frame claims are authorized.
+
 
 **Gate:** #47 is only a prepared convention until a lawful exact release,
 independent QA and the author-approved source-specific rules exist. #36
