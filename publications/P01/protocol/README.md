@@ -387,7 +387,7 @@ mandatory freeze gates remain open.
 claims.** This draft can guide dataset screening and analysis implementation
 without pre-empting the required preregistration.
 
-## Annotation eligibility and negative-frame contract (#47; draft 2026-11-06)
+## Annotation eligibility and negative-frame contract (#47; proposal v0.2.0, 2026-11-06)
 
 This is a **pre-outcome decision proposal**, not verified annotation
 completeness, an accepted source, or a frozen preregistration. The original
@@ -407,8 +407,8 @@ held-out detection outcomes.
    aligned/export boxes alone are insufficient (#46).
 3. Freeze an IoU threshold and a deterministic confidence-ranked one-to-one
    match rule on non-test material. A ground-truth object can match at most
-   one prediction. Duplicate predictions must be counted as false positives
-   under the selected evaluation contract, not as additional true positives.
+   one prediction. Duplicate predictions are FP unless an independently validated, frozen
+   ignore-region policy explicitly exempts them; they are never additional TP.
 4. Decide *before test* whether crowd/ignore regions, uncertain boxes,
    heavily occluded and cut-off objects are evaluable, ignored or excluded.
    Record each reason and its effect on the GT denominator. An ignore
@@ -416,24 +416,38 @@ held-out detection outcomes.
 
 ### Complete-frame audit and FP/frame denominator
 
-For every original frame retain its acquisition ID, frame ID, annotation
-release, image dimensions, class map, and one of three **verified** label
-states: `complete_positive`, `complete_negative`, or `unknown`.
-`complete_negative` requires affirmative evidence from the owner annotation
-policy or independently audited exhaustive labels, **not** an empty file,
-missing annotation record or zero mapped objects. Unknown and partially
-annotated frames must not enter a confirmatory FP/frame denominator.
-Record their number and acquisition IDs separately; do not treat them as
-negative frames. A frame with eligible positive GT still contributes to the
-FP/frame denominator only if its annotation coverage is verified complete.
+For each original frame record exact source/annotation release hashes,
+acquisition and frame ID, original dimensions, target-class mapping and
+affirmative evidence of annotation coverage. The three *proposed*
+evidence-backed frame states are:
 
-The prospective FP/frame statistic is the total number of unmatched
-eligible predictions divided by **all completely annotated eligible
-frames**, including verified negatives, at a validation-selected frozen
-threshold. The recall denominators include eligible GT objects only.
-If annotation completeness or the relevant negative-frame policy cannot be
-verified, mark the **confirmatory FP/frame operating point BLOCKED**;
-do not report a nominal 0.10 FP/frame constraint as achieved.
+| State | Required evidence | Eligible outcome |
+| --- | --- | --- |
+| `complete_positive` | Exhaustive target-class annotation independently verified, at least one eligible P01 target | FP/frame and target recall |
+| `complete_negative` | Exhaustive target-class annotation independently verified, zero eligible P01 targets under the frozen policy | FP/frame only |
+| `unknown` | Missing, partial, ambiguous or unverified annotation | Neither confirmatory FP/frame nor recall |
+
+`complete_negative` means target-class negative, not necessarily
+object-free. An empty annotation file, missing label record or zero mapped
+objects alone is **not** evidence of exhaustive target coverage. A frame
+containing only ignored/ambiguous targets is not automatically negative.
+Classify independently of detector predictions; store unknown counts and
+acquisition IDs separately. A positive frame contributes to FP/frame only
+if its coverage is verified complete.
+
+Prospective FP/frame equals unmatched **in-scope P01 target-class**
+predictions (including duplicates, subject to the frozen ignore policy)
+divided by **all completely annotated eligible original frames**,
+positive and verified negative. Define the class-scoping rule before
+testing; do not silently include unrelated class predictions in FP or
+delete unmatched P01 predictions. Fully annotated frames from groups
+excluded from the paired-bin recall estimand still contribute to FP/frame.
+Recall denominators contain eligible target GT only. Report FP counts,
+frame counts and ratios by source, split and acquisition. Choose the score
+threshold using verified *validation* frames only; freeze it before
+untouched test evaluation. If completeness or negative-frame evidence
+cannot be verified, mark the confirmatory FP/frame operating point
+**BLOCKED**; never claim that 0.10 FP/frame was achieved.
 
 ### Blinded QA and adjudication before outcomes
 
@@ -466,6 +480,91 @@ whether excluded groups' frames remain eligible for FP/frame (only when
 fully annotated). Freeze the source-specific ledger, class map, matching
 rule, QA plan, split hashes and reviewer decision before held-out analysis.
 Do not infer any counts from the current metadata-only screening.
+
+### Executable-contract boundary (not implemented by this PR)
+
+`arc_rgbt.p01_metrics.native_footprint_recall` and
+`choose_validation_threshold` accept the caller's global declaration
+`annotation_status="complete"` but do **not** independently verify
+per-frame annotation coverage, source rights, class mapping, acquisition
+independence or original geometry. In particular,
+`choose_validation_threshold` counts empty `ground_truth` lists as
+negative frames; the declaration is not evidence. The shared
+`arc_rgbt.bench.evaluate` counts all supplied classes and has no
+crowd/ignore-region semantics. Existing box matching is confidence-ranked,
+class-aware and one-to-one, with input order breaking score ties.
+
+**Fail closed:** never pass unchecked source frames to either metric.
+Verify the external eligibility ledger *before* preparing its input, and
+restrict it to the frozen target class under a reviewed mapping. Where
+ignores, crowd regions, uncertain GT or occlusions cannot be represented
+without changing FP/GT semantics, mark
+`BLOCKED_UNSUPPORTED_ANNOTATION_POLICY` rather than silently removing
+boxes or relabelling frames. A source-specific adapter requires separate
+implementation, tests and scientific approval. This PR only documents
+the future admission contract.
+
+### Pre-outcome eligibility checklist (v0.2.0; pending)
+
+- [ ] Document lawful image **and annotation** rights, exact original
+      release, annotation version, hashes and independently verifiable links.
+- [ ] Verify LWIR band, original sensor grid, image transforms,
+      visible/amodal annotation convention and acquisition keys (#46).
+- [ ] Freeze source-to-P01 class map, non-target handling, IoU/score
+      matching, duplicates and ambiguous/ignored GT rules (#51).
+- [ ] Verify complete target-class annotation on **every** included
+      original frame, including candidate empty frames; assign one of
+      the three states above from evidence, not detector output.
+- [ ] Confirm unique frame and GT IDs, group-disjoint train/validation/test
+      partitions and split manifest hashes. Flag adjacent-frame leakage.
+- [ ] Freeze a reproducible, acquisition-stratified QA seed and sample
+      size for positive and candidate-negative frames, two independent
+      blinded reviewers, adjudication procedure and *numerical*
+      discrepancy/uncertainty acceptance criterion **before QA results**.
+- [ ] Retain both original QA decisions and adjudications in a
+      rights-compliant evidence record; unresolved labels stay
+      `unknown`, and a failed QA gate blocks admission.
+- [ ] Reconcile by source, split and acquisition:
+      `total_frames = complete_positive + complete_negative + unknown`;
+      eligible GT by footprint bin; frames and GT excluded by reason;
+      paired-bin acquisitions; fully annotated FP/frame exposure.
+- [ ] Record author approval, independent reviewer decision, protocol
+      SHA and dates **before held-out outcomes**; open #35/#36/#47/#53
+      until their own required evidence is available.
+
+### Independently reviewable exclusion and rejection log (v0.2.0)
+
+Maintain one append-only, source-specific decision log, with one row per
+source release, acquisition, frame or GT decision. Store its redacted
+version and SHA in a rights-compliant evidence location, linked from
+#47/#36; do not put restricted images or personal information in Git.
+Required row fields:
+
+| Fields | Contract |
+| --- | --- |
+| `source_sha`, `annotation_sha`, `split_sha`, `evidence_ref` | Immutable release/labels/split and completeness evidence; missing values block admission |
+| `unit_type`, `unit_id`, `acquisition_id`, `split` | Stable non-identifying decision key and train/validation/test membership |
+| `frame_state`, `decision`, `primary_reason`, `secondary_reasons` | One state; `INCLUDE`/`EXCLUDE`/`HOLD`; exactly one exclusion reason counted |
+| `eligible_gt_small`, `eligible_gt_intermediate`, `eligible_gt_reference` | Independently audited GT counts, not model-derived counts |
+| `fp_frame_eligible`, `paired_recall_eligible` | Separate flags; no paired GT does not itself disqualify fully annotated FP exposure |
+| `reviewer_a_ref`, `reviewer_b_ref`, `adjudication_ref` | Blinded QA decisions and resolution records |
+| `rule_version`, `protocol_sha`, `decision_date` | Audit trail fixed before test-outcome inspection |
+
+For mutually exclusive **frame** rejection counts choose the first
+applicable primary reason in this fixed order:
+`RIGHTS_OR_RELEASE`, `NATIVE_GRID_OR_GROUP_UNVERIFIED`,
+`CLASS_OR_IGNORE_UNRESOLVED`, `ANNOTATION_INCOMPLETE`,
+`SPLIT_LEAKAGE`. Preserve other applicable reasons in
+`secondary_reasons`, without counting one excluded frame twice.
+`NO_PAIRED_BINS` is *acquisition-level recall exclusion only*, never a
+reason to remove otherwise fully annotated frames from FP/frame.
+Reconcile source/split/acquisition totals and independent review
+decisions before use.
+
+**Log state on 2026-11-06: `NOT_EXECUTED`.** There is no exact admitted
+release, source-specific frame inventory, blinded two-reviewer audit,
+justified numerical QA criterion, signed decision or verified rejection
+counts. This is an operational template, not fictional source evidence.
 
 **Gate:** #47 is only a prepared convention until a lawful exact release,
 independent QA and the author-approved source-specific rules exist. #36
