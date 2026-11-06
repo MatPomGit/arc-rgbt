@@ -218,6 +218,43 @@ test performance. Review positive/negative-frame prevalence, unequal
 acquisition sizes and negative-frame exposure. The held-out threshold
 and checkpoint cannot be adjusted after seeing test results.
 
+#### D3/D4 validation threshold and exclusion decision matrix (2026-11-06; UNFROZEN)
+
+This is a **pre-outcome candidate** for #51, not an author-approved
+numerical operating-point freeze. The function
+`arc_rgbt.p01_metrics.choose_validation_threshold` requires explicit
+`split_role="validation"` and rejects all other roles **before** parsing
+predictions; the role is only a caller declaration. The source admission
+ledger, source-to-P01 class map, original split SHA, independent group
+identity, and per-frame complete GT must still be verified outside the
+function. A role flag alone cannot prevent a dishonest or mistaken caller
+from passing held-out data. Test outcomes must not be inspected during
+calibration.
+
+| Candidate condition | Selector / downstream decision |
+| --- | --- |
+| Split declared `train`, `test`, blank or omitted | Reject before inspecting frame content; no threshold |
+| Missing source-verified labels or invalid/unknown groups | Stop at external eligibility gate; do not pass frames to selector |
+| Validation sample below provisional frame/group floor | `BLOCKED_VALIDATION_SIZE`; no cutoff |
+| Too few candidate complete-negative frames or negative groups | `BLOCKED_NEGATIVE_EXPOSURE`; no cutoff |
+| No score threshold with observed FP/frame <= proposed 0.10 and nonzero TP | `BLOCKED_NO_TRUE_POSITIVES` or `BLOCKED_NO_FEASIBLE_THRESHOLD`; no cutoff |
+| Confidence ties around the budget boundary | Use `score >= threshold`: all predictions tied at the threshold are included; never partially retain a tie to meet budget |
+| First valid lowest cutoff in sorted distinct validation scores plus 0 and 1 | `CANDIDATE_ONLY`, with observed validation FP/frame, TP and acquisition-bootstrap 95% diagnostic |
+| Validation bootstrap upper 95% FP/frame bound above 0.10 | Preserve candidate cutoff and set `validation_fp_upper_ci_exceeds_ceiling=true`; review uncertainty, do not claim high-confidence budget control |
+| Untouched held-out test FP/frame > frozen budget | `OPERATING_CONDITION_NOT_MET`; retain threshold and descriptive evidence, suppress candidate confirmatory inference; no retuning |
+
+Threshold proposals and this software fixture matrix do **not** authorize
+real-data calibration. Before freezing D3/D4, decide the exact FP/frame
+budget, any acceptable validation uncertainty criterion, IoU 0.50 primary
+and IoU 0.25 sensitivity, duplicate predictions, ignored/crowd/occluded GT,
+and exact eligible positive/negative denominators. The prespecified
+confidence-grid endpoint `1.0` cannot suppress predictions scored exactly
+`1.0`; when no candidate yields both a valid budget and TP, the
+operation remains blocked rather than inventing a no-detection cutoff.
+The primary IoU and cutoff are shared across eligible small/reference bins
+for a given LWIR detector. Candidate **scientific status is unchanged**:
+`CONDITIONAL_DESIGN / UNFROZEN / G01 BLOCKED`.
+
 #### Directional inference, bootstrap sensitivity and localization (candidate)
 
 For the proposed directional hypothesis, the candidate one-sided group t
