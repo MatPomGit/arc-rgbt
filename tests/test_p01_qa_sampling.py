@@ -63,6 +63,41 @@ def test_selection_is_reproducible_and_overlaps_count_once():
     assert all(row["reviewer_a"] is None for row in a["selected_frames"])
 
 
+
+def test_group_first_sampling_prevents_dense_video_overrepresentation():
+    data = inventory()
+    data["frames"] = [
+        frame(f"dense-{i}", "dense-video", qa_state="missing")
+        for i in range(100)
+    ] + [frame("sparse-0", "sparse-video", qa_state="missing")]
+    report = qa.plan_sample(
+        data, quotas={"A": 2, "B": 0, "C": 0, "D": 0},
+        seed=42, max_per_group=2,
+    )
+    assert report["status"] == "SAMPLE_PLAN_ONLY"
+    assert {row["group_id"] for row in report["selected_frames"]} == {
+        "dense-video", "sparse-video"
+    }
+    assert report["population_groups_declared"] == 2
+    assert report["both_target_states_represented"] is False
+
+
+def test_full_inventory_hash_binds_source_and_group_definition():
+    data = inventory()
+    original = sample(data)
+    changed = inventory()
+    changed["group_basis"] = "declared_acquisition"
+    regrouped = sample(changed)
+    assert original["frame_inventory_sha256"] == regrouped["frame_inventory_sha256"]
+    assert original["inventory_sha256"] != regrouped["inventory_sha256"]
+    changed["source_release"] = "a-different-release"
+    renamed = sample(changed)
+    assert renamed["inventory_sha256"] != regrouped["inventory_sha256"]
+    assert original["selected_candidate_negative_frames"] == 1
+    assert original["selected_target_positive_frames"] == 3
+    assert original["both_target_states_represented"] is True
+
+
 def test_group_cap_detects_incomplete_sample_and_does_not_impute_reviews():
     data = inventory()
     for row in data["frames"]:
