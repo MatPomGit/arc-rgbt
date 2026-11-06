@@ -76,7 +76,7 @@ def test_group_cap_detects_incomplete_sample_and_does_not_impute_reviews():
 @pytest.mark.parametrize("bad", [
     lambda d: d["frames"].append(d["frames"][0].copy()),
     lambda d: d["frames"][0].update(predictions=[]),
-    lambda d: d["frames"][0].update(target_positive=False, candidate_negative=True),
+    lambda d: d["frames"][0].update(target_positive=True, candidate_negative=True),
     lambda d: d["frames"][0].update(qa_state="unknown"),
     lambda d: d["frames"][0].update(class_conflict=1),
     lambda d: d.update(group_basis="independent_proven"),
