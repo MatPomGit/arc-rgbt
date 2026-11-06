@@ -386,3 +386,89 @@ mandatory freeze gates remain open.
 **Current evidence status: BLOCKED for confirmatory physical detection-limit
 claims.** This draft can guide dataset screening and analysis implementation
 without pre-empting the required preregistration.
+
+## Annotation eligibility and negative-frame contract (#47; draft 2026-11-06)
+
+This is a **pre-outcome decision proposal**, not verified annotation
+completeness, an accepted source, or a frozen preregistration. The original
+release, exact annotation version, rights and independent acquisition keys
+are still unavailable. The rules below must be signed off before accessing
+held-out detection outcomes.
+
+### Reference population and matching
+
+1. Record the owner-defined class taxonomy, source label identifiers and
+   explicit mapping to the prespecified P01 target class. Unmapped classes
+   are **UNKNOWN**, not negatives; never silently collapse classes or infer
+   missing labels from detector output.
+2. Preserve the original box coordinate convention, visible versus amodal
+   extent, image orientation, truncation and occlusion attributes. Native
+   footprint bins require independently verified original-detector geometry;
+   aligned/export boxes alone are insufficient (#46).
+3. Freeze an IoU threshold and a deterministic confidence-ranked one-to-one
+   match rule on non-test material. A ground-truth object can match at most
+   one prediction. Duplicate predictions must be counted as false positives
+   under the selected evaluation contract, not as additional true positives.
+4. Decide *before test* whether crowd/ignore regions, uncertain boxes,
+   heavily occluded and cut-off objects are evaluable, ignored or excluded.
+   Record each reason and its effect on the GT denominator. An ignore
+   region is not evidence that all other image regions are fully annotated.
+
+### Complete-frame audit and FP/frame denominator
+
+For every original frame retain its acquisition ID, frame ID, annotation
+release, image dimensions, class map, and one of three **verified** label
+states: `complete_positive`, `complete_negative`, or `unknown`.
+`complete_negative` requires affirmative evidence from the owner annotation
+policy or independently audited exhaustive labels, **not** an empty file,
+missing annotation record or zero mapped objects. Unknown and partially
+annotated frames must not enter a confirmatory FP/frame denominator.
+Record their number and acquisition IDs separately; do not treat them as
+negative frames. A frame with eligible positive GT still contributes to the
+FP/frame denominator only if its annotation coverage is verified complete.
+
+The prospective FP/frame statistic is the total number of unmatched
+eligible predictions divided by **all completely annotated eligible
+frames**, including verified negatives, at a validation-selected frozen
+threshold. The recall denominators include eligible GT objects only.
+If annotation completeness or the relevant negative-frame policy cannot be
+verified, mark the **confirmatory FP/frame operating point BLOCKED**;
+do not report a nominal 0.10 FP/frame constraint as achieved.
+
+### Blinded QA and adjudication before outcomes
+
+- Before model predictions or held-out performance are viewed, freeze a
+  reproducible, acquisition-stratified random audit seed and sample size
+  based on the actual non-test frame inventory. Include both owner-labelled
+  positives and candidate empty frames; preserve independent source groups.
+- Two reviewers independently inspect sampled frames using the original
+  annotation convention, blinded to model outputs and to one another's
+  decisions. Record missing objects, class mismatch, box extent, duplicates,
+  ignore/crowd ambiguity and apparent incomplete negatives.
+- Reconcile disagreements against source documentation; unresolved cases
+  remain `unknown`. Record raw decisions, reviewer roles, adjudication
+  date and exact release/manifest hashes in an external rights-compliant
+  evidence record, not personal data or images in Git.
+- Fix an allowable uncertainty/disagreement criterion **before** the audit
+  results are known; none is currently justified by source evidence.
+  A small QA sample cannot establish zero missing annotations. If the
+  prespecified criterion fails, stop admission and correct/re-audit the
+  source without inspecting held-out detector outcomes.
+
+### Required pre-test exclusion and denominator ledger
+
+For each candidate release record counts of total frames, verified
+positive frames, verified fully negative frames, unknown/partial frames,
+eligible GT by native-footprint bin, ignored/ambiguous objects, duplicate
+annotation IDs, and acquisition groups with both target bins. Report
+mutually exclusive exclusion reasons and source/acquisition IDs, plus
+whether excluded groups' frames remain eligible for FP/frame (only when
+fully annotated). Freeze the source-specific ledger, class map, matching
+rule, QA plan, split hashes and reviewer decision before held-out analysis.
+Do not infer any counts from the current metadata-only screening.
+
+**Gate:** #47 is only a prepared convention until a lawful exact release,
+independent QA and the author-approved source-specific rules exist. #36
+and #57 own dataset admission; #35/#53 own protocol freeze. Current
+status: `CONDITIONAL_DESIGN / UNFROZEN / G01 BLOCKED`.
+
