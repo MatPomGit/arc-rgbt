@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
+import unicodedata
 from collections import defaultdict
 from pathlib import Path
 from statistics import median
@@ -21,7 +23,10 @@ FRAME_KEYS = {
     "frame_id", "group_id", "split", "target_state", "small",
     "intermediate", "reference", "viewpoint", "contrast",
 }
-TOP_KEYS = {"schema_version", "source_release", "group_basis", "grid_basis", "frames"}
+TOP_KEYS = {
+    "schema_version", "source_release", "group_basis", "grid_basis",
+    "target_class_spec_sha256", "footprint_bin_spec_sha256", "frames",
+}
 
 
 def _unique_pairs(pairs: list[tuple[str, object]]) -> dict:
@@ -31,6 +36,26 @@ def _unique_pairs(pairs: list[tuple[str, object]]) -> dict:
             raise ValueError(f"Duplicate JSON key: {key}")
         result[key] = value
     return result
+
+
+
+def _canonical_label(value: object, *, identifier: bool = False) -> bool:
+    if not isinstance(value, str) or not value or value != value.strip():
+        return False
+    if unicodedata.normalize("NFKC", value) != value:
+        return False
+    if any(unicodedata.category(char) in ("Cc", "Cf") for char in value):
+        return False
+    if identifier and any(char.isspace() for char in value):
+        return False
+    # "unknown" is reserved for missing covariates, not a real category.
+    if not identifier and value.casefold() == "unknown" and value != "unknown":
+        return False
+    return True
+
+
+def _digest(value: object) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
 
 
 def _validate(inventory: dict) -> None:
@@ -45,6 +70,9 @@ def _validate(inventory: dict) -> None:
         raise ValueError("Invalid group_basis")
     if inventory["grid_basis"] not in ("export_grid_proxy", "declared_native", "unknown"):
         raise ValueError("Invalid grid_basis")
+    for name in ("target_class_spec_sha256", "footprint_bin_spec_sha256"):
+        if not _digest(inventory[name]):
+            raise ValueError(f"Invalid versioned contract SHA-256: {name}")
     frames = inventory["frames"]
     if not isinstance(frames, list) or not frames:
         raise ValueError("Nonempty frames required")
@@ -53,9 +81,10 @@ def _validate(inventory: dict) -> None:
         if not isinstance(frame, dict) or set(frame) != FRAME_KEYS:
             raise ValueError("Invalid frame fields: no predictions or outcomes allowed")
         for key in ("frame_id", "group_id", "viewpoint", "contrast"):
-            value = frame[key]
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"Nonempty {key} required")
+            if not _canonical_label(
+                frame[key], identifier=key in ("frame_id", "group_id")
+            ):
+                raise ValueError(f"Noncanonical {key}")
         if frame["frame_id"] in seen:
             raise ValueError("Duplicate frame_id")
         seen.add(frame["frame_id"])
@@ -175,6 +204,8 @@ def assess(inventory: dict) -> dict:
         "source_release": inventory["source_release"],
         "group_basis": inventory["group_basis"],
         "grid_basis": inventory["grid_basis"],
+        "target_class_spec_sha256": inventory["target_class_spec_sha256"],
+        "footprint_bin_spec_sha256": inventory["footprint_bin_spec_sha256"],
         "input_inventory_sha256": hashlib.sha256(canonical).hexdigest(),
         "frames_total": len(frames),
         "groups_declared_total": len(group_splits),
@@ -183,7 +214,8 @@ def assess(inventory: dict) -> dict:
         "limitations": (
             "All counts derive from an operator-supplied pre-test inventory. "
             "Candidate negatives do not prove exhaustive annotations; "
-            "declared native grids and group IDs are unverified. "
+            "declared native grids and group IDs are unverified; "
+            "contract SHA-256 values are operator-declared, not checked against source files. "
             "Group overlaps prevent split-disjointness even on declared IDs. "
             "No sample-size sufficiency, inference, independent acquisitions "
             "or source-admission GO is established."
