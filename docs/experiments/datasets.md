@@ -80,6 +80,34 @@ The evidence table remains incomplete until those original source materials
 are lawfully inspected. **No actual dataset or annotation archive was
 downloaded for this remediation.**
 
+### FLIR Tau 2 manufacturer model-level geometry (checked 2026-11-06)
+
+Teledyne FLIR's [ADAS dataset specifications](https://oem.flir.com/en-gb/solutions/automotive/adas-dataset-form/)
+identify a **Tau 2 thermal camera with 640 x 512 detector**, 13 mm
+f/1.0 optics, approximately 45-degree horizontal and 37-degree vertical
+field of view, plus thermal 14-bit pre-AGC TIFF and 8-bit AGC JPEG
+exports. The [Tau 2 manufacturer's product specification](https://www.flir.eu/products/tau-2?segment=oem&vertical=lwir)
+identifies an **LWIR 7.5-13.5 micrometre** band and **17 micrometre
+pixel pitch** for the camera model. These are verifiable model-level
+specifications, not independent authentication that every file in the
+operator's 12-part local archive came from exactly that model,
+firmware, optical chain or unaltered native coordinate grid.
+
+**Release identity mismatch to resolve before P01 admission:** the
+owner page reports **9,711 thermal training/validation images**.
+The operator's reported train/validation index inventory in PR #65
+contains **10,742 + 1,144 = 11,886 thermal frame keys**. This
+difference may reflect release packaging, selection or revisions;
+the cause is currently **UNKNOWN**. Do not quietly mix publisher
+summary counts with local archive counts. Require an exact
+release-specific source manifest, release/version reconciliation,
+original archive part hashes and independently reviewed TIFF-to-COCO
+coordinate correspondence before using original-grid footprints.
+Neither the camera datasheet nor equal TIFF pixel dimensions
+establish independently verified annotation geometry, full negative
+coverage or physical acquisition identity. Current P01 status remains
+**G01 BLOCKED** and #46 remains open.
+
 ## P01 native-geometry screening contract (2026-11-05; #46)
 
 The dimensions of a distributed image, an aligned RGB/thermal pair, and the
