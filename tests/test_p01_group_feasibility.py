@@ -56,6 +56,8 @@ def test_candidate_counts_and_no_scientific_promotion():
     }
     assert train["groups_with_both_candidate_bins"] == 1
     assert train["groups_with_at_least_two_per_primary_bin"] == 1
+    assert train["paired_groups_with_known_joint_viewpoint_contrast_support"] == 1
+    assert val["paired_groups_with_known_joint_viewpoint_contrast_support"] == 1
     assert train["groups_with_candidate_negatives"] == 1
     assert train["groups_only_candidate_negative"] == 0
     assert val["groups_with_unknown_frames"] == 1
@@ -64,6 +66,31 @@ def test_candidate_counts_and_no_scientific_promotion():
     assert val["paired_small_targets_per_group"] == {
         "min": 1, "median": 1, "max": 1
     }
+
+
+
+def test_paired_bins_in_disjoint_conditions_do_not_count_as_common_support():
+    data = inventory()
+    data["frames"] = [
+        frame("small", "g", "train", small=2, reference=0,
+              viewpoint="front", contrast="low"),
+        frame("reference", "g", "train", small=0, reference=3,
+              viewpoint="oblique", contrast="high"),
+        frame("unknown", "h", "train", small=1, reference=2,
+              viewpoint="unknown", contrast="low"),
+    ]
+    report = audit.assess(data)
+    train = report["per_split"]["train"]
+    assert train["groups_with_both_candidate_bins"] == 2
+    assert train["paired_groups_with_known_joint_viewpoint_contrast_support"] == 0
+    # Giving the reference frame the same declared condition establishes
+    # candidate overlap, not verified comparability.
+    data["frames"][1]["viewpoint"] = "front"
+    data["frames"][1]["contrast"] = "low"
+    fixed = audit.assess(data)
+    assert fixed["per_split"]["train"][
+        "paired_groups_with_known_joint_viewpoint_contrast_support"
+    ] == 1
 
 
 def test_group_crossing_train_validation_blocks_split_disjointness():
