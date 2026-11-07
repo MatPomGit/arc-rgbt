@@ -20,7 +20,7 @@ Specify inclusion/exclusion criteria, sensor calibration, datasets, controls, sp
   image orientation and occlusion, and distinguish simulated versus
   independently measured optical degradation.
 - Report precision, recall, F1 and AP separately as applicable, including
-  IoU/confidence policies, negative-frame annotation completeness and
+  IoU/confidence policies, annotation completeness limitations and
   uncertainty over independent scenes/acquisitions.
 - **Exit gate:** no real-sensor generalization claim until original
   source images, labels, scene-separated test split and provenance are verified.
@@ -47,7 +47,7 @@ available. It therefore **must not** be called preregistration.
 
 | ID | Candidate decision | Evidence still needed before freeze |
 | --- | --- | --- |
-| D1: target population | Lawfully usable original-grid LWIR acquisitions with complete eligible GT and verified acquisition identifiers. For the primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified native-footprint bins. Frames with zero GT remain in FP/frame assessment. | Original archive, spectral band, annotation/negative completeness, independent group keys and class mapping (#45-#48). |
+| D1: target population | Lawfully usable LWIR frames with supplied GT for Tier A descriptive/reference-relative analysis; authentic original-grid geometry and independent acquisition IDs are separately required for Tier B physical claims and defensible confirmatory group inference. For the primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified native-footprint bins. Frames with zero GT remain in FP/frame assessment. | Original archive, lawful terms, supplied-label convention and group/geometry evidence status (#45-#48); missing source-label completeness restricts the claim, not an automatic demand for new human annotation. |
 | D2: contrast | For acquisition `g`, compute `d_g = TP_small,g / N_small,g - TP_reference,g / N_reference,g` at the **same** validation-locked LWIR detector threshold. Primary estimand is `Delta = mean_g(d_g)`, giving each eligible acquisition equal weight, not each target. The population is the eligible paired-bin acquisition cohort, **not** all LWIR scenes. | Counts by acquisition/bin and overlap of class, contrast, viewpoint and occlusion; review potential selection induced by requiring both bins (#48/#50). |
 | D10: inference | Directional candidate `H1: Delta < 0`, `H0: Delta >= 0` (calibrate at boundary `Delta = 0`); proposed one-sided alpha `0.05`. A two-sided 95% interval is **descriptive**, not the alpha-0.05 decision. Candidate confirmatory test: one-sided acquisition-level Student t of mean `d_g` against zero with `G-1` degrees of freedom; group-level validity and source-informed calibration remain unresolved. | Independent group count, group heterogeneity, distributional diagnostics, finite-sample type-I error and power simulations informed by non-test data, independent scientific review and author approval (#49/#50/#53). |
 
@@ -326,14 +326,14 @@ before freeze. No physical distance threshold follows from `s` alone.
 If a source offers only resized/cropped images with unknown native geometry,
 it cannot enter the confirmatory population.
 
-**Denominators and stop rules.** Every eligible, independently annotated
-target is counted in the recall denominator, including misses. FP/frame uses
-all eligible and completely annotated test frames, including empty frames.
+**Denominators and stop rules.** Every eligible source-annotated
+target is counted in the recall denominator, including misses. Dataset-relative FP/frame uses
+all eligible source-labelled test frames, including reference-negative frames; absence of a label does not prove true object absence.
 Record unmatched predictions on both positive and negative frames. Do not
 select an operating threshold from the test set. If validation permits only
 the no-detection solution, or the required independent groups, native labels
-or negative-frame completeness are unavailable, report **BLOCKED** rather
-than a physical detection-limit estimate. Only groups containing both
+or independently established scene absence is unavailable, report Tier B **BLOCKED** rather
+than a physical detection-limit estimate; a limited Tier A descriptive result can still be reported against supplied GT. Only groups containing both
 bins can contribute to the proposed paired bootstrap; if there are too
 few or pilot precision is insufficient,
 report DESCRIPTIVE_ONLY without a confirmatory interval. Author approval
@@ -378,7 +378,7 @@ an earlier software CI run.
 | --- | --- | --- |
 | Research question and primary estimand | Candidate D1/D2/D10 above and [hypotheses](../hypotheses/README.md) are written; independent methodological sign-off missing. | Author approves cohort, observational interpretation, primary directional test and compatible alpha/CI rule; #49/#50/#53. |
 | Original LWIR source, rights and sensor geometry | Preliminary source shortlist only in [datasets](../../../docs/experiments/datasets.md); no original release admitted. | Exact original release and annotation rights, LWIR spectral band, native grid/transform and independent group IDs verified; #45/#46/#36. |
-| Annotation and negative exposure | Proposed GT matching and all-frame FP rules exist, but original labels and complete negative frames remain unverified. | Source-specific class map, visible/amodal policy, blinded QA, ignore/exclusion log, complete negative-frame audit; #47. |
+| Annotation and negative exposure | Proposed GT matching and all-frame FP rules exist, but original labels and complete negative frames remain unverified. | Source-specific class map, visible/amodal and ignore policy, supplied-reference negative-frame definition, exclusion log and explicit label-completeness limitations; no human QA requirement; #47. |
 | Pairing, representativeness and precision | The estimator now reports singleton bins, excluded acquisitions and paired-only pooled weighting sensitivity; synthetic directional testing is available. Authentic group counts, common support and source-informed type-I/power calibration remain absent. | Counts-only independent acquisition inventory, within-bin target minimum, effect-size justification, group heterogeneity, directional type-I/power and descriptive CI coverage decision; #48/#49/#50. |
 | Threshold and multiplicity | Numerical FP/frame, IoU and footprint values are **candidates**, not approved choices. | Author-approved D3/D4 and inference/multiplicity rules before test access; #51/#53. |
 | Publication fit and novelty | Prospective ~250-word scope text and [unsent editorial package](../README.md); fit provisional. | External originality/scope appraisal and approved inquiry if desired; #52. |
