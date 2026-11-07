@@ -332,6 +332,58 @@ not an independent physical acquisition claim. Keep all generated
 frame-level inventories and QA plan files **outside** the repository.
 Do not give empirical `complete_negative`/FP-frame status on this basis.
 
+## Independent blinded source-image annotation review (reviewer worksheets)
+
+After the `--plan-output` file has been generated, create *two
+separate* blinded CSV worksheets. They include only selected
+`frame_id` values in reviewer-specific deterministic orders; there
+are **no** source QA labels, source GT counts, detector predictions,
+risk strata or other reviewer decisions in either form.
+
+```bash
+python publications/P01/analyses/reconcile_blinded_qa.py prepare \
+  --plan "$HOME/datasets/flir-adas-v2/qa_val_car_plan.json" \
+  --reviewer-a "$HOME/datasets/flir-adas-v2/qa_car_reviewer_A.csv" \
+  --reviewer-b "$HOME/datasets/flir-adas-v2/qa_car_reviewer_B.csv"
+```
+
+Each reviewer must independently inspect the lawful original
+image and annotation record, without detector predictions or access
+to the other's completed sheet. They fill every row with the
+controlled fields:
+`coverage=complete|incomplete|uncertain`,
+`target_present=yes|no|uncertain`,
+`labels=correct|incorrect|uncertain`,
+`boxes=correct|incorrect|uncertain`,
+`missing_targets` as a nonnegative integer, and
+`reason_code` as an optional short ASCII code. Do **not** put names,
+free-text personal information, raw images or predictions in the CSV.
+`complete` requires no unlabelled eligible target; marked
+`target_present=no` is prohibited when missing targets have
+been seen. Each assessor keeps their own file independently.
+
+After collecting **both actual completed** review files:
+
+```bash
+python publications/P01/analyses/reconcile_blinded_qa.py reconcile \
+  --plan "$HOME/datasets/flir-adas-v2/qa_val_car_plan.json" \
+  --reviewer-a "$HOME/datasets/flir-adas-v2/qa_car_reviewer_A.csv" \
+  --reviewer-b "$HOME/datasets/flir-adas-v2/qa_car_reviewer_B.csv" \
+  --output "$HOME/datasets/flir-adas-v2/qa_car_disagreements.json"
+```
+
+The result binds the plan and both worksheets by SHA-256, checks
+duplicate/missing rows, reports exact reviewer verdict agreement
+and target-presence concordance, and lists frames that need **manual
+adjudication** because of disagreement, uncertainty or agreed defects.
+Even perfectly concordant reviewers do **not** automatically admit
+this source: reviewer independence, blind-review provenance and an
+author-approved *numerical* QA criterion remain independently
+unverified. The code has no function to change source `G01` or
+`FP/frame` gates. A selected enrichment sample cannot determine
+the prevalence of annotation errors without a separate probability-
+sampling analysis. All review records and images stay outside Git.
+
 ## Blind annotation-QA sampling from local metadata (metadata-only)
 
 `select_blinded_qa.py` creates a **deterministic, group-capped sampling
