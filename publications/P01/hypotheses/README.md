@@ -1,18 +1,75 @@
-# P01: low-cost native-resolution detection limits
+# P01: LWIR detection performance by source-annotated target footprint
 
-**Status:** CORE PLANNED; hypothesis proposed, not preregistered. No independent empirical result.
+**Decision sheet v0.3.0 · 2026-11-07 · CONDITIONAL_DESIGN / UNFROZEN.**
+Author approval of an eventual frozen analysis and claim tier remains pending.
+This study uses supplied labels; it does not conduct an annotation-quality
+experiment or assert that missing labels prove real negative scenes.
 
-## H1 and H0
+## Current Tier A research question and estimand (#50)
 
-**H1 (directional candidate):** With a frozen LWIR detector and validation-only selected operating point, the equal-acquisition-weighted mean of within-acquisition small-minus-reference *IoU-0.50 localization-qualified* GT recall differences is negative (`Delta < 0`). This is an association, not a causal sensor-resolution effect.
+**Question:** Among source-labelled LWIR targets, is recall lower for
+smaller annotated image-plane footprints when a fixed detector is evaluated
+at a validation-selected false-positive budget, *relative to supplied GT*?
 
-**H0 (candidate):** The within-acquisition LWIR contrast averaged equally across eligible paired acquisition groups is nonnegative (`Delta >= 0`); the least-favourable boundary is `Delta = 0`. The proposed one-sided acquisition-level t test uses alpha 0.05 and a corresponding 95% upper confidence bound. Its source-informed error calibration, power and author approval remain pending before held-out access.
+- Candidate primary target class: **car**, without reclassifying `rider` as
+  `person`. Other source classes require separately specified mappings.
+- Per-GT proxy: `s = sqrt(width_xywh * height_xywh)` on the declared **COCO
+  export grid**. Candidate bins: small `s < 8`, intermediate
+  `8 <= s < 16`, reference `s >= 16` pixels. This proxy is not a proven
+  native focal-plane footprint or physical detection-range estimate.
+- Matching: one-to-one same-class boxes, IoU >= 0.50, descending score,
+  deterministic tie order. IoU=0.25 is a sensitivity analysis only.
+- Reference-relative `FP/frame` uses unmatched detections divided by
+  all selected source-labelled frames, including frames with no source GT.
+  These are *reference-negative*, not certified object-free.
+- Candidate operating budget: 0.10 reference FP/frame. Choose the lowest
+  feasible confidence score from **validation only**, preserving tied scores
+  and at least one TP; lock it before any holdout reading. If infeasible,
+  report `BLOCKED_VALIDATION`, not a tuned holdout result.
+- If independently verified acquisitions with both bins exist, candidate
+  group contrast `d_g = TP_small,g / GT_small,g - TP_ref,g / GT_ref,g`;
+  `Delta = mean_g(d_g)`, equally weighting true acquisitions. All-negative
+  groups remain in the FP/frame denominator but not this paired contrast.
+  Currently, source `video_id` is a **proxy**, so no confirmatory
+  acquisition-independent hypothesis test or cluster CI is authorized.
 
-## Outcomes and controls
+## H0/H1 conditional on source-independent group evidence
 
-- **Primary candidate (pending author freeze):** LWIR-only equal-weight *paired acquisition* contrast for native GT footprint `s < 8` versus `s >= 16` pixels. At least 10 source-verified groups with both bins are provisionally required; the validation-selected cutoff is locked on test, with target 0.10 FP/frame. RGB is secondary; fusion belongs to P02. See the [full protocol](../protocol/README.md).
-- **Secondary:** IoU=0.25 tiny-object localization sensitivity, AP at specified IoU, RGB modality, class/contrast/occlusion/viewpoint balance, and alternative weighting. No exploratory result may be promoted into a primary test.
-- **Controls:** original native images, same checkpoint and test labels, consistent thresholds/FP budgets, independent sensor/projection metadata; report simulated E00 degradation separately from actual low-resolution acquisitions.
-- **Stopping / negative evidence:** if native source geometry, complete labels or independent holdout cannot be verified, do not publish claims about physical distance or sensor resolution limits.
+If a prospective author decision establishes authentic acquisition units,
+adequate group support, control of relevant confounding and calibrated
+inference before held-out outcomes, the directional candidates are
+`H0: Delta >= 0`, `H1: Delta < 0` with one-sided alpha 0.05. A two-sided
+95% CI is descriptive and cannot substitute for that directional test.
+The one-sided group-t test and its finite-group calibration remain
+**unapproved candidates** under #49/#50/#53. No p-value is currently
+prespecified for unverified source-video proxies.
 
-See the [P01 protocol](../protocol/README.md) and [common measurement rules](../../../docs/guides/evaluation-requirements.md).
+Without this evidence, report source-GT-relative per-bin recall and
+FP/frame, group counts, pooled sensitivity and failures as
+`DESCRIPTIVE_ONLY`. Do not imply camera optics causality: small and large
+targets can differ in contrast, class, viewpoint, obstruction, blur and
+acquisition conditions. Provide class/scene distributions when available,
+but no post-hoc inference promotion.
+
+## Distinct outcomes and scientific gates
+
+- **Tier A:** reproducible detector output compared with the existing
+  lawful dataset labels. The exact annotation/release version, data split,
+  model checkpoint provenance, scores and input/result hashes are required.
+  Label incompleteness and training-data overlap remain explicit limitations.
+- **Tier B:** any claim about physical **native LWIR sensor** limits needs
+  separately verified original-grid optics, annotation coordinate mapping,
+  lawful source identity and true independent acquisitions; otherwise
+  **BLOCKED**. Descriptive Tier A results cannot validate Tier B.
+- RGB is a secondary comparator; RGB-LWIR fusion is primarily P02.
+  Artificial resizing E00 is a separately labelled **simulation**.
+- No manual reannotation/two-reviewer QA is required. Independent numerical
+  reproduction and final manuscript review do not imply new source labelling.
+- No test-set optimisation, automatic science GO, editorial contact,
+  payments or journal submission.
+
+[Operational protocol](../protocol/README.md) ·
+[Source-GT evaluation runner](../analyses/README.md) ·
+[Milestone #35](https://github.com/MatPomGit/arc-rgbt/issues/35) ·
+[Decision #50](https://github.com/MatPomGit/arc-rgbt/issues/50) ·
+[Operating point #51](https://github.com/MatPomGit/arc-rgbt/issues/51).
