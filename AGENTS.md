@@ -32,6 +32,11 @@ Read the latest [AUTOPILOT_PLAN.md](AUTOPILOT_PLAN.md) v1.4.0 or later and [P01 
 - Independent code/numerical/manuscript review and author protocol/submission decisions remain; they are not surrogate label review.
 - Security, licensing, no held-out tuning, zero-spend, one active PR and no automatic publication remain unchanged.
 
+## Submission-first editorial rule (author directive, 2026-11-07)
+
+- Follow the canonical [research submission policy](RESEARCH.md#submission-first-publication-policy-author-directive-2026-11-07): a scientifically defensible, completed manuscript should move promptly to author-approved submission instead of indefinite polishing merely out of fear of rejection. A realistic journal with even modest eligible points (e.g. 20) is preferable to never submitting; rejection can be followed by revision and resubmission.
+- Prepare journal-fit alternatives, manuscript, checklists and an explicit submit/revise decision for the author. Never bypass evidence/ethics/novelty gates, claim guaranteed points, send a submission, contact a publisher or authorize costs without the author's explicit approval.
+
 ## Finish before starting
 
 - Read the active [research issue and milestone tracker M0–M6](https://github.com/MatPomGit/arc-rgbt/issues/21) **after** `PROJECT_STATE.yaml` and `AUTOPILOT_PLAN.md`. Follow dependency and evidence gates in the linked issue before selecting a task. Use the existing issue (and PR, if any) rather than opening a duplicate.
