@@ -332,6 +332,72 @@ not an independent physical acquisition claim. Keep all generated
 frame-level inventories and QA plan files **outside** the repository.
 Do not give empirical `complete_negative`/FP-frame status on this basis.
 
+## Offline reviewer image packages from FLIR ADAS v2 (JPEG preview only)
+
+Once `qa_val_car_plan.json` and the two blank `qa_car_reviewer_A.csv` /
+`qa_car_reviewer_B.csv` templates exist, run **one command on the Fedora
+machine holding the lawful source archive**:
+
+```bash
+python3 publications/P01/analyses/render_flir_qa_package.py \
+  "$HOME/datasets/flir-adas-v2" \
+  --split val --target car \
+  --plan "$HOME/datasets/flir-adas-v2/qa_val_car_plan.json" \
+  --reviewer-a "$HOME/datasets/flir-adas-v2/qa_car_reviewer_A.csv" \
+  --reviewer-b "$HOME/datasets/flir-adas-v2/qa_car_reviewer_B.csv" \
+  --output "$HOME/datasets/flir-adas-v2/qa_car_review_kit"
+```
+
+The tool reads the already-downloaded 12-part ZIP **without extracting
+it**; reads only selected validation (or explicit training) thermal JPG
+frames, the corresponding original `index.json` and `coco.json`
+metadata; refuses **test**; verifies the plan's canonical source
+inventory hash, selected image dimensions and CRC, and stops on
+missing/ambiguous source paths or previously completed reviewer CSVs.
+The output directory must not already exist and must be **outside Git**.
+
+Result:
+
+```text
+qa_car_review_kit/
+  package_manifest.json   # coordinator only; source hashes, selected IDs
+  reviewer_A/
+    index.html             # offline browser gallery, raw frame first
+    review.csv             # blank reviewer A worksheet copy
+    images/                # raw + source target/all-box overlays
+  reviewer_B/
+    index.html
+    review.csv             # blank reviewer B worksheet copy
+    images/
+```
+
+Each reviewer sees the same sampled original thermal **8-bit AGC JPEGs**
+in their own deterministic order. Images are presented unannotated by
+default. Expand the original `index.json` overlay to inspect source
+box placement; green boxes are target candidate classes
+(`person`/`rider` grouped **only for this provisional preview**,
+`car` independently), grey are other literal source classes.
+The package intentionally exposes **no** QA flags, risk strata,
+source-frame selection reasons or detector predictions. Keep the
+entire coordinator manifest and the *other* reviewer folder away from
+each assessor. Do not share these actual images externally until
+their image/annotation rights are verified.
+
+Reviewers must manually fill their own packaged `review.csv`
+completely, based on the displayed original source data. After both
+are returned, use `reconcile_blinded_qa.py reconcile` with their
+**packaged, completed** CSV paths and the same sampling plan.
+The original two blank CSVs in the source directory are not updated.
+Never synthesize decisions, overwrite previously reviewed files or
+promote G01 using presentation-tool success.
+
+**Limit:** JPEG visualization is an 8-bit AGC display of source
+frames; it is **not** a 16-bit TIFF/native-grid measurement and cannot
+verify physically invisible targets, raw-grid transforms,
+source rights or full GT coverage. All G01 scientific gates,
+pre-outcome numeric QA acceptance and independent human review
+remain blocked until explicitly verified.
+
 ## Independent blinded source-image annotation review (reviewer worksheets)
 
 After the `--plan-output` file has been generated, create *two
