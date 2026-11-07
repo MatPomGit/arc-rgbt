@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from collections import defaultdict
 from pathlib import Path
 
 from arc_rgbt.evaluation_contracts import detection_contract
@@ -137,8 +136,6 @@ def evaluate_reference(
         "input_sha256": {
             "validation_annotations": digest(validation_annotations),
             "validation_predictions": digest(validation_predictions),
-            "holdout_annotations": digest(holdout_annotations),
-            "holdout_predictions": digest(holdout_predictions),
         },
         "implementation_sha256": {
             "runner": digest(Path(__file__)),
@@ -150,8 +147,11 @@ def evaluate_reference(
     if cutoff["status"] != "CANDIDATE_ONLY":
         return result
 
-    # Deliberately delay reading holdout GT and predictions until after
-    # the validation-only operating point has been selected.
+    # Do not even open held-out files until after validation selection.
+    result["input_sha256"].update({
+        "holdout_annotations": digest(holdout_annotations),
+        "holdout_predictions": digest(holdout_predictions),
+    })
     test, test_groups, test_counts = load_coco(
         holdout_annotations, holdout_predictions, selected_class,
     )
