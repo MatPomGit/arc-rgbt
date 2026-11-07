@@ -106,3 +106,12 @@ def test_adapter_rejects_unknown_predictions(tmp_path):
     write_json(paths[1], bad)
     with pytest.raises(ValueError, match="unknown image_id"):
         runner.evaluate_reference(*paths, "car")
+
+
+def test_crowd_gt_is_not_silently_treated_as_ordinary_target(tmp_path):
+    val_gt, val_pred, _, _ = sources(tmp_path)
+    annotations = json.loads(val_gt.read_text(encoding="utf-8"))
+    annotations["annotations"][0]["iscrowd"] = 1
+    write_json(val_gt, annotations)
+    with pytest.raises(ValueError, match="crowd/ignore"):
+        runner.load_coco(val_gt, val_pred, "car")
