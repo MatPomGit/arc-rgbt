@@ -73,12 +73,24 @@ class JoinedParts:
         return b"".join(chunks)
 
 
+def _unique_json_keys(pairs: list[tuple[str, object]]) -> dict:
+    """Refuse JSON with ambiguous repeated keys in source annotations."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"Duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
 def _json_entry(z: zipfile.ZipFile, name: str) -> tuple[dict, str]:
+    if sum(item.filename == name for item in z.infolist()) != 1:
+        raise ValueError(f"Missing or duplicate ZIP metadata entry: {name}")
     info = z.getinfo(name)
     if info.file_size > MAX_JSON_BYTES:
         raise ValueError("Annotation JSON exceeds the 200 MiB limit")
     raw = z.read(name)  # CRC checked by zipfile for selected JSON entry
-    doc = json.loads(raw)
+    doc = json.loads(raw, object_pairs_hook=_unique_json_keys)
     if not isinstance(doc, dict):
         raise ValueError("Expected JSON annotation object")
     return doc, hashlib.sha256(raw).hexdigest()
@@ -208,6 +220,10 @@ def build_inventory(index: dict, coco: dict, *, split: str, target: str,
         raw_annotations = frame.get("annotations")
         if not isinstance(raw_annotations, list):
             raise ValueError("Missing original annotations")
+        if type(frame.get("isEmpty")) is not bool or frame["isEmpty"] != (len(raw_annotations) == 0):
+            raise ValueError("Original isEmpty conflicts with annotations or is missing")
+        if type(frame.get("isFlagged")) is not bool:
+            raise ValueError("Original isFlagged is not boolean")
         boxes_original = []
         original_labels = Counter()
         clipped = False
@@ -295,6 +311,9 @@ def main(argv: list[str] | None = None) -> int:
 
     parts = [args.archive_dir / f"FLIR_ADAS_v2.zip.{i:02d}" for i in range(12)]
     with zipfile.ZipFile(JoinedParts(parts)) as z:
+        member_names = z.namelist()
+        if len(member_names) != len(set(member_names)):
+            raise ValueError("ZIP archive has duplicate member names")
         prefix = f"images_thermal_{args.split}"
         index, index_sha = _json_entry(z, f"{prefix}/index.json")
         coco, coco_sha = _json_entry(z, f"{prefix}/coco.json")
