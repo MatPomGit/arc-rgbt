@@ -18,8 +18,8 @@ def _rate(value: float, *, positive: bool = False) -> float:
 
 
 def _validate(frames: list[dict], groups: list[str], labels: str, iou: float) -> None:
-    if labels != "complete":
-        raise ValueError("Complete annotations required, including negative frames")
+    if labels not in ("complete", "source_reference_unverified"):
+        raise ValueError("Complete annotations or source_reference_unverified required")
     if not isinstance(frames, list) or not frames:
         raise ValueError("Nonempty frames required")
     if (not isinstance(groups, list) or len(groups) != len(frames)
@@ -40,13 +40,16 @@ def native_footprint_recall(
     small_limit: float = 8, reference_limit: float = 16,
     minimum_paired_groups: int = 10, replicates: int = 2000, seed: int = 20261101,
     max_fp_per_frame: float = 0.1, minimum_targets_per_bin: int | None = None,
+    group_basis: str = "verified_acquisition",
 ) -> dict:
     """Per-GT IoU matching and acquisition-paired recall; declarations unverified."""
     cutoff, iou = _rate(operating_score), _rate(iou_threshold, positive=True)
     fp_ceiling = _rate(max_fp_per_frame)
     _validate(frames, acquisition_ids, annotation_status, iou)
-    if grid_origin != "original_native":
-        raise ValueError("Original-native GT grid required")
+    if grid_origin not in ("original_native", "source_export"):
+        raise ValueError("Original-native or source-export GT grid required")
+    if group_basis not in ("verified_acquisition", "source_video_proxy"):
+        raise ValueError("Invalid group basis")
     if (type(small_limit) not in (int, float)
             or type(reference_limit) not in (int, float)
             or not math.isfinite(small_limit) or not math.isfinite(reference_limit)
@@ -155,7 +158,10 @@ def native_footprint_recall(
     # The within-bin floor must be explicitly set from pre-test evidence.
     # Even a satisfied computational gate does not authorize scientific inference.
     eligible = (len(paired_groups) >= minimum_paired_groups
-                and below_floor is not None and not below_floor)
+                and below_floor is not None and not below_floor
+                and annotation_status == "complete"
+                and grid_origin == "original_native"
+                and group_basis == "verified_acquisition")
     # Retain an explicitly descriptive contrast even when group support
     # is insufficient for an interval. No scientific inference is authorized.
     values = list(deltas.values())
@@ -183,7 +189,11 @@ def native_footprint_recall(
         "operating_condition_met": budget_met,
         "candidate_fp_ceiling": fp_ceiling,
         "empirical_admission": False,
-        "grid_origin": "declared_original_native_unverified",
+        "grid_origin": "declared_original_native_unverified" if grid_origin == "original_native"
+                       else "declared_source_export_unverified",
+        "annotation_reference": annotation_status,
+        "group_basis": group_basis,
+        "physical_sensor_claims_supported": False,
         "per_object": objects, "per_bin": per_bin,
         "per_group": {
             group: {**{name: {"tp": values[name][0], "targets": values[name][1]}
@@ -229,7 +239,7 @@ def choose_validation_threshold(
     split_role: str, max_fp_per_frame: float = 0.1, iou_threshold: float = 0.5,
     minimum_groups: int = 10, minimum_frames: int = 200,
     minimum_negative_frames: int = 20, replicates: int = 2000,
-    seed: int = 20261101,
+    seed: int = 20261101, group_basis: str = "verified_acquisition",
 ) -> dict:
     """Select a candidate validation operating point; split role is caller declared."""
     # Check the declared split before reading any frame/prediction content.
@@ -239,6 +249,8 @@ def choose_validation_threshold(
         raise ValueError("Explicit split_role='validation' required; train/test prohibited")
     ceiling, iou = _rate(max_fp_per_frame), _rate(iou_threshold, positive=True)
     _validate(frames, acquisition_ids, annotation_status, iou)
+    if group_basis not in ("verified_acquisition", "source_video_proxy"):
+        raise ValueError("Invalid group basis")
     if (type(minimum_groups) is not int or minimum_groups < 2
             or type(minimum_frames) is not int or minimum_frames < 1
             or type(minimum_negative_frames) is not int
@@ -249,6 +261,8 @@ def choose_validation_threshold(
     result = {"status": "BLOCKED_VALIDATION_SIZE", "threshold": None,
               "empirical_admission": False,
               "split_role": "declared_validation_unverified",
+              "annotation_reference": annotation_status,
+              "group_basis": group_basis,
               "threshold_selection": "lowest_feasible_sorted_unique_score",
               "score_inclusion_rule": "score >= threshold; ties indivisible",
               "frames": len(frames),
@@ -291,23 +305,34 @@ def choose_validation_threshold(
                     ]
                     measured = evaluate(group_frames, iou_threshold=iou)
                     cluster_rates.append((measured["fp"], len(group_frames)))
-                rng = random.Random(seed)
-                bootstrap_rates = []
-                for _ in range(replicates):
-                    sampled = rng.choices(cluster_rates, k=len(cluster_rates))
-                    bootstrap_rates.append(
-                        sum(item[0] for item in sampled) /
-                        sum(item[1] for item in sampled)
-                    )
-                bootstrap_rates.sort()
-                interval = [_percentile(bootstrap_rates, 0.025),
-                            _percentile(bootstrap_rates, 0.975)]
+                # Do not bootstrap provisional video-ID proxies as if
+                # they represented independently verified acquisitions.
+                verified = group_basis == "verified_acquisition"
+                interval = None
+                if verified:
+                    rng = random.Random(seed)
+                    bootstrap_rates = []
+                    for _ in range(replicates):
+                        sampled = rng.choices(cluster_rates, k=len(cluster_rates))
+                        bootstrap_rates.append(
+                            sum(item[0] for item in sampled) /
+                            sum(item[1] for item in sampled)
+                        )
+                    bootstrap_rates.sort()
+                    interval = [_percentile(bootstrap_rates, 0.025),
+                                _percentile(bootstrap_rates, 0.975)]
                 result.update(
                     status="CANDIDATE_ONLY", threshold=cutoff,
                     validation_fp_per_frame=rate, validation_tp=counts["tp"],
-                    validation_fp_bootstrap_ci_95=interval,
-                    validation_fp_upper_ci_exceeds_ceiling=interval[1] > ceiling,
-                    bootstrap_replicates=replicates,
+                    validation_fp_bootstrap_ci_95=interval if verified else None,
+                    validation_fp_upper_ci_exceeds_ceiling=(
+                        interval[1] > ceiling if verified else None
+                    ),
+                    bootstrap_replicates=replicates if verified else 0,
+                    uncertainty_status=(
+                        "CANDIDATE_GROUP_BOOTSTRAP" if verified
+                        else "SUPPRESSED_UNVERIFIED_GROUP_INDEPENDENCE"
+                    ),
                 )
             return result
     result["status"] = "BLOCKED_NO_FEASIBLE_THRESHOLD"
