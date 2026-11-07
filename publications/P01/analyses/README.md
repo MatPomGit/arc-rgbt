@@ -276,6 +276,59 @@ These remain the independent #46-#51 and G01 gates. Keep source inventories
 and output reports outside Git; include only admissible checksums and a
 reviewed summary in the research issue.
 
+## FLIR ADAS v2 metadata-to-QA inventory adapter (offline, candidate-only)
+
+`build_flir_qa_inventory.py` reads **only** the original Conservator
+`index.json` and COCO `coco.json` files for the explicitly selected
+`images_thermal_train` or `images_thermal_val` partition within the
+twelve official archive chunks. It does **not** extract/read images,
+open the `video_thermal_test` annotation partition, run models,
+infer source rights or approve dataset admission. The archive stays
+outside Git. The resulting input can be consumed by the existing
+`select_blinded_qa.py` sampler in the same command.
+
+For example, from the repository root on Fedora:
+
+```bash
+python publications/P01/analyses/build_flir_qa_inventory.py \
+  "$HOME/datasets/flir-adas-v2" \
+  --split val --target person \
+  --output "$HOME/datasets/flir-adas-v2/qa_val_person_inventory.json" \
+  --plan-output "$HOME/datasets/flir-adas-v2/qa_val_person_plan.json" \
+  --seed 20261107 --max-per-group 5 --quotas A=15,B=15,C=15,D=15
+```
+
+The displayed seed and quotas are **illustrative only**, not an approved
+QA design, sample size or discrepancy threshold. Source data are read
+only; existing output files are never overwritten. For `car`, select
+`--target car` with new output paths. For train, select `--split train`.
+Do not combine training and validation by silently changing split labels.
+
+The candidate class map for FLIR's aggregate export is `person` +
+`rider` -> COCO `person`, and original `car` -> COCO `car`.
+A frame with riders but without literal pedestrians is flagged
+`rider_only`; this is **not** a prespecified decision to include riders
+as a P01 pedestrian target. Target count mismatch is flagged
+`class_conflict`, and a conservative one-to-one IoU >= 0.95 mismatch
+is flagged `geometry_conflict`. `clipped_box` flags *any* out-of-frame
+source/COCO box for review, not automatic exclusion or error.
+Frames with neither mapped original nor COCO target are
+`candidate_negative` only, never known complete negatives.
+Flagged or absent QA statuses receive the appropriate risk stratum.
+If two target representations disagree about presence, a frame stays
+`target_positive` and is flagged as a class conflict, **not** negative.
+
+The generator requires identical source video/frame keys and
+dimensions, checks duplicate/orphaned annotation IDs, and binds
+the inventory identity to the SHA-256 of both JSON members.
+The 12-part stream is read-only and each annotation JSON's ZIP CRC
+is checked. All image/annotation rights, full-grid coordinate provenance,
+acquisition independence and blinded two-reviewer correctness checks
+remain external gates. The selector's `video_id_proxy` grouping is
+not an independent physical acquisition claim. Keep all generated
+frame-level inventories and QA plan files **outside** the repository.
+Do not give empirical `complete_negative`/FP-frame status on this basis.
+
 ## Blind annotation-QA sampling from local metadata (metadata-only)
 
 `select_blinded_qa.py` creates a **deterministic, group-capped sampling
