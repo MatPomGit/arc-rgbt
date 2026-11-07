@@ -1,6 +1,6 @@
 # arc-rgbt research work plan
 
-**Version 1.4.0 · updated 2026-11-07.** Six CORE planned studies P01–P06 and two OPTIONAL HOLD studies P07–P08. This file owns work packages, not a second copy of research methods: use [RESEARCH.md](RESEARCH.md), the individual protocols and machine-readable [PROJECT_STATE.yaml](PROJECT_STATE.yaml).
+**Version 1.4.1 · updated 2026-11-07.** Six CORE planned studies P01–P06 and two OPTIONAL HOLD studies P07–P08. This file owns work packages, not a second copy of research methods: use [RESEARCH.md](RESEARCH.md), the individual protocols and machine-readable [PROJECT_STATE.yaml](PROJECT_STATE.yaml).
 
 ## Current execution queue and issue milestones
 
@@ -39,7 +39,9 @@
 | #39 | 2027-02-26 | #62 independent numerical reproduction and paper/code/novelty review under #29, not manual annotation rechecks. |
 | #40 | 2027-03-19 | Verified UNSENT submission bundle and explicit author GO/NO-GO; publisher deadline 2027-03-31. |
 
-**Immediate priority (2026-11-07):** finish #35/#47/#48/#50/#51 with existing GT and real source information; #45/#46 license/original optics via existing documentation; build #54-#57 automatic splits/feasibility; reuse #58-#60 for actual experiment. #49 only necessary inference-method check, no expanding synthetic QA. #52 desk fit/novelty without emailing. Historical completed checks are evidence, not a mandate for extra work.
+**Current completion ledger (2026-11-07):** [PR #70](https://github.com/MatPomGit/arc-rgbt/pull/70) was merged (commit `bef295e5936c189029ca934f80ef959b5deebd3c`). Its source-reference metrics/COCO runner and the [candidate hypothesis sheet](publications/P01/hypotheses/README.md) are now implemented; [CI #42364159503](https://github.com/MatPomGit/arc-rgbt/actions/runs/42364159503) passed 409 tests, 7 skipped, Ruff and MkDocs. **#50 is complete as an unfrozen author-reviewable candidate only; do not recreate it.** #51 has documented candidate FP/frame/class rules but still needs author numerical freeze and real validation data. The runner consumes **existing model detections** and labelled COCO records; it does NOT generate model predictions, read raw FLIR TIFF/JPEG archives, authenticate rights/physical grid or execute real experiments here. Focus next efforts on lawful source identities, genuine split/group isolation (#45/#46/#48/#54/#55), determining an actually available local detector checkpoint and automated inference to COCO predictions, and author freeze (#53/#58) before any held-out outcome access. No manual label QA, new standalone dataset tests, duplicate runner, empirical GO or author-submission delegation.
+
+**Immediate priority (2026-11-07):** finish #35/#47/#48/#51 and #53 (the #50 candidate sheet is complete) with existing GT and real source information; #45/#46 license/original optics via existing documentation; build #54-#57 automatic splits/feasibility; reuse #58-#60 for actual experiment. #49 only necessary inference-method check, no expanding synthetic QA. #52 desk fit/novelty without emailing. Historical completed checks are evidence, not a mandate for extra work.
 
 **Decision boundaries:** Tier A external-data benchmark is not Tier B physical proof. If insufficient independent groups, report descriptive results and constraints; do not impose human reannotation as an agent-created block. PROJECT_STATE.yaml G01 remains unchanged until evidence-backed scientific decision. No fabricated results or automatic GO. Report each run concisely: accomplished artifacts+SHA, next autonomous task, real blockers/minimal terminal command, schedule deviation.
 
