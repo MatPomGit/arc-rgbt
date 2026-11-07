@@ -8,6 +8,10 @@ Status: **planned study; no empirical results or manuscript submitted**.
 Project-wide work packages and blockers:
 [AUTOPILOT_PLAN.md](../../AUTOPILOT_PLAN.md).
 
+## Current execution policy (2026-11-07)
+
+The agent owns scientific code, local-execution preparation, labelled-dataset benchmark, analysis, figures and manuscript. No obligatory two-reviewer source reannotation, manual CSV forms or new dataset QA workstreams. Where actual files/GPU are local-only, use one short offline command and small hash-backed results. Dataset-relative performance does **not** itself prove physical sensor detection limits. See the [current plan](../../AUTOPILOT_PLAN.md) and [P01 evidence tiers](protocol/README.md) for the authoritative contract.
+
 ## Target journal and fit assessment (2026-10-31)
 
 **Selected target:** *Sensors* (MDPI), Special Issue

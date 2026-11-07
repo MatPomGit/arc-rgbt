@@ -21,6 +21,17 @@
 - **Zero-cost clarification:** standard GitHub-hosted GitHub Actions in this public repository are approved under `zero-cost`, including repeat CI checks and reruns needed for quality; do not refuse necessary free validation to save minutes. Owner declares GitHub Education educator benefits. Those benefits do not automatically make paid large runners, private-repository overages, artifacts/storage overages or paid APIs free. Check actual eligibility before use. Keep all existing security, trusted-runner and payment rules unchanged.
 - For P01 *Sensors*, university APC funding is a **planning assumption**, not payment or separate authorization to commit funds or submit. See the current plan. Do not change any security rule, payment permission, scientific gate or deployment requirement on this basis.
 
+## P01 execution: automation-first authority (author decision 2026-11-07)
+
+Read the latest [AUTOPILOT_PLAN.md](AUTOPILOT_PLAN.md) v1.4.0 or later and [P01 protocol](publications/P01/protocol/README.md) on every run. This author directive overrides old P01 instructions that require human QA on supplied reference labels.
+
+- Agent performs data integration, scientific code, experiments, analysis, plots and manuscript wherever tools and lawful data access permit; reuse existing common data contracts and code.
+- No added two-reviewer label checks, blind review forms/galleries, manual image-classification campaigns, label reconciliation or standalone dataset/database QA unless author explicitly approves that distinct study.
+- A normal local-only dataset handoff is one short reproducible Fedora command with local files/GPU and small hash-backed results, not repeated owner labour or raw-data upload. Never claim an experiment happened when the command was not executed.
+- Dataset-label-relative recall/FP/frame is permissible with clear annotation limitations. Claims about physical native sensor limits require distinct provenance/optics/independent-acquisition evidence. Do not claim unsupported G01 PASS or scientific GO.
+- Independent code/numerical/manuscript review and author protocol/submission decisions remain; they are not surrogate label review.
+- Security, licensing, no held-out tuning, zero-spend, one active PR and no automatic publication remain unchanged.
+
 ## Finish before starting
 
 - Read the active [research issue and milestone tracker M0–M6](https://github.com/MatPomGit/arc-rgbt/issues/21) **after** `PROJECT_STATE.yaml` and `AUTOPILOT_PLAN.md`. Follow dependency and evidence gates in the linked issue before selecting a task. Use the existing issue (and PR, if any) rather than opening a duplicate.
