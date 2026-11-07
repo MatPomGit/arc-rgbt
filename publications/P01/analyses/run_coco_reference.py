@@ -74,6 +74,9 @@ def load_coco(
         if image_id not in frames:
             raise ValueError("Orphan COCO ground truth")
         if item["category_id"] == category_id:
+            # Do not silently score unsupported crowd/ignore annotations.
+            if item.get("iscrowd", 0) or item.get("ignore", 0):
+                raise ValueError("Selected source crowd/ignore GT needs a frozen policy")
             frames[image_id]["ground_truth"].append({
                 "label": selected_class, "bbox": item["bbox"],
             })
