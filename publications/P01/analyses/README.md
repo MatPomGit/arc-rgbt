@@ -319,8 +319,11 @@ If two target representations disagree about presence, a frame stays
 `target_positive` and is flagged as a class conflict, **not** negative.
 
 The generator requires identical source video/frame keys and
-dimensions, checks duplicate/orphaned annotation IDs, and binds
-the inventory identity to the SHA-256 of both JSON members.
+dimensions, checks duplicate/orphaned annotation IDs, **repeated JSON
+keys or ZIP member names**, and missing/inconsistent original
+`isEmpty` / `isFlagged` flags. It binds a metadata candidate identity
+to the SHA-256 of both JSON members; **these hashes do not authenticate
+the original image bytes or the vendor's exact release**.
 The 12-part stream is read-only and each annotation JSON's ZIP CRC
 is checked. All image/annotation rights, full-grid coordinate provenance,
 acquisition independence and blinded two-reviewer correctness checks
