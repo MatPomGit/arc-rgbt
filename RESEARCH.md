@@ -13,6 +13,12 @@
 | P07 | Adaptive modality/inference policy: measured joules per scene at matched perception | **OPTIONAL HOLD** | [P07](publications/P07/protocol/README.md) |
 | P08 | Calibration/timing uncertainty propagation: observed risk-bound coverage | **OPTIONAL HOLD** | [P08](publications/P08/protocol/README.md) |
 
+## Submission-first publication policy (author directive, 2026-11-07)
+
+**A defensible finished manuscript should be submitted rather than left unpublished merely because rejection is possible.** Once it has an honest evidence-to-claims match, adequate scientific quality, journal fit, required ethical/legal clearances and the author's explicit submission approval, prefer a timely submission to an appropriate journal over indefinite polishing or shelving. Editorial rejection is an acceptable risk and can inform revision and resubmission elsewhere; no submission guarantees acceptance or bibliometric points.
+
+Publication points matter to the author: a feasible publication opportunity, even at a modest score such as **20 points**, is preferable to a completed manuscript that is never submitted and earns no publication points. Verify the target journal's current point classification and APC terms before recommending a venue; do not promise points. **Submission-first does not override scientific evidence gates, publication ethics, novelty review, or the prohibition on agents independently submitting manuscripts, committing funds or contacting publishers without authorization.** Where high-tier claims are unsupported, narrow the claims and select an appropriate venue rather than indefinitely block a valid, more limited paper.
+
 ## Independence rule
 
 P01: physical spatial observability; P02: ordinary fusion and frame alignment; P03: fixed embedded device benchmarking; P04: fault handling and selective risk; P05: independent cross-sensor generalization; P06: temporal identity association; P07: policy-dependent energy saving, **not** static P03 profiling; P08: validated risk-bound calibration, **not** mean P02 registration error. A paper without a distinct falsifiable primary endpoint, adequate independent evidence or a defensible novelty contribution is **not** submitted as a separate manuscript; its results are merged into the relevant parent study instead.
