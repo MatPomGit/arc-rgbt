@@ -34,8 +34,8 @@ def detection_contract(
     iou_threshold: float = 0.5, operating_score: float = 0.0,
 ) -> dict:
     """Class-wise all-points AP and held-out-score FP/frame, using existing Bench boxes."""
-    if annotation_status != "complete":
-        raise ValueError("Complete positive and negative frame annotation required")
+    if annotation_status not in ("complete", "source_reference_unverified"):
+        raise ValueError("Complete annotations or source_reference_unverified required")
     threshold = _unit(iou_threshold, "iou_threshold", positive=True)
     cutoff = _unit(operating_score, "operating_score")
     if not isinstance(frames, list) or not frames:
@@ -92,11 +92,13 @@ def detection_contract(
         "frames": len(frames), "empirical_admission": False,
         "zero_denominator_policy": (
             "no_GT: AP/recall null; no_predictions: precision null; "
-            "complete-negative frames count in FP/frame"
+            "source-reference-negative frames count in FP/frame"
         ),
         "limitations": [
             "Not COCO AP@[.50:.95]; only the declared fixed IoU threshold",
-            "Annotation completeness, geometry and source rights not independently audited",
+            "Supplied dataset annotations are a reference, not independently certified complete",
+            "Apparent false positives include possible unlabelled true targets",
+            "Original image geometry and source rights are not established by this metric",
         ],
     }
 
