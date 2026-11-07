@@ -140,7 +140,11 @@ def test_rejects_source_plan_hash_mismatch(tmp_path, modules):
 def test_rejects_already_filled_reviewer_sheet(tmp_path, modules):
     _, _, _, renderer = modules
     source, plan, a, b = _fixture_source(tmp_path, modules)
-    a.write_text(a.read_text().replace(",\\n", ",complete\\n", 1), encoding="utf-8")
+    lines = a.read_text(encoding="utf-8").splitlines()
+    fields = lines[1].split(",")
+    fields[1] = "complete"
+    lines[1] = ",".join(fields)
+    a.write_text("\n".join(lines) + "\n", encoding="utf-8")
     with pytest.raises(ValueError):
         renderer.render(source, plan, a, b, tmp_path / "no-kit",
                         split="val", target="car")
@@ -153,6 +157,6 @@ def test_rejects_test_split_or_wrong_class(tmp_path, modules):
     with pytest.raises(ValueError, match="Only train/val"):
         renderer.render(source, plan, a, b, tmp_path / "test-kit",
                         split="test", target="car")
-    with pytest.raises(ValueError, match="does not match source"):
+    with pytest.raises(ValueError, match="Exactly one COCO category required"):
         renderer.render(source, plan, a, b, tmp_path / "person-kit",
                         split="val", target="person")
