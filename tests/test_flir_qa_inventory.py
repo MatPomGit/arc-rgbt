@@ -3,6 +3,8 @@
 import importlib.util
 import io
 import json
+import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -159,3 +161,39 @@ def test_member_crc_and_json_sha_are_checked():
     assert parsed_i == idx and parsed_c == coco
     assert len(hash_i) == len(hash_c) == 64
     assert hash_i != hash_c
+
+
+def test_cli_end_to_end_twelve_part_zip_and_sampler(tmp_path):
+    index, coco = documents()
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as z:
+        z.writestr("images_thermal_val/index.json", json.dumps(index))
+        z.writestr("images_thermal_val/coco.json", json.dumps(coco))
+    archive = stream.getvalue()
+    chunk = len(archive) // 12
+    assert chunk > 0
+    for i in range(12):
+        block = archive[i * chunk:(i + 1) * chunk] if i < 11 else archive[i * chunk:]
+        (tmp_path / f"FLIR_ADAS_v2.zip.{i:02d}").write_bytes(block)
+
+    inventory_path = tmp_path / "inventory.json"
+    plan_path = tmp_path / "plan.json"
+    command = [
+        sys.executable, str(SCRIPT), str(tmp_path), "--split", "val",
+        "--target", "person", "--output", str(inventory_path),
+        "--plan-output", str(plan_path), "--seed", "42",
+        "--max-per-group", "6", "--quotas", "A=2,B=2,C=0,D=1",
+    ]
+    run = subprocess.run(command, check=True, capture_output=True, text=True)
+    generated = json.loads(inventory_path.read_text(encoding="utf-8"))
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    assert len(generated["frames"]) == 6
+    assert plan["population_frames"] == 6
+    assert plan["selected_strata"] == {"A": 2, "B": 2, "C": 0, "D": 1}
+    assert plan["shortfalls"] == {"A": 0, "B": 0, "C": 0, "D": 0}
+    assert plan["both_target_states_represented"] is True
+    assert plan["empirical_admission"] is False
+    assert "QA plan: SAMPLE_PLAN_ONLY" in run.stdout
+    rerun = subprocess.run(command, capture_output=True, text=True)
+    assert rerun.returncode != 0
+    assert "Output exists" in rerun.stderr
