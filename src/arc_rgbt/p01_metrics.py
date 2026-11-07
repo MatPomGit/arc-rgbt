@@ -305,19 +305,22 @@ def choose_validation_threshold(
                     ]
                     measured = evaluate(group_frames, iou_threshold=iou)
                     cluster_rates.append((measured["fp"], len(group_frames)))
-                rng = random.Random(seed)
-                bootstrap_rates = []
-                for _ in range(replicates):
-                    sampled = rng.choices(cluster_rates, k=len(cluster_rates))
-                    bootstrap_rates.append(
-                        sum(item[0] for item in sampled) /
-                        sum(item[1] for item in sampled)
-                    )
-                bootstrap_rates.sort()
-                interval = [_percentile(bootstrap_rates, 0.025),
-                            _percentile(bootstrap_rates, 0.975)]
-                # Source video identifiers do not establish independent acquisition.
+                # Do not bootstrap provisional video-ID proxies as if
+                # they represented independently verified acquisitions.
                 verified = group_basis == "verified_acquisition"
+                interval = None
+                if verified:
+                    rng = random.Random(seed)
+                    bootstrap_rates = []
+                    for _ in range(replicates):
+                        sampled = rng.choices(cluster_rates, k=len(cluster_rates))
+                        bootstrap_rates.append(
+                            sum(item[0] for item in sampled) /
+                            sum(item[1] for item in sampled)
+                        )
+                    bootstrap_rates.sort()
+                    interval = [_percentile(bootstrap_rates, 0.025),
+                                _percentile(bootstrap_rates, 0.975)]
                 result.update(
                     status="CANDIDATE_ONLY", threshold=cutoff,
                     validation_fp_per_frame=rate, validation_tp=counts["tp"],
