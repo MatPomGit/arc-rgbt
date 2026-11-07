@@ -20,8 +20,8 @@ spec.loader.exec_module(flir)
 
 def original_frame(vid, number, annotations, *, state="approved", flagged=False):
     row = {"videoMetadata": {"videoId": vid, "frameIndex": number},
-           "annotations": annotations, "isFlagged": flagged,
-           "width": 640, "height": 512}
+           "annotations": annotations, "isEmpty": not annotations,
+           "isFlagged": flagged, "width": 640, "height": 512}
     if state is not None:
         row["qaStatus"] = state
     return row
@@ -197,3 +197,41 @@ def test_cli_end_to_end_twelve_part_zip_and_sampler(tmp_path):
     rerun = subprocess.run(command, capture_output=True, text=True)
     assert rerun.returncode != 0
     assert "Output exists" in rerun.stderr
+
+
+def test_duplicate_json_keys_are_rejected_before_source_interpretation():
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, "w") as z:
+        z.writestr("images_thermal_val/index.json",
+                   '{"frames":[],"frames":[{"isEmpty":true}]}')
+    stream.seek(0)
+    with zipfile.ZipFile(stream) as z:
+        with pytest.raises(ValueError, match="Duplicate JSON key"):
+            flir._json_entry(z, "images_thermal_val/index.json")
+
+
+def test_duplicate_zip_member_names_are_rejected():
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, "w") as z:
+        z.writestr("images_thermal_val/coco.json", "{}")
+        with pytest.warns(UserWarning, match="Duplicate name"):
+            z.writestr("images_thermal_val/coco.json", "{}")
+    stream.seek(0)
+    with zipfile.ZipFile(stream) as z:
+        with pytest.raises(ValueError, match="duplicate ZIP metadata entry"):
+            flir._json_entry(z, "images_thermal_val/coco.json")
+
+
+@pytest.mark.parametrize("tamper, expected", [
+    (lambda f: f.update(isEmpty=True), "isEmpty"),
+    (lambda f: f.pop("isEmpty"), "isEmpty"),
+    (lambda f: f.update(isFlagged="false"), "isFlagged"),
+])
+def test_source_flags_fail_closed_before_negative_candidacy(tamper, expected):
+    idx, coco = documents()
+    tamper(idx["frames"][0])
+    with pytest.raises(ValueError, match=expected):
+        flir.build_inventory(
+            idx, coco, split="val", target="person",
+            index_sha="a" * 64, coco_sha="b" * 64
+        )
