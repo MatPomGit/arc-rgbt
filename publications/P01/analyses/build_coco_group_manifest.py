@@ -112,14 +112,13 @@ def prepare(train: Path, validation: Path, class_name: str,
             for group in known_groups
         }
     else:
-        assignments = {f["group_id"]: f["original_split"]
-                       for f in frames if f["group_id"] is not None}
+        assignments = {}
     per_split = {}
     for name in ("train", "validation"):
         selected = [
             f for f in frames
-            if (assignments.get(f["group_id"]) if f["group_id"] else
-                f["original_split"]) == name
+            if (assignments[f["group_id"]] if mode == "propose" and
+                f["group_id"] in assignments else f["original_split"]) == name
         ]
         per_split[name] = {
             "frames": len(selected),
@@ -150,7 +149,8 @@ def prepare(train: Path, validation: Path, class_name: str,
     manifest = [{
         "frame_id": f["frame_id"],
         "source_video_id": f["group_id"],
-        "split": (assignments.get(f["group_id"]) if f["group_id"] else None),
+        "split": (assignments.get(f["group_id"]) if mode == "propose" and
+                  f["group_id"] in assignments else f["original_split"]),
         "selected_gt_bins": {name: f["bins"][name] for name in BINS},
     } for f in sorted(frames, key=lambda row: row["frame_id"])]
     manifest_sha = hashlib.sha256(
