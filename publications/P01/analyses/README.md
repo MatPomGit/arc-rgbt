@@ -38,7 +38,10 @@ to **validation** and cannot open a holdout or train a checkpoint. It
 requires the existing pre-test manifest in **preserve** mode with a
 compatible annotation SHA, source-video grouping and adequate candidate
 validation exposure; a `propose` manifest is not eligible for an existing
-trained model. Metadata flags for true acquisition independence,
+trained model. On load, the adapter verifies the canonical frame-manifest
+SHA-256 **and independently recomputes** the validation exposure floors
+from the bound source annotations. A manifest's affirmative boolean
+alone does not establish adequate exposure. Metadata flags for true acquisition independence,
 native-grid optics, source rights and checkpoint training independence
 remain explicitly **false/unverified**.
 
@@ -112,11 +115,21 @@ prepare a local `--freeze-record` JSON with
 and SHA-256 fields `protocol_sha256`, `checkpoint_sha256`,
 `split_manifest_sha256`, `validation_annotations_sha256`,
 `validation_predictions_sha256`, and `holdout_annotations_sha256`.
-With this author-decision record, an explicit `--mode holdout` plus both
-holdout paths is required. The CLI checks input digests and refuses
-unfrozen, mismatched or missing records **before opening test outcomes**.
-This is a declared-author-record safeguard, not cryptographic proof of
-the approver's identity or real acquisition independence.
+The frozen protocol, checkpoint and split manifest must additionally have
+corresponding `protocol_path`, `checkpoint_path`, and
+`split_manifest_path` entries pointing to **existing immutable files**
+(absolute paths or paths relative to the freeze-record directory). The
+evaluator recomputes their actual SHA-256, rather than accepting plausible
+64-character placeholder values. Record these paths and digests **before**
+any held-out evaluation. A missing or modified artifact blocks execution.
+
+With this author-decision record, explicit `--mode holdout` and both
+holdout paths are required. The CLI verifies the freeze record, source
+validation inputs and local frozen artifacts before reading test outcomes.
+This remains a **self-declared** author decision, not cryptographic
+identity verification or proof of the checkpoint's training split and
+model-generated held-out predictions. Neither a passing hash check nor a
+unit test grants scientific admission.
 
 These filenames describe expected local inputs, not files verified on
 the user's Fedora machine. The evaluator computes metrics from existing
