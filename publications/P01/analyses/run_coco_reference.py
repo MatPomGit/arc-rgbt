@@ -276,7 +276,10 @@ def main(argv: list[str] | None = None) -> int:
         args.holdout_annotations, args.holdout_predictions, args.freeze_record
     )):
         parser.error("Holdout mode requires both held-out inputs and author freeze record")
-    if output in {path.resolve() for path in inputs if path is not None}:
+    all_inputs = (
+        *inputs, args.holdout_annotations, args.holdout_predictions, args.freeze_record,
+    )
+    if output in {path.resolve() for path in all_inputs if path is not None}:
         parser.error("Output cannot overwrite an input")
     if output.exists():
         parser.error("Output already exists; preserving immutable evidence")
