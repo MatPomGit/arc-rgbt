@@ -20,6 +20,7 @@ import numpy as np
 from run_coco_reference import digest, source_group
 
 MAX_COCO_BYTES = 256 * 1024 * 1024
+MAX_MANIFEST_BYTES = 128 * 1024 * 1024
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
 MAX_PIXELS = 4_000_000
 SUPPORTED_SUFFIXES = {".jpg", ".jpeg", ".png"}
@@ -46,6 +47,8 @@ def load_validation(annotations: Path, manifest: Path, class_name: str) -> tuple
     """Bind exact validation COCO metadata to the pre-test split manifest."""
     if not 0 < annotations.stat().st_size <= MAX_COCO_BYTES:
         raise ValueError("Annotation file outside size bounds")
+    if not 0 < manifest.stat().st_size <= MAX_MANIFEST_BYTES:
+        raise ValueError("Pre-test manifest outside size bounds")
     source = json.loads(annotations.read_text(encoding="utf-8"))
     plan = json.loads(manifest.read_text(encoding="utf-8"))
     if not isinstance(source, dict) or not isinstance(plan, dict):
@@ -58,6 +61,14 @@ def load_validation(annotations: Path, manifest: Path, class_name: str) -> tuple
         raise ValueError("Manifest not eligible or not bound to exact validation annotations")
     if plan.get("validation_threshold_exposure_meets_software_floor") is not True:
         raise ValueError("Validation exposure does not satisfy candidate software minimums")
+    manifest_frames = plan.get("frame_manifest")
+    if not isinstance(manifest_frames, list):
+        raise ValueError("Missing pre-test frame manifest")
+    canonical = json.dumps(
+        manifest_frames, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    if hashlib.sha256(canonical).hexdigest() != plan.get("frame_manifest_sha256"):
+        raise ValueError("Pre-test manifest content SHA-256 mismatch")
     categories, images = source.get("categories"), source.get("images")
     if not isinstance(categories, list) or not isinstance(images, list) or not images:
         raise ValueError("Missing COCO categories or images")
@@ -67,7 +78,7 @@ def load_validation(annotations: Path, manifest: Path, class_name: str) -> tuple
     if len(eligible) != 1:
         raise ValueError("Source class must map to one unique integer category")
     expected = {}
-    for row in plan.get("frame_manifest", []):
+    for row in manifest_frames:
         if not isinstance(row, dict):
             raise ValueError("Malformed pre-test frame manifest")
         if row.get("split") == "validation":
@@ -79,8 +90,22 @@ def load_validation(annotations: Path, manifest: Path, class_name: str) -> tuple
             expected[key] = row["source_video_id"]
     if len(expected) != len(images):
         raise ValueError("Source validation images do not match the original split manifest")
+    objects = source.get("annotations")
+    if not isinstance(objects, list):
+        raise ValueError("Source validation annotations missing")
+    positives = set()
+    for obj in objects:
+        if not isinstance(obj, dict):
+            raise ValueError("Malformed source annotation")
+        if obj.get("category_id") == eligible[0]:
+            if obj.get("iscrowd", 0) or obj.get("ignore", 0):
+                raise ValueError("Selected source crowd/ignore policy is not frozen")
+            positives.add(obj.get("image_id"))
     records = []
     seen = set()
+    proxy_groups = set()
+    negative_groups = set()
+    negative_frames = 0
     for image in images:
         if not isinstance(image, dict):
             raise ValueError("Invalid COCO image")
@@ -92,12 +117,22 @@ def load_validation(annotations: Path, manifest: Path, class_name: str) -> tuple
             raise ValueError("Invalid COCO ID or image dimensions")
         seen.add(image_id)
         key = f"validation:{image_id}"
-        if expected.get(key) != source_group(image):
+        group_id = source_group(image)
+        if expected.get(key) != group_id:
             raise ValueError("Validation group mismatch against pre-test manifest")
+        proxy_groups.add(group_id)
+        if image_id not in positives:
+            negative_frames += 1
+            negative_groups.add(group_id)
         records.append({
             "id": image_id, "file_name": image.get("file_name"),
             "width": width, "height": height,
         })
+    if not positives.issubset(seen):
+        raise ValueError("Orphan target annotations in validation")
+    if (len(records) < 200 or len(proxy_groups) < 10
+            or negative_frames < 20 or len(negative_groups) < 2):
+        raise ValueError("Actual source validation exposure below candidate software floors")
     return sorted(records, key=lambda x: x["id"]), eligible[0]
 
 
