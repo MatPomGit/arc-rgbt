@@ -171,6 +171,15 @@ def test_frozen_artifact_tamper_blocks_before_heldout_outcomes(tmp_path, kind):
         )
 
 
+def test_conflicting_source_video_fields_fail_closed(tmp_path):
+    val_gt, val_pred, _, _ = sources(tmp_path)
+    payload = json.loads(val_gt.read_text(encoding="utf-8"))
+    payload["images"][0]["video_id"] = "different-session"
+    write_json(val_gt, payload)
+    with pytest.raises(ValueError, match="Conflicting source video_id"):
+        runner.load_coco(val_gt, val_pred, "car")
+
+
 def test_direct_api_requires_author_freeze_before_reading_heldout(tmp_path):
     paths = sources(tmp_path)
     with pytest.raises(ValueError, match="author-FROZEN"):

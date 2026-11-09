@@ -33,9 +33,11 @@ def digest(path: Path) -> str:
 def source_group(image: dict) -> str:
     """Read a source video identifier; do not infer flight independence."""
     extra = image.get("extra_info", {})
-    value = extra.get("video_id") if isinstance(extra, dict) else None
-    if value is None:
-        value = image.get("video_id")
+    embedded = extra.get("video_id") if isinstance(extra, dict) else None
+    direct = image.get("video_id")
+    if embedded is not None and direct is not None and embedded != direct:
+        raise ValueError("Conflicting source video_id fields; group leakage risk")
+    value = embedded if embedded is not None else direct
     if (
         not isinstance(value, str)
         or not value
