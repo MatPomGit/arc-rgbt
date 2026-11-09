@@ -29,6 +29,56 @@ geometry, detector training independence, empirical G01 and author
 protocol freeze remain unverified. No additional manual annotation or
 dataset QA is required.
 
+## Validation-only offline TorchScript detector predictions (#58)
+
+For a **locally available, trusted, author-permitted and SHA-pinned**
+TorchScript detector, `predict_torchscript_coco.py` creates source COCO
+predictions and a hash-backed provenance report. The script is constrained
+to **validation** and cannot open a holdout or train a checkpoint. It
+requires the existing pre-test manifest in **preserve** mode with a
+compatible annotation SHA, source-video grouping and adequate candidate
+validation exposure; a `propose` manifest is not eligible for an existing
+trained model. Metadata flags for true acquisition independence,
+native-grid optics, source rights and checkpoint training independence
+remain explicitly **false/unverified**.
+
+The model must be **already exported to a trusted TorchScript `.pt`**
+with **post-NMS** output tensor `[N,6]` or `[1,N,6]` per image, with
+columns `x1,y1,x2,y2,score,class_index`. Coordinates refer to a
+declared, zero-padded **aspect-preserving letterboxed input**; scores are
+in `[0,1]`. Specify model-to-source class mapping explicitly with
+`--model-class-index`; this is *not* automatically inferred from FLIR
+COCO categories. No post-hoc model NMS, test tuning, checkpoint download
+or checkpoint deserialization via generic Python `torch.load` occurs.
+Only **8-bit grayscale JPEG/PNG thermal exports** are accepted. TIFF
+pre-AGC 14/16-bit data, colorized images or other preprocessing require
+a separately frozen preprocessing contract; the script fails closed.
+Model files must be trusted because TorchScript executes model-defined
+operations locally.
+
+On Fedora, after a permitted source release and compatible local
+checkpoint have been identified, install the project's already-declared
+optional `torch` dependency in the approved offline environment, then
+run a **single validation-only command** with the actual paths and
+previously recorded checkpoint digest:
+
+```bash
+python publications/P01/analyses/predict_torchscript_coco.py --validation-annotations "$HOME/datasets/flir-adas-v2/val_coco.json" --manifest "$HOME/datasets/flir-adas-v2/p01_group_manifest.json" --image-root "$HOME/datasets/flir-adas-v2/thermal_8bit_val" --checkpoint "$HOME/models/trusted_lwir_detector.pt" --checkpoint-sha256 "<PREVIOUSLY_PINNED_CHECKPOINT_SHA256>" --model-class-index 0 --input-height 640 --input-width 640 --channels 3 --device cuda --output-dir "$HOME/datasets/flir-adas-v2/p01_val_inference"
+```
+
+The directory, checkpoint, model class index, model input shape and
+source preprocessing above are **illustrative only**, not verified on
+the local host. Do not run until compatible source/checkpoint facts and
+lawful use are confirmed; the adapter never initiates downloads or a
+held-out analysis. `predictions.json` is consumed by the existing
+validation COCO benchmark contract only after the appropriate protocol
+decision. `provenance.json` records input image digest chain,
+model/annotations/manifest/source-code hashes, preprocessing, frame
+and detection counts and explicit scientific limitations. Both are
+created together in a new directory **outside Git** and are never
+overwritten. This does not replace acquisition-level split proof or
+author protocol approval.
+
 ## Offline COCO reference-label benchmark (2026-11-07, Tier A)
 
 The source-annotation benchmark uses **already existing** COCO GT and
