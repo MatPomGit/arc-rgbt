@@ -81,6 +81,15 @@ def test_preserve_source_coco_counts_and_input_hashes(tmp_path):
     }
     assert len(report["source_annotation_sha256"]["train"]) == 64
     assert len(report["frame_manifest_sha256"]) == 64
+    assert report["validation_threshold_exposure_meets_software_floor"] is False
+    assert report["per_split"]["train"]["source_reference_negative_groups"] == 1
+    assert report["validation_threshold_candidate_exposure"] == {
+        "at_least_200_frames": False,
+        "at_least_10_source_video_groups": False,
+        "at_least_20_reference_negative_frames": False,
+        "at_least_2_reference_negative_groups": False,
+    }
+    assert all(len(v) == 64 for v in report["implementation_sha256"].values())
 
 
 def test_original_overlap_blocks_without_corrupting_source_denominators(tmp_path):
