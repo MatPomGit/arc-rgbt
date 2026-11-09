@@ -139,6 +139,54 @@ def test_manifest_hash_and_actual_exposure_verified_before_inference(tmp_path):
         predictor.load_validation(annotations, manifest, "car")
 
 
+def test_source_manifest_cannot_hide_train_validation_leakage(tmp_path):
+    """A rehashed, internally contradictory manifest must not enable inference."""
+    annotations = tmp_path / "validation.json"
+    annotations.write_text(json.dumps({
+        "images": [{"id": 1, "video_id": "session-A", "file_name": "image.png",
+                    "width": 16, "height": 16}],
+        "categories": [{"id": 3, "name": "car"}], "annotations": [],
+    }), encoding="utf-8")
+    manifest = tmp_path / "manifest.json"
+    base = {
+        "status": "PROVISIONAL_VIDEO_PROXY_SPLIT",
+        "split_mode": "preserve", "selected_class": "car",
+        "heldout_opened": False,
+        "source_annotation_sha256": {"validation": predictor.digest(annotations)},
+        "validation_threshold_exposure_meets_software_floor": True,
+        "frame_manifest": [
+            {"split": "train", "frame_id": "train:7", "source_video_id": "session-A"},
+            {"split": "validation", "frame_id": "validation:1",
+             "source_video_id": "session-A"},
+        ],
+    }
+    write_manifest(manifest, base)
+    with pytest.raises(ValueError, match="Train/validation source video group leakage"):
+        predictor.load_validation(annotations, manifest, "car")
+
+
+def test_source_manifest_rejects_duplicate_frame_entries(tmp_path):
+    annotations = tmp_path / "validation.json"
+    annotations.write_text(json.dumps({
+        "images": [{"id": 1, "video_id": "session-B", "file_name": "image.png",
+                    "width": 16, "height": 16}],
+        "categories": [{"id": 3, "name": "car"}], "annotations": [],
+    }), encoding="utf-8")
+    manifest = tmp_path / "manifest.json"
+    row = {"split": "validation", "frame_id": "validation:1",
+           "source_video_id": "session-B"}
+    write_manifest(manifest, {
+        "status": "PROVISIONAL_VIDEO_PROXY_SPLIT",
+        "split_mode": "preserve", "selected_class": "car",
+        "heldout_opened": False,
+        "source_annotation_sha256": {"validation": predictor.digest(annotations)},
+        "validation_threshold_exposure_meets_software_floor": True,
+        "frame_manifest": [row, row.copy()],
+    })
+    with pytest.raises(ValueError, match="Invalid or duplicate pre-test frame split"):
+        predictor.load_validation(annotations, manifest, "car")
+
+
 def test_checkpoint_hash_fails_before_optional_torch_or_image_io(tmp_path):
     checkpoint = tmp_path / "model.pt"
     checkpoint.write_bytes(b"not a checkpoint")
