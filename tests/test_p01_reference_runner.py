@@ -50,9 +50,24 @@ def sources(tmp_path, *, leaked=False, short_validation=False):
     )
 
 
+def frozen_synthetic_record(tmp_path, paths):
+    """Synthetic FROZEN fixture only; never a real author decision."""
+    val_gt, val_pred, test_gt, _ = paths
+    return write_json(tmp_path / "synthetic-freeze.json", {
+        "schema_version": 1, "author_decision": "FROZEN",
+        "claim_tier": "A", "protocol_sha256": "a" * 64,
+        "checkpoint_sha256": "b" * 64, "split_manifest_sha256": "c" * 64,
+        "validation_annotations_sha256": runner.digest(val_gt),
+        "validation_predictions_sha256": runner.digest(val_pred),
+        "holdout_annotations_sha256": runner.digest(test_gt),
+    })
+
+
 def test_true_predictions_are_only_dataset_reference_descriptive(tmp_path):
     paths = sources(tmp_path)
-    result = runner.evaluate_reference(*paths, "car")
+    result = runner.evaluate_reference(
+        *paths, "car", freeze_record=frozen_synthetic_record(tmp_path, paths),
+    )
     assert result["status"] == "DESCRIPTIVE_ONLY"
     assert result["validation_threshold"]["threshold"] == 0.0
     assert result["validation_threshold"]["group_basis"] == "source_video_proxy"
@@ -79,8 +94,11 @@ def test_invalid_validation_does_not_touch_holdout(tmp_path):
 
 
 def test_shared_video_proxy_detected_between_splits(tmp_path):
+    paths = sources(tmp_path, leaked=True)
     with pytest.raises(ValueError, match="group leakage"):
-        runner.evaluate_reference(*sources(tmp_path, leaked=True), "car")
+        runner.evaluate_reference(
+            *paths, "car", freeze_record=frozen_synthetic_record(tmp_path, paths),
+        )
 
 
 def test_source_export_does_not_get_physical_ci():
@@ -126,7 +144,18 @@ def test_noncanonical_group_cannot_bypass_split_guard(tmp_path, bad_group):
     payload["images"][0]["extra_info"]["video_id"] = bad_group
     write_json(test_gt, payload)
     with pytest.raises(ValueError, match="canonical nonempty source video_id"):
-        runner.evaluate_reference(val_gt, val_pred, test_gt, test_pred, "car")
+        runner.evaluate_reference(
+            val_gt, val_pred, test_gt, test_pred, "car",
+            freeze_record=frozen_synthetic_record(
+                tmp_path, (val_gt, val_pred, test_gt, test_pred),
+            ),
+        )
+
+
+def test_direct_api_requires_author_freeze_before_reading_heldout(tmp_path):
+    paths = sources(tmp_path)
+    with pytest.raises(ValueError, match="author-FROZEN"):
+        runner.evaluate_reference(*paths, "car")
 
 
 def test_cli_validation_only_never_requires_or_reads_holdout(tmp_path):
