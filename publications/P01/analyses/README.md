@@ -1,5 +1,34 @@
 # P01 reproducible analyses
 
+## Automatic pre-test COCO group and denominator manifest (#48)
+
+For an already authorized source release, use existing **train and validation**
+COCO annotation files to create a hash-backed metadata manifest without
+accessing held-out annotations, images, detector predictions or checkpoints:
+
+```bash
+python publications/P01/analyses/build_coco_group_manifest.py --train-annotations "$HOME/datasets/flir-adas-v2/train_coco.json" --validation-annotations "$HOME/datasets/flir-adas-v2/val_coco.json" --release-id "FLIR-ADAS-v2-UNVERIFIED" --output "$HOME/datasets/flir-adas-v2/p01_group_manifest.json"
+```
+
+These paths are examples, not verified local files. The tool checks the
+original split for overlapping source `video_id` proxies (default
+`--mode preserve`) and counts existing source-GT targets per export-grid
+footprint bin, positive and reference-negative frames, and source groups.
+`--mode propose` instead constructs a deterministic **group-disjoint
+train/validation proposal** with an explicit seed, recorded assignments
+and input/manifest SHA-256. Such reassignment requires retraining or a
+checkpoint demonstrably independent of the newly assigned validation
+groups; **never apply the proposal to a model trained on those frames**.
+No held-out data are read or partitioned by this pre-test tool.
+
+Missing/noncanonical group IDs, too few groups and preserved cross-split
+overlap produce explicit BLOCKED states, not scientific PASS. Output is
+local-only and never overwrites existing evidence. `video_id` remains
+an **unverified acquisition proxy**, and release rights, original LWIR
+geometry, detector training independence, empirical G01 and author
+protocol freeze remain unverified. No additional manual annotation or
+dataset QA is required.
+
 ## Offline COCO reference-label benchmark (2026-11-07, Tier A)
 
 The source-annotation benchmark uses **already existing** COCO GT and
