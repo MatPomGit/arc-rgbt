@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import unicodedata
 from pathlib import Path
 
 from arc_rgbt.evaluation_contracts import detection_contract
@@ -35,8 +36,17 @@ def source_group(image: dict) -> str:
     value = extra.get("video_id") if isinstance(extra, dict) else None
     if value is None:
         value = image.get("video_id")
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError("Each COCO image needs a nonempty source video_id")
+    if (
+        not isinstance(value, str)
+        or not value
+        or value != value.strip()
+        or unicodedata.normalize("NFKC", value) != value
+        or any(
+            char.isspace() or unicodedata.category(char) in ("Cc", "Cf")
+            for char in value
+        )
+    ):
+        raise ValueError("Each COCO image needs a canonical nonempty source video_id")
     return value
 
 
@@ -111,12 +121,10 @@ def load_coco(
     )
 
 
-def evaluate_reference(
-    validation_annotations: Path, validation_predictions: Path,
-    holdout_annotations: Path, holdout_predictions: Path,
-    selected_class: str,
-) -> dict:
-    """Lock validation threshold before loading held-out outcome data."""
+def validation_candidate(
+    validation_annotations: Path, validation_predictions: Path, selected_class: str,
+) -> tuple[dict, list[str]]:
+    """Compute source-GT-relative validation cutoff without any held-out input."""
     val, val_groups, val_counts = load_coco(
         validation_annotations, validation_predictions, selected_class,
     )
@@ -147,8 +155,34 @@ def evaluate_reference(
             ).__file__)),
         },
     }
+    if cutoff["status"] == "CANDIDATE_ONLY":
+        result["status"] = "VALIDATION_CANDIDATE_ONLY"
+    return result, val_groups
+
+
+def evaluate_reference(
+    validation_annotations: Path, validation_predictions: Path,
+    holdout_annotations: Path, holdout_predictions: Path,
+    selected_class: str, *, freeze_record: Path | None = None,
+) -> dict:
+    """Hold-out evaluator. Its CLI requires a prior author-FROZEN record."""
+    result, val_groups = validation_candidate(
+        validation_annotations, validation_predictions, selected_class,
+    )
+    cutoff = result["validation_threshold"]
     if cutoff["status"] != "CANDIDATE_ONLY":
+        result["status"] = "BLOCKED_VALIDATION"
         return result
+    if freeze_record is None:
+        raise ValueError("An author-FROZEN protocol record is required for held-out access")
+    frozen = verify_freeze_record(
+        freeze_record, validation_annotations, validation_predictions,
+        holdout_annotations,
+    )
+    result["author_freeze_record_sha256"] = digest(freeze_record)
+    result["author_freeze_record_self_declared"] = True
+    result["author_protocol_sha256"] = frozen["protocol_sha256"]
+    result["frozen_protocol_checkpoint_split_hashes_verified"] = True
 
     # Do not even open held-out files until after validation selection.
     result["input_sha256"].update({
@@ -193,12 +227,56 @@ def evaluate_reference(
     return result
 
 
+def verify_freeze_record(
+    path: Path, validation_annotations: Path, validation_predictions: Path,
+    holdout_annotations: Path,
+) -> dict:
+    """Require an explicit prospective Tier A author decision before test access.
+
+    Records are author-declared; this function checks byte bindings but does
+    not cryptographically verify the approver's identity.
+    """
+    if not 0 < path.stat().st_size <= 16 * 1024:
+        raise ValueError("Author freeze record must be a small JSON document")
+    record = json.loads(path.read_text(encoding="utf-8"))
+    if (not isinstance(record, dict)
+            or record.get("schema_version") != 1
+            or record.get("author_decision") != "FROZEN"
+            or record.get("claim_tier") != "A"):
+        raise ValueError("An author-FROZEN Tier A protocol record is required")
+    for kind in ("protocol", "checkpoint", "split_manifest"):
+        name = f"{kind}_sha256"
+        value = record.get(name)
+        if (not isinstance(value, str) or len(value) != 64
+                or any(char not in "0123456789abcdef" for char in value)):
+            raise ValueError(f"Missing immutable {name} in author freeze record")
+        artifact_name = record.get(f"{kind}_path")
+        if not isinstance(artifact_name, str) or not artifact_name.strip():
+            raise ValueError(f"Missing frozen {kind}_path")
+        artifact_path = Path(artifact_name).expanduser()
+        if not artifact_path.is_absolute():
+            artifact_path = path.parent / artifact_path
+        if not artifact_path.is_file() or digest(artifact_path) != value:
+            raise ValueError(f"Frozen {kind} artifact hash mismatch")
+    for name, source in (
+        ("validation_annotations_sha256", validation_annotations),
+        ("validation_predictions_sha256", validation_predictions),
+        ("holdout_annotations_sha256", holdout_annotations),
+    ):
+        expected = record.get(name)
+        if expected != digest(source):
+            raise ValueError(f"Frozen input does not match {name}")
+    return record
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--validation-annotations", type=Path, required=True)
     parser.add_argument("--validation-predictions", type=Path, required=True)
-    parser.add_argument("--holdout-annotations", type=Path, required=True)
-    parser.add_argument("--holdout-predictions", type=Path, required=True)
+    parser.add_argument("--mode", choices=("validation", "holdout"), default="validation")
+    parser.add_argument("--holdout-annotations", type=Path)
+    parser.add_argument("--holdout-predictions", type=Path)
+    parser.add_argument("--freeze-record", type=Path)
     parser.add_argument("--class-name", default="car")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
@@ -207,17 +285,38 @@ def main(argv: list[str] | None = None) -> int:
     output = args.output.resolve()
     if output.is_relative_to(repository_root):
         parser.error("Output must be outside the source repository")
-    inputs = (
-        args.validation_annotations, args.validation_predictions,
-        args.holdout_annotations, args.holdout_predictions,
+    inputs = (args.validation_annotations, args.validation_predictions)
+    if args.mode == "validation":
+        if any(value is not None for value in (
+            args.holdout_annotations, args.holdout_predictions, args.freeze_record
+        )):
+            parser.error("Validation-only mode prohibits any holdout or freeze-record paths")
+    elif any(value is None for value in (
+        args.holdout_annotations, args.holdout_predictions, args.freeze_record
+    )):
+        parser.error("Holdout mode requires both held-out inputs and author freeze record")
+    all_inputs = (
+        *inputs, args.holdout_annotations, args.holdout_predictions, args.freeze_record,
     )
-    if output in {path.resolve() for path in inputs}:
+    if output in {path.resolve() for path in all_inputs if path is not None}:
         parser.error("Output cannot overwrite an input")
     if output.exists():
         parser.error("Output already exists; preserving immutable evidence")
 
     try:
-        report = evaluate_reference(*inputs, args.class_name)
+        if args.mode == "validation":
+            report, _ = validation_candidate(*inputs, args.class_name)
+        else:
+            preliminary, _ = validation_candidate(*inputs, args.class_name)
+            if preliminary["validation_threshold"]["status"] != "CANDIDATE_ONLY":
+                report = preliminary
+                report["status"] = "BLOCKED_VALIDATION"
+            else:
+                report = evaluate_reference(
+                    *inputs, args.holdout_annotations,
+                    args.holdout_predictions, args.class_name,
+                    freeze_record=args.freeze_record,
+                )
         output.parent.mkdir(parents=True, exist_ok=True)
         with output.open("x", encoding="utf-8") as handle:
             json.dump(report, handle, indent=2, allow_nan=False, sort_keys=True)
@@ -228,7 +327,8 @@ def main(argv: list[str] | None = None) -> int:
         "status": report["status"],
         "output": str(output),
         "threshold": report["validation_threshold"].get("threshold"),
-        "real_measurements_performed_by_this_script": False,
+        "model_inference_performed_by_this_script": False,
+        "processed_holdout": args.mode == "holdout" and "holdout_counts" in report,
         "metrics_computed_from": "provided_COCO_detections_and_source_labels",
     }, sort_keys=True))
     return 0
