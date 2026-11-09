@@ -26,10 +26,11 @@ for an editorial scope assessment.
 **Funding planning assumption (owner decision 2026-11-02):** The university will cover the *Sensors* article processing charge for P01. Treat the APC as **institutionally funded in the project plan**, not an unfunded research blocker. This statement is **not proof of payment, a signed funding agreement or authority for an agent to purchase or submit**. The corresponding author must verify the final payable rate, current university payment procedure, invoice recipient and administrative requirements before any authorized submission. No agency/editor outreach or invoice request has been sent by this update. [Current agent execution plan](../../AUTOPILOT_PLAN.md).
 
 
-**Scope argument:** P01 studies native RGB/LWIR observability and detection
-failure under documented imaging conditions relevant to perception on
-mobile robots. The contribution must be framed as a *sensor-aware detection
-evaluation*, not as an experimentally demonstrated robot deployment,
+**Scope argument:** P01's Tier A studies LWIR detector failures relative to
+source-labelled target footprint and a validation-locked false-alert budget,
+motivated by perception for mobile robots. It does not yet measure
+original native LWIR sensor limits. The contribution must be framed as a
+*source-reference detection evaluation*, not demonstrated robot deployment,
 navigation improvement or physical detection-range guarantee. The planned
 study is distinct from P02 (pairing and fusion performance) and P03
 (on-device resource measurement). Fit is **provisional** until the
@@ -67,14 +68,15 @@ P01. Recent [RAPT-Net (2026)](https://www.mdpi.com/2072-4292/18/3/449)
 also studies multimodal tiny-target detection with scale-specific evaluation;
 novelty cannot rest on tiny-object bins or RGB/thermal combination alone.
 
-The proposed contribution is an **acquisition-aware operating-envelope
-analysis**: a fixed, validation-selected false-alert budget, target footprint
-measured on verified original sensor grids, independent acquisition-group
-uncertainty, and explicit separation of physical imaging evidence from
-software downsampling. This is a proposed distinction, **not a completed
-novelty or reproducibility review**. The exact eligible data and the
-applicability of these comparisons still require #10/#36 admission and #29
-independent review.
+The proposed Tier A contribution is a **source-reference operating-envelope
+analysis**: a fixed validation-selected false-alert budget, target footprint
+measured on the declared COCO export grid, and independent
+acquisition-group uncertainty **only when authentic groups exist**.
+Otherwise the analysis is descriptive. Any original-native-grid
+physical extension remains separately blocked. This is a proposed
+distinction, **not a completed novelty or reproducibility review**.
+Exact eligible data and applicability still require #10/#36 admission
+and #29 independent review.
 
 ### Candidate novelty matrix (no originality claim yet)
 
@@ -83,7 +85,7 @@ independent review.
 | Poster et al. (Sensors 2023) | Long-range small targets, including **MWIR** | Actual native **LWIR** geometry and sensor-specific applicability |
 | Ying et al. (RGBT-Tiny) | Tiny visible-thermal benchmark and annotations | Independently confirmed original-grid labels, rights and acquisition IDs |
 | RAPT-Net (Remote Sensing 2026) | Multimodal detection with tiny-target evaluation | A distinct, source-audited within-acquisition fixed-FP operating analysis |
-| P01 candidate | Proposed combined LWIR native-footprint / fixed FP/frame / group-based uncertainty contract | Reproducible real-data admission, matching, comparisons and methodological novelty audit |
+| P01 Tier A candidate | Source-annotation LWIR export-grid footprint / validation-fixed FP/frame / eligible acquisition contrast only when supported | Exact source release, lawful labels, detector provenance, group support, reproducible results and novelty audit |
 
 The table is prospective, not a systematic review or demonstrated
 novelty. Comparator definitions, spectral bands, licences and native
@@ -112,7 +114,7 @@ from this screening.
 
 **Scope questions for a future authorized editorial inquiry** (not sent):
 
-1. Is an original-source native-LWIR target-footprint analysis of
+1. Is a source-label-relative LWIR target-footprint analysis of
    localization-qualified detection at a validation-fixed false-alert
    operating point within this Special Issue's object-detection scope
    **without** physical mobile-robot field trials?
@@ -145,12 +147,12 @@ DATA BLOCKED**; see the [canonical decision record](protocol/README.md).
 
 ## Planned manuscript outline
 
-1. Introduction: physical target observability and robot perception relevance.
-2. Related work: native sensor resolution, RGB/LWIR detection and evaluation gaps.
-3. Materials: admitted original datasets, sensor geometry, rights and labels.
-4. Methods: native-footprint strata, operating-point calibration, independent
-   splits, baselines, uncertainty and software-only ablations.
-5. Results: LWIR within-acquisition recall, false alerts and secondary RGB comparisons (pending evidence).
+1. Introduction: small-target detectability and relevance to mobile-robot perception.
+2. Related work: LWIR target-footprint evaluation, detection and limitations of sensor-specific claims.
+3. Materials: lawful, versioned source images and supplied labels; geometry provenance and rights.
+4. Methods: COCO export-grid footprint strata, validation-only calibration,
+   verified grouping where available, baselines and descriptive uncertainty.
+5. Results: source-GT-relative recall, FP/frame, AP and secondary RGB comparisons (pending evidence).
 6. Discussion: confounding, limitations, reproducibility and applicability.
 7. Conclusions: evidence-bounded findings only (pending evidence).
 
