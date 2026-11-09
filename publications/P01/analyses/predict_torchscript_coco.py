@@ -78,16 +78,28 @@ def load_validation(annotations: Path, manifest: Path, class_name: str) -> tuple
     if len(eligible) != 1:
         raise ValueError("Source class must map to one unique integer category")
     expected = {}
+    seen_manifest_frames = set()
+    train_groups = set()
+    validation_groups = set()
     for row in manifest_frames:
         if not isinstance(row, dict):
             raise ValueError("Malformed pre-test frame manifest")
-        if row.get("split") == "validation":
-            key = row.get("frame_id")
-            if not isinstance(key, str) or not re.fullmatch(r"validation:[0-9]+", key):
-                raise ValueError("Invalid validation frame manifest key")
-            if key in expected or not isinstance(row.get("source_video_id"), str):
-                raise ValueError("Duplicate or missing manifest group")
-            expected[key] = row["source_video_id"]
+        split, key = row.get("split"), row.get("frame_id")
+        if (split not in ("train", "validation")
+                or not isinstance(key, str)
+                or not re.fullmatch(r"(?:train|validation):(?:0|[1-9][0-9]*)", key)
+                or not key.startswith(f"{split}:")
+                or key in seen_manifest_frames):
+            raise ValueError("Invalid or duplicate pre-test frame split")
+        seen_manifest_frames.add(key)
+        group = source_group({"video_id": row.get("source_video_id")})
+        if split == "train":
+            train_groups.add(group)
+        else:
+            validation_groups.add(group)
+            expected[key] = group
+    if train_groups & validation_groups:
+        raise ValueError("Train/validation source video group leakage in manifest")
     if len(expected) != len(images):
         raise ValueError("Source validation images do not match the original split manifest")
     objects = source.get("annotations")
