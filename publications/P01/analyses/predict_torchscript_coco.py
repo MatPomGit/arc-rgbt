@@ -11,14 +11,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
 import re
 import tempfile
 from pathlib import Path, PurePosixPath
 
 import cv2
 import numpy as np
-
 from run_coco_reference import digest, source_group
 
 MAX_COCO_BYTES = 256 * 1024 * 1024
