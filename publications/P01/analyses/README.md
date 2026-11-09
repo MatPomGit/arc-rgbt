@@ -96,28 +96,36 @@ Predictions are a COCO result array with `image_id`, `category_id`,
 `car`; `person` must be selected explicitly via `--class-name person`.
 Do not silently map `rider` to `person`.
 
-From the installed repository, one offline evaluation command:
+The **default CLI mode is validation-only**: it computes a candidate
+0.10 source-GT-relative FP/frame threshold without accepting or reading any
+holdout input. Once an authorized local model has created its validation
+predictions, execute:
 
 ```bash
-python publications/P01/analyses/run_coco_reference.py \
-  --validation-annotations "$HOME/datasets/flir-adas-v2/val_coco.json" \
-  --validation-predictions "$HOME/datasets/flir-adas-v2/val_predictions.json" \
-  --holdout-annotations "$HOME/datasets/flir-adas-v2/holdout_coco.json" \
-  --holdout-predictions "$HOME/datasets/flir-adas-v2/holdout_predictions.json" \
-  --output "$HOME/datasets/flir-adas-v2/p01_reference_benchmark.json"
+python publications/P01/analyses/run_coco_reference.py --mode validation --validation-annotations "$HOME/datasets/flir-adas-v2/val_coco.json" --validation-predictions "$HOME/datasets/flir-adas-v2/p01_val_inference/predictions.json" --output "$HOME/datasets/flir-adas-v2/p01_validation_candidate.json"
 ```
 
-These filenames describe required inputs, not files that have been
-confirmed on the user's computer. Model inference and a frozen,
-training-independent checkpoint are prerequisites **not implemented by
-this adapter**. Do not evaluate a held-out test before author-approved
-protocol/split freeze; for now the output is only exploratory descriptive
-evidence. The launcher first chooses a reference-label-relative 0.10
-FP/frame cutoff on validation (if source group/frame exposure permits),
-then reads the holdout prediction/GT files. Validation and holdout
-`video_id` overlap is rejected. The script records SHA-256 for original
-COCO inputs and analysis code, preserves existing output files, never
-commits raw images, and keeps outputs outside Git.
+**Held-out mode is disabled by default** and is **not authorized yet**.
+To run it after one explicit prospective author decision, the agent must
+prepare a local `--freeze-record` JSON with
+`schema_version=1`, `author_decision="FROZEN"`, `claim_tier="A"`,
+and SHA-256 fields `protocol_sha256`, `checkpoint_sha256`,
+`split_manifest_sha256`, `validation_annotations_sha256`,
+`validation_predictions_sha256`, and `holdout_annotations_sha256`.
+With this author-decision record, an explicit `--mode holdout` plus both
+holdout paths is required. The CLI checks input digests and refuses
+unfrozen, mismatched or missing records **before opening test outcomes**.
+This is a declared-author-record safeguard, not cryptographic proof of
+the approver's identity or real acquisition independence.
+
+These filenames describe expected local inputs, not files verified on
+the user's Fedora machine. The evaluator computes metrics from existing
+model detections, not inference; `predict_torchscript_coco.py` is the
+separate optional local model adapter above. Validation/holdout
+`video_id` overlap is rejected, but video IDs alone do not establish
+independent acquisitions. The result records SHA-256 for original COCO
+inputs and analysis code, never overwrites evidence, never commits raw
+images and keeps outputs outside Git.
 
 Output uses `source_reference_unverified`, `source_export` and
 `source_video_proxy` by design. The script suppresses cluster-bootstrap
@@ -129,11 +137,11 @@ does not affect full-score AP. If validation lacks sufficient coverage
 or a nontrivial feasible threshold, output is `BLOCKED_VALIDATION`
 without reading held-out outcomes.
 
-**Next engineering prerequisite:** connect an approved local detector
-checkpoint and source image access to produce the two COCO prediction
-arrays automatically, once the source-specific legal/version and
-train/validation/holdout identities are confirmed. This adapter itself
-does not generate detections.
+**Outstanding dependencies:** a source-permitted, SHA-pinned local
+checkpoint and actual source images are required to generate validation
+predictions. The current TorchScript adapter deliberately cannot generate
+holdout predictions before author freeze; future held-out execution must
+reuse the fixed checkpoint/preprocessing and prospectively approved split.
 
 Implemented: `summarize_e00.py` consumes generated E00 manifest/CSV and writes a SHA-256-linked JSON summary, explicitly marked `simulated`.
 
