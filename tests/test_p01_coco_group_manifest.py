@@ -40,7 +40,7 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
         ],
     }
     if missing_group:
-        validation["images"][0]["video_id"] = "video-\\u200bC"
+        validation["images"][0]["video_id"] = "video-\u200bC"
     if ignored:
         validation["annotations"][0]["iscrowd"] = 1
     return (
