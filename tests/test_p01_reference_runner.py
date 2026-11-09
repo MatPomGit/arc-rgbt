@@ -115,3 +115,15 @@ def test_crowd_gt_is_not_silently_treated_as_ordinary_target(tmp_path):
     write_json(val_gt, annotations)
     with pytest.raises(ValueError, match="crowd/ignore"):
         runner.load_coco(val_gt, val_pred, "car")
+
+
+@pytest.mark.parametrize("bad_group", [
+    "v-0 ", " v-0", "v-\\u200b0", "\\uff56-0", "v-0\\n",
+])
+def test_noncanonical_group_cannot_bypass_split_guard(tmp_path, bad_group):
+    val_gt, val_pred, test_gt, test_pred = sources(tmp_path)
+    payload = json.loads(test_gt.read_text(encoding="utf-8"))
+    payload["images"][0]["extra_info"]["video_id"] = bad_group
+    write_json(test_gt, payload)
+    with pytest.raises(ValueError, match="canonical nonempty source video_id"):
+        runner.evaluate_reference(val_gt, val_pred, test_gt, test_pred, "car")
