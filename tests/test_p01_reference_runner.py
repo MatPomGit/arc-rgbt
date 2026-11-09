@@ -127,3 +127,98 @@ def test_noncanonical_group_cannot_bypass_split_guard(tmp_path, bad_group):
     write_json(test_gt, payload)
     with pytest.raises(ValueError, match="canonical nonempty source video_id"):
         runner.evaluate_reference(val_gt, val_pred, test_gt, test_pred, "car")
+
+
+def test_cli_validation_only_never_requires_or_reads_holdout(tmp_path):
+    val_gt, val_pred, _, _ = sources(tmp_path)
+    out = tmp_path / "validation-only.json"
+    assert runner.main([
+        "--mode", "validation",
+        "--validation-annotations", str(val_gt),
+        "--validation-predictions", str(val_pred),
+        "--output", str(out),
+    ]) == 0
+    report = json.loads(out.read_text(encoding="utf-8"))
+    assert report["status"] == "VALIDATION_CANDIDATE_ONLY"
+    assert report["validation_threshold"]["status"] == "CANDIDATE_ONLY"
+    assert "holdout_annotations" not in report["input_sha256"]
+    assert "holdout_counts" not in report
+
+
+def test_cli_refuses_test_inputs_in_default_validation_mode(tmp_path):
+    val_gt, val_pred, _, _ = sources(tmp_path)
+    with pytest.raises(SystemExit) as err:
+        runner.main([
+            "--validation-annotations", str(val_gt),
+            "--validation-predictions", str(val_pred),
+            "--holdout-annotations", str(tmp_path / "missing-test-gt.json"),
+            "--output", str(tmp_path / "not-created.json"),
+        ])
+    assert err.value.code == 2
+    assert not (tmp_path / "not-created.json").exists()
+
+
+def test_cli_blocks_holdout_without_author_freeze(tmp_path):
+    val_gt, val_pred, _, _ = sources(tmp_path)
+    with pytest.raises(SystemExit) as err:
+        runner.main([
+            "--mode", "holdout",
+            "--validation-annotations", str(val_gt),
+            "--validation-predictions", str(val_pred),
+            "--holdout-annotations", str(tmp_path / "missing-test-gt.json"),
+            "--holdout-predictions", str(tmp_path / "missing-test-det.json"),
+            "--output", str(tmp_path / "not-created.json"),
+        ])
+    assert err.value.code == 2
+
+
+def test_cli_author_not_frozen_does_not_open_holdout(tmp_path):
+    val_gt, val_pred, _, _ = sources(tmp_path)
+    frozen = tmp_path / "unapproved-freeze.json"
+    write_json(frozen, {
+        "schema_version": 1, "author_decision": "CONDITIONAL_DESIGN",
+        "claim_tier": "A",
+    })
+    with pytest.raises(SystemExit) as err:
+        runner.main([
+            "--mode", "holdout",
+            "--validation-annotations", str(val_gt),
+            "--validation-predictions", str(val_pred),
+            "--holdout-annotations", str(tmp_path / "missing-test-gt.json"),
+            "--holdout-predictions", str(tmp_path / "missing-test-det.json"),
+            "--freeze-record", str(frozen),
+            "--output", str(tmp_path / "not-created.json"),
+        ])
+    assert err.value.code == 1
+    assert not (tmp_path / "not-created.json").exists()
+
+
+def test_cli_synthetic_frozen_record_binds_inputs_and_remains_descriptive(tmp_path):
+    val_gt, val_pred, test_gt, test_pred = sources(tmp_path)
+    frozen = tmp_path / "synthetic-freeze-fixture.json"
+    write_json(frozen, {
+        "schema_version": 1,
+        "author_decision": "FROZEN",  # Synthetic fixture; not an actual author approval.
+        "claim_tier": "A",
+        "protocol_sha256": "a" * 64,
+        "checkpoint_sha256": "b" * 64,
+        "split_manifest_sha256": "c" * 64,
+        "validation_annotations_sha256": runner.digest(val_gt),
+        "validation_predictions_sha256": runner.digest(val_pred),
+        "holdout_annotations_sha256": runner.digest(test_gt),
+    })
+    out = tmp_path / "test-report.json"
+    assert runner.main([
+        "--mode", "holdout",
+        "--validation-annotations", str(val_gt),
+        "--validation-predictions", str(val_pred),
+        "--holdout-annotations", str(test_gt),
+        "--holdout-predictions", str(test_pred),
+        "--freeze-record", str(frozen),
+        "--output", str(out),
+    ]) == 0
+    result = json.loads(out.read_text(encoding="utf-8"))
+    assert result["status"] == "DESCRIPTIVE_ONLY"
+    assert result["physical_sensor_limits_supported"] is False
+    assert result["author_freeze_record_sha256"] == runner.digest(frozen)
+    assert result["author_freeze_record_self_declared"] is True
