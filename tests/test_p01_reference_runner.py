@@ -118,7 +118,7 @@ def test_crowd_gt_is_not_silently_treated_as_ordinary_target(tmp_path):
 
 
 @pytest.mark.parametrize("bad_group", [
-    "v-0 ", " v-0", "v-\\u200b0", "\\uff56-0", "v-0\\n",
+    "v-0 ", " v-0", "v-\u200b0", "\uff56-0", "v-0\n",
 ])
 def test_noncanonical_group_cannot_bypass_split_guard(tmp_path, bad_group):
     val_gt, val_pred, test_gt, test_pred = sources(tmp_path)
