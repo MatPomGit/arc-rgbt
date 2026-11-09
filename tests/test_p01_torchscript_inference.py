@@ -1,5 +1,6 @@
 """Targeted tests for P01 validation-only TorchScript prediction adapter."""
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -14,6 +15,16 @@ SPEC = importlib.util.spec_from_file_location("p01_predict_torchscript_coco", SC
 sys.path.insert(0, str(SCRIPT.parent))
 predictor = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(predictor)
+
+
+def write_manifest(path, value):
+    """Write canonical manifest fingerprint used by the P01 pre-test tool."""
+    canonical = json.dumps(
+        value["frame_manifest"], ensure_ascii=False, sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    value["frame_manifest_sha256"] = hashlib.sha256(canonical).hexdigest()
+    path.write_text(json.dumps(value), encoding="utf-8")
 
 
 def test_letterbox_round_trip_xyxy_to_source_coco():
@@ -63,7 +74,7 @@ def test_manifest_validation_rejects_unbound_or_unfrozen_sources(tmp_path):
                     "annotations": []}), encoding="utf-8",
     )
     manifest = tmp_path / "manifest.json"
-    manifest.write_text(json.dumps({
+    write_manifest(manifest, {
         "status": "PROVISIONAL_VIDEO_PROXY_SPLIT", "split_mode": "propose",
         "selected_class": "car", "heldout_opened": False,
         "source_annotation_sha256": {"validation": predictor.digest(annotations)},
@@ -71,7 +82,7 @@ def test_manifest_validation_rejects_unbound_or_unfrozen_sources(tmp_path):
         "frame_manifest": [{
             "split": "validation", "frame_id": "validation:1", "source_video_id": "g-1"
         }],
-    }), encoding="utf-8")
+    })
     with pytest.raises(ValueError, match="Manifest not eligible"):
         predictor.load_validation(annotations, manifest, "car")
 
@@ -85,7 +96,7 @@ def test_manifest_rejects_nonmatching_group(tmp_path):
     annotations = tmp_path / "validation.json"
     annotations.write_text(json.dumps(source), encoding="utf-8")
     manifest = tmp_path / "manifest.json"
-    manifest.write_text(json.dumps({
+    write_manifest(manifest, {
         "status": "PROVISIONAL_VIDEO_PROXY_SPLIT", "split_mode": "preserve",
         "selected_class": "car", "heldout_opened": False,
         "source_annotation_sha256": {"validation": predictor.digest(annotations)},
@@ -94,7 +105,7 @@ def test_manifest_rejects_nonmatching_group(tmp_path):
             "split": "validation", "frame_id": "validation:1",
             "source_video_id": "fake-g",
         }],
-    }), encoding="utf-8")
+    })
     with pytest.raises(ValueError, match="group mismatch"):
         predictor.load_validation(annotations, manifest, "car")
 
@@ -135,7 +146,7 @@ def test_torchscript_validation_integration_if_torch_is_installed(tmp_path):
         "images": frames, "annotations": [],
     }), encoding="utf-8")
     manifest = tmp_path / "manifest.json"
-    manifest.write_text(json.dumps({
+    write_manifest(manifest, {
         "status": "PROVISIONAL_VIDEO_PROXY_SPLIT",
         "split_mode": "preserve", "selected_class": "car",
         "heldout_opened": False,
@@ -146,7 +157,7 @@ def test_torchscript_validation_integration_if_torch_is_installed(tmp_path):
              "source_video_id": f"scene-{i // 20}"}
             for i in range(200)
         ],
-    }), encoding="utf-8")
+    })
     output = tmp_path / "output"
     report = predictor.predict(
         annotations, manifest, image_root, checkpoint,
