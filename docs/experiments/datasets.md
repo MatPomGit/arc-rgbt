@@ -25,7 +25,7 @@ No dataset, annotation archive or model was downloaded.
 | **LLVIP** (backup, ground low-light) | [Owner terms](https://github.com/bupt-ai-cz/LLVIP/blob/main/Term%20of%20Use%20and%20License.md) permit non-commercial research/publications with citation, prohibit commercial use and privacy identification, and reserve ungranted rights; the owner describes **26 acquisition scenes**. | Scene grouping is a candidate only; individual independent acquisition count and paired-bin support remain unverified. Need exact image/label release, LWIR band/native detector grid, complete negative labels and rights for any derivatives. | **CONDITIONAL SOURCE SCREENING**, G01 **BLOCKED** |
 | **DroneVehicle** (aerial fallback) | [Owner repository discussion #58](https://github.com/VisDrone/DroneVehicle/issues/58) was still **open**, with zero comments at inspection, requesting image and annotation terms. | Relevant UAV geometry but original archive image/annotation licence remains unresolved; thermal spectral band, native grid, border/crop processing and independent flights need verification. | **HOLD RIGHTS**, no data import |
 | **CART** (aerial context only) | [Owner repository](https://github.com/aerorobotics/caltech-aerial-rgbt-dataset) identified; previously documented conflict between non-commercial language and CC BY-SA remains unresolved. | Original rights require clarification; segmentation labels are not automatically complete detection boxes. Native grid and independent groups remain unverified. | **HOLD LICENCE/ANNOTATIONS** |
-| **FLIR ADAS** (alternative road-scene thermal) | [Official owner dataset access page](https://oem.flir.com/en-gb/solutions/automotive/adas-dataset-form/) is already indexed; archive terms were **not** independently re-read in this pass. | Requires access/terms review, original thermal grid and negatives; same-scene RGB registration is not established. | **HOLD UNVERIFIED RIGHTS** |
+| **FLIR ADAS v2** (road-scene LWIR candidate) | [Manufacturer's current dataset specifications](https://oem.flir.com/en-gb/solutions/automotive/adas-dataset-form/) and [dated v2 release announcement (2022-01-19)](https://www.oem.flir.com/en-150/about/news/expanded-teledyne-flir-starter-thermal-dataset-for-adas-and-autonomous-vehicle-testing/) identify the offering and COCO annotation format; the publicly displayed page **does not grant the project rights to an exact archive revision**. | Requires original registration/download terms applicable to images **and annotations**, a release/version and hash record, real source scene/session identifiers, export-grid/optics mapping and checkpoint training lineage. COCO format alone does not guarantee `video_id`. | **HOLD UNVERIFIED ORIGINAL ARCHIVE RIGHTS AND GROUPING**, G01 BLOCKED |
 
 **Decision for #45:** prioritize KAIST original-release verification; LLVIP
 is the next legally documented academic candidate, while DroneVehicle is
@@ -93,16 +93,37 @@ specifications, not independent authentication that every file in the
 operator's 12-part local archive came from exactly that model,
 firmware, optical chain or unaltered native coordinate grid.
 
-**Release identity mismatch to resolve before P01 admission:** the
-owner page reports **9,711 thermal training/validation images**.
-The operator's reported train/validation index inventory in PR #65
-contains **10,742 + 1,144 = 11,886 thermal frame keys**. This
-difference may reflect release packaging, selection or revisions;
-the cause is currently **UNKNOWN**. Do not quietly mix publisher
-summary counts with local archive counts. Require an exact
-release-specific source manifest, release/version reconciliation,
-original archive part hashes and independently reviewed TIFF-to-COCO
-coordinate correspondence before using original-grid footprints.
+**Release identity mismatch to resolve before P01 admission:**
+the manufacturer lists **9,711 thermal still images** for
+training/validation, **9,233 visible still images**, and separately
+**7,498 matched video frames** among the 26,442 annotated frames.
+Those are distinct denominators, not interchangeable train/validation
+numbers. The operator-reported local annotation index inventory
+recorded via PR #65 contains **10,742 + 1,144 = 11,886 thermal
+frame keys**; a secondary research paper reports the same
+10,742/1,144 division, but that is **not** independent proof of the
+owner-issued release, its licence or the mapping from still/video
+frames. Whether the difference represents repackaging, release
+edition, filtered labels, video-frame inclusion or something else
+remains **UNKNOWN**. Do not silently combine these counts; require
+source-specific release notes, actual annotation and archive hashes,
+image/annotation file identities and documented original-to-COCO
+coordinate correspondence before using physical/native footprints.
+
+**Group-ID compatibility is a concrete preflight risk:** `video_id`
+and `extra_info.video_id` are **nonstandard optional metadata**,
+not guaranteed by a MSCOCO-format label declaration. The
+manufacturer's public page does not document such a field for every
+image, and a labelled still frame is not necessarily an independently
+identified camera session. The P01 code therefore fails closed on
+missing group keys or contradictory two-field identities and checks
+source-video proxy overlaps; it must **not synthesize acquisition
+independence from frame IDs, basename patterns or equal pixel sizes**.
+If the actual release has owner-authored sequence/session metadata
+outside COCO, the project must link those records with immutable
+hashes before proposing the real group split. At present:
+`GROUP_IDENTITIES_UNKNOWN`, `DATA_RIGHTS_HOLD`,
+`NATIVE_GRID_PROVENANCE_UNKNOWN`.
 Neither the camera datasheet nor equal TIFF pixel dimensions
 establish independently verified annotation geometry, full negative
 coverage or physical acquisition identity. Current P01 status remains
