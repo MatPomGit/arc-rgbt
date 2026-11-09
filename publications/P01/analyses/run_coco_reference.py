@@ -163,7 +163,7 @@ def validation_candidate(
 def evaluate_reference(
     validation_annotations: Path, validation_predictions: Path,
     holdout_annotations: Path, holdout_predictions: Path,
-    selected_class: str,
+    selected_class: str, *, freeze_record: Path | None = None,
 ) -> dict:
     """Hold-out evaluator. Its CLI requires a prior author-FROZEN record."""
     result, val_groups = validation_candidate(
@@ -173,6 +173,15 @@ def evaluate_reference(
     if cutoff["status"] != "CANDIDATE_ONLY":
         result["status"] = "BLOCKED_VALIDATION"
         return result
+    if freeze_record is None:
+        raise ValueError("An author-FROZEN protocol record is required for held-out access")
+    frozen = verify_freeze_record(
+        freeze_record, validation_annotations, validation_predictions,
+        holdout_annotations,
+    )
+    result["author_freeze_record_sha256"] = digest(freeze_record)
+    result["author_freeze_record_self_declared"] = True
+    result["author_protocol_sha256"] = frozen["protocol_sha256"]
 
     # Do not even open held-out files until after validation selection.
     result["input_sha256"].update({
@@ -293,17 +302,11 @@ def main(argv: list[str] | None = None) -> int:
                 report = preliminary
                 report["status"] = "BLOCKED_VALIDATION"
             else:
-                frozen = verify_freeze_record(
-                    args.freeze_record, args.validation_annotations,
-                    args.validation_predictions, args.holdout_annotations,
-                )
                 report = evaluate_reference(
                     *inputs, args.holdout_annotations,
                     args.holdout_predictions, args.class_name,
+                    freeze_record=args.freeze_record,
                 )
-                report["author_freeze_record_sha256"] = digest(args.freeze_record)
-                report["author_freeze_record_self_declared"] = True
-                report["author_protocol_sha256"] = frozen["protocol_sha256"]
         output.parent.mkdir(parents=True, exist_ok=True)
         with output.open("x", encoding="utf-8") as handle:
             json.dump(report, handle, indent=2, allow_nan=False, sort_keys=True)
