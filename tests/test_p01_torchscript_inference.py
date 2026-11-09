@@ -110,6 +110,35 @@ def test_manifest_rejects_nonmatching_group(tmp_path):
         predictor.load_validation(annotations, manifest, "car")
 
 
+def test_manifest_hash_and_actual_exposure_verified_before_inference(tmp_path):
+    """Forged flags cannot make one validation frame satisfy scientific exposure."""
+    annotations = tmp_path / "validation.json"
+    annotations.write_text(json.dumps({
+        "images": [{"id": 1, "video_id": "g-1", "file_name": "frame.png",
+                    "width": 16, "height": 16}],
+        "categories": [{"id": 3, "name": "car"}], "annotations": [],
+    }), encoding="utf-8")
+    manifest = tmp_path / "manifest.json"
+    plan = {
+        "status": "PROVISIONAL_VIDEO_PROXY_SPLIT",
+        "split_mode": "preserve", "selected_class": "car",
+        "heldout_opened": False,
+        "source_annotation_sha256": {"validation": predictor.digest(annotations)},
+        "validation_threshold_exposure_meets_software_floor": True,
+        "frame_manifest": [{
+            "split": "validation", "frame_id": "validation:1",
+            "source_video_id": "g-1",
+        }],
+    }
+    write_manifest(manifest, plan)
+    with pytest.raises(ValueError, match="Actual source validation exposure"):
+        predictor.load_validation(annotations, manifest, "car")
+    plan["frame_manifest"][0]["source_video_id"] = "g-2"
+    manifest.write_text(json.dumps(plan), encoding="utf-8")
+    with pytest.raises(ValueError, match="manifest content SHA-256 mismatch"):
+        predictor.load_validation(annotations, manifest, "car")
+
+
 def test_checkpoint_hash_fails_before_optional_torch_or_image_io(tmp_path):
     checkpoint = tmp_path / "model.pt"
     checkpoint.write_bytes(b"not a checkpoint")
