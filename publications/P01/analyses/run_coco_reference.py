@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import unicodedata
 from pathlib import Path
 
 from arc_rgbt.evaluation_contracts import detection_contract
@@ -35,8 +36,17 @@ def source_group(image: dict) -> str:
     value = extra.get("video_id") if isinstance(extra, dict) else None
     if value is None:
         value = image.get("video_id")
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError("Each COCO image needs a nonempty source video_id")
+    if (
+        not isinstance(value, str)
+        or not value
+        or value != value.strip()
+        or unicodedata.normalize("NFKC", value) != value
+        or any(
+            char.isspace() or unicodedata.category(char) in ("Cc", "Cf")
+            for char in value
+        )
+    ):
+        raise ValueError("Each COCO image needs a canonical nonempty source video_id")
     return value
 
 
