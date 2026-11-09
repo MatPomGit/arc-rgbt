@@ -125,6 +125,10 @@ def prepare(train: Path, validation: Path, class_name: str,
             "source_reference_negative_frames": sum(
                 not f["bins"] for f in selected
             ),
+            "source_reference_negative_groups": len({
+                f["group_id"] for f in selected
+                if not f["bins"] and f["group_id"] is not None
+            }),
             "source_reference_positive_frames": sum(
                 bool(f["bins"]) for f in selected
             ),
@@ -136,6 +140,19 @@ def prepare(train: Path, validation: Path, class_name: str,
                 f["group_id"] for f in selected if f["group_id"] is not None
             }),
         }
+    validation_counts = per_split["validation"]
+    validation_threshold_exposure = {
+        "at_least_200_frames": validation_counts["frames"] >= 200,
+        "at_least_10_source_video_groups": (
+            validation_counts["source_video_proxy_groups"] >= 10
+        ),
+        "at_least_20_reference_negative_frames": (
+            validation_counts["source_reference_negative_frames"] >= 20
+        ),
+        "at_least_2_reference_negative_groups": (
+            validation_counts["source_reference_negative_groups"] >= 2
+        ),
+    }
     if missing:
         status = "BLOCKED_MISSING_OR_NONCANONICAL_GROUPS"
     elif len(known_groups) < 2:
@@ -181,6 +198,14 @@ def prepare(train: Path, validation: Path, class_name: str,
         "source_group_ids_missing_or_noncanonical": missing,
         "source_video_groups_in_both_original_splits": len(existing_overlap),
         "per_split": per_split,
+        "validation_threshold_candidate_exposure": validation_threshold_exposure,
+        "validation_threshold_exposure_meets_software_floor": all(
+            validation_threshold_exposure.values()
+        ),
+        "implementation_sha256": {
+            "manifest_builder": digest(Path(__file__)),
+            "reference_runner": digest(Path(__file__).with_name("run_coco_reference.py")),
+        },
         "frame_manifest_sha256": manifest_sha,
         "frame_manifest": manifest,
         "limitations": [
