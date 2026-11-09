@@ -100,8 +100,8 @@ training/validation, **9,233 visible still images**, and separately
 Those are distinct denominators, not interchangeable train/validation
 numbers. The operator-reported local annotation index inventory
 recorded via PR #65 contains **10,742 + 1,144 = 11,886 thermal
-frame keys**; a secondary research paper reports the same
-10,742/1,144 division, but that is **not** independent proof of the
+frame keys**; a [secondary FLIR benchmark report](https://www.mdpi.com/2076-3417/15/24/13008)
+reports the same 10,742/1,144 division, but that is **not** independent proof of the
 owner-issued release, its licence or the mapping from still/video
 frames. Whether the difference represents repackaging, release
 edition, filtered labels, video-frame inclusion or something else
