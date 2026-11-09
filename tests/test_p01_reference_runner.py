@@ -53,14 +53,18 @@ def sources(tmp_path, *, leaked=False, short_validation=False):
 def frozen_synthetic_record(tmp_path, paths):
     """Synthetic FROZEN fixture only; never a real author decision."""
     val_gt, val_pred, test_gt, _ = paths
-    return write_json(tmp_path / "synthetic-freeze.json", {
-        "schema_version": 1, "author_decision": "FROZEN",
-        "claim_tier": "A", "protocol_sha256": "a" * 64,
-        "checkpoint_sha256": "b" * 64, "split_manifest_sha256": "c" * 64,
+    data = {
+        "schema_version": 1, "author_decision": "FROZEN", "claim_tier": "A",
         "validation_annotations_sha256": runner.digest(val_gt),
         "validation_predictions_sha256": runner.digest(val_pred),
         "holdout_annotations_sha256": runner.digest(test_gt),
-    })
+    }
+    for kind in ("protocol", "checkpoint", "split_manifest"):
+        artifact = tmp_path / f"fixture-{kind}.bin"
+        artifact.write_bytes(f"synthetic-{kind}".encode())
+        data[f"{kind}_path"] = str(artifact)
+        data[f"{kind}_sha256"] = runner.digest(artifact)
+    return write_json(tmp_path / "synthetic-freeze.json", data)
 
 
 def test_true_predictions_are_only_dataset_reference_descriptive(tmp_path):
@@ -224,18 +228,7 @@ def test_cli_author_not_frozen_does_not_open_holdout(tmp_path):
 
 def test_cli_synthetic_frozen_record_binds_inputs_and_remains_descriptive(tmp_path):
     val_gt, val_pred, test_gt, test_pred = sources(tmp_path)
-    frozen = tmp_path / "synthetic-freeze-fixture.json"
-    write_json(frozen, {
-        "schema_version": 1,
-        "author_decision": "FROZEN",  # Synthetic fixture; not an actual author approval.
-        "claim_tier": "A",
-        "protocol_sha256": "a" * 64,
-        "checkpoint_sha256": "b" * 64,
-        "split_manifest_sha256": "c" * 64,
-        "validation_annotations_sha256": runner.digest(val_gt),
-        "validation_predictions_sha256": runner.digest(val_pred),
-        "holdout_annotations_sha256": runner.digest(test_gt),
-    })
+    frozen = frozen_synthetic_record(tmp_path, (val_gt, val_pred, test_gt, test_pred))
     out = tmp_path / "test-report.json"
     assert runner.main([
         "--mode", "holdout",
@@ -251,3 +244,4 @@ def test_cli_synthetic_frozen_record_binds_inputs_and_remains_descriptive(tmp_pa
     assert result["physical_sensor_limits_supported"] is False
     assert result["author_freeze_record_sha256"] == runner.digest(frozen)
     assert result["author_freeze_record_self_declared"] is True
+    assert result["frozen_protocol_checkpoint_split_hashes_verified"] is True
