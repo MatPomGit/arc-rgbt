@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -10,8 +11,6 @@ import pytest
 SCRIPT = (Path(__file__).resolve().parents[1]
           / "publications/P01/analyses/predict_torchscript_coco.py")
 SPEC = importlib.util.spec_from_file_location("p01_predict_torchscript_coco", SCRIPT)
-import sys
-
 sys.path.insert(0, str(SCRIPT.parent))
 predictor = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(predictor)
