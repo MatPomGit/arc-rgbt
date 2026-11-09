@@ -156,6 +156,21 @@ def test_noncanonical_group_cannot_bypass_split_guard(tmp_path, bad_group):
         )
 
 
+@pytest.mark.parametrize("kind", ["protocol", "checkpoint", "split_manifest"])
+def test_frozen_artifact_tamper_blocks_before_heldout_outcomes(tmp_path, kind):
+    paths = sources(tmp_path)
+    frozen = frozen_synthetic_record(tmp_path, paths)
+    payload = json.loads(frozen.read_text(encoding="utf-8"))
+    artifact = Path(payload[f"{kind}_path"])
+    artifact.write_bytes(b"changed-after-synthetic-freeze")
+    with pytest.raises(ValueError, match=f"Frozen {kind} artifact hash mismatch"):
+        runner.evaluate_reference(
+            paths[0], paths[1], tmp_path / "never-read-holdout.json",
+            tmp_path / "never-read-predictions.json", "car",
+            freeze_record=frozen,
+        )
+
+
 def test_direct_api_requires_author_freeze_before_reading_heldout(tmp_path):
     paths = sources(tmp_path)
     with pytest.raises(ValueError, match="author-FROZEN"):
