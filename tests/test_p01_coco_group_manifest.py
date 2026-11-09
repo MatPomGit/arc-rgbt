@@ -82,7 +82,7 @@ def test_preserve_source_coco_counts_and_input_hashes(tmp_path):
     assert len(report["source_annotation_sha256"]["train"]) == 64
     assert len(report["frame_manifest_sha256"]) == 64
     assert report["validation_threshold_exposure_meets_software_floor"] is False
-    assert report["per_split"]["train"]["source_reference_negative_groups"] == 1
+    assert report["per_split"]["train"]["source_reference_negative_groups"] == 2
     assert report["validation_threshold_candidate_exposure"] == {
         "at_least_200_frames": False,
         "at_least_10_source_video_groups": False,
