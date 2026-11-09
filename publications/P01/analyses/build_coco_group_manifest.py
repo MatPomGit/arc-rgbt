@@ -11,7 +11,7 @@ import argparse
 import hashlib
 import json
 import math
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 from run_coco_reference import digest, source_group
@@ -101,7 +101,7 @@ def prepare(train: Path, validation: Path, class_name: str,
         ranking = sorted(
             known_groups,
             key=lambda group: (
-                hashlib.sha256(f"{seed}:{group}".encode("utf-8")).hexdigest(), group
+                hashlib.sha256(f"{seed}:{group}".encode()).hexdigest(), group
             ),
         )
         n_validation = max(1, min(len(ranking) - 1,
