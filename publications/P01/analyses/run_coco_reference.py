@@ -182,6 +182,7 @@ def evaluate_reference(
     result["author_freeze_record_sha256"] = digest(freeze_record)
     result["author_freeze_record_self_declared"] = True
     result["author_protocol_sha256"] = frozen["protocol_sha256"]
+    result["frozen_protocol_checkpoint_split_hashes_verified"] = True
 
     # Do not even open held-out files until after validation selection.
     result["input_sha256"].update({
@@ -243,11 +244,20 @@ def verify_freeze_record(
             or record.get("author_decision") != "FROZEN"
             or record.get("claim_tier") != "A"):
         raise ValueError("An author-FROZEN Tier A protocol record is required")
-    for name in ("protocol_sha256", "checkpoint_sha256", "split_manifest_sha256"):
+    for kind in ("protocol", "checkpoint", "split_manifest"):
+        name = f"{kind}_sha256"
         value = record.get(name)
         if (not isinstance(value, str) or len(value) != 64
                 or any(char not in "0123456789abcdef" for char in value)):
             raise ValueError(f"Missing immutable {name} in author freeze record")
+        artifact_name = record.get(f"{kind}_path")
+        if not isinstance(artifact_name, str) or not artifact_name.strip():
+            raise ValueError(f"Missing frozen {kind}_path")
+        artifact_path = Path(artifact_name).expanduser()
+        if not artifact_path.is_absolute():
+            artifact_path = path.parent / artifact_path
+        if not artifact_path.is_file() or digest(artifact_path) != value:
+            raise ValueError(f"Frozen {kind} artifact hash mismatch")
     for name, source in (
         ("validation_annotations_sha256", validation_annotations),
         ("validation_predictions_sha256", validation_predictions),
