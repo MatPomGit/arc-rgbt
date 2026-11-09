@@ -1,5 +1,55 @@
 # P01 study protocol
 
+## P01 S09 author decision packet v0.4.0 (2026-11-09; UNFROZEN)
+
+**Purpose:** one prospective choice for [#35](https://github.com/MatPomGit/arc-rgbt/issues/35)
+and [#53](https://github.com/MatPomGit/arc-rgbt/issues/53), due 2026-11-13.
+**Current author decision:** `CONDITIONAL_DESIGN` (2026-11-04); no frozen
+preregistration, source admission, confirmatory test, or experimental result.
+This packet summarizes existing decisions without changing their scientific
+authority. Its Git revision records the *candidate*, not author approval.
+
+| Decision | Single Tier A candidate for author review | Status / blocking evidence |
+| --- | --- | --- |
+| Claim and population | Fixed LWIR detector on a lawfully used, versioned source release; `car` against supplied COCO reference labels | **CANDIDATE**; original archive image/annotation terms, release hashes and checkpoint training provenance not verified (#45/#47) |
+| Size proxy | `s=sqrt(w*h)` from COCO **export-grid** bbox; small `s<8`, intermediate `8<=s<16`, reference `s>=16` pixels | **CANDIDATE**, never automatically described as native detector pixels or physical range (#46) |
+| Matching and alerts | Same-class one-to-one IoU `>=0.50`; unmatched car detections per **all** source-labelled frames. Zero-car-GT frames are reference-negative, not proven empty | **CANDIDATE** ignore/crowd boxes rejected until source convention specified (#47) |
+| Threshold | Lowest nontrivial feasible validation-only score meeting candidate `0.10` source-reference FP/frame; no test retuning; holdout violation `OPERATING_CONDITION_NOT_MET` | **CANDIDATE**; final ceiling and rule need author approval, real validation frames and fixed checkpoint (#51/#58) |
+| Data partitions | No overlap of true acquisition groups in train/validation/holdout or checkpoint training; `video_id` is **only a proxy** | **BLOCKED**; lawful source-provided independent acquisition IDs and split/checkpoint lineage unavailable (#48/#55) |
+| Primary contrast | If genuine independent acquisitions exist, equally weighted `Delta = mean_g(recall_small,g - recall_reference,g)` among groups with targets in both bins | **CANDIDATE**; number/heterogeneity of true groups and paired-bin support unavailable (#48/#50) |
+| Statistical inference | One-sided `H1: Delta < 0`, alpha 0.05 acquisition-level t procedure only after empirical validity/calibration and independent methodological review | **BLOCKED** (#49/#53); if prerequisites fail, `DESCRIPTIVE_ONLY`, with per-bin recall, FP/frame, AP@IoU 0.50, group/target/frame denominators |
+| Scope | Tier A observational source-GT-relative benchmark; RGB-only secondary, RGB/LWIR fusion P02; software resizing E00 simulated | **CANDIDATE**; no causal optics, physical range, native-sensor or deployment claim |
+| Tier B | Separately verified original sensor grid/optics, transform from native to labels, physical provenance and authentic acquisitions | **BLOCKED** (#46); never promoted by Tier A metrics |
+| Editorial fit | Object detection and sensor perception are within the *Sensors* Special Issue's subject list; whether this particular Tier A benchmark is sufficiently novel remains unproven | **PROVISIONAL** (#52); unsent scope abstract in [P01 overview](../README.md) |
+
+**Software readiness, not scientific approval.** [PR #72](https://github.com/MatPomGit/arc-rgbt/pull/72)
+was merged as `e1161ea2d0a8e7821d5934018966dc380b54fa0b`;
+[exact-head CI](https://github.com/MatPomGit/arc-rgbt/actions/runs/42664280237)
+passed 447 tests with 8 skips, Ruff and MkDocs. The code computes
+pre-test COCO denominators and guarded validation predictions from an
+existing compatible local checkpoint, but no actual source archive,
+checkpoint or inference result was observed in this review. The
+held-out evaluator requires an author-declared `FROZEN` record with
+actual file SHA-256s; **an editable record does not authenticate its
+author or prove legal/scientific admission**.
+
+**2026-11-13 decision criterion:** choose `FROZEN` only after eligible
+source release/rights, exact data/model/split lineage, complete numerical
+choices, acquisition-feasibility and applicable independent method review
+are documented and the corresponding author expressly approves the
+specific prospective protocol revision. Otherwise preserve
+`CONDITIONAL_DESIGN / UNFROZEN / G01 BLOCKED`; choose `NO-GO` if
+the original data or statistical requirements are demonstrably
+incompatible. An unfinished source admission is not cured by manual
+reannotation or by a green unit-test suite.
+
+**Next automatic evidence:** permitted local source files -> group and
+source-GT denominator manifest -> fixed-checkpoint validation-only
+predictions and candidate FP/frame threshold -> artifact hashes. Untouched
+holdout remains closed until the actual prospective freeze. No
+publisher outreach, paid tools, new human label QA or implicit manuscript
+submission is authorized.
+
 Specify inclusion/exclusion criteria, sensor calibration, datasets, controls, splits, uncertainty, statistical design and experimental stopping conditions before empirical data acquisition. No approved empirical protocol is claimed.
 
 ## Current protocol interpretation: automation-first (2026-11-07)
