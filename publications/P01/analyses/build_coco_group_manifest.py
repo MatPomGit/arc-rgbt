@@ -53,7 +53,10 @@ def _load(path: Path, class_name: str, source_split: str) -> tuple[list[dict], d
         }
     seen_annotation_ids = set()
     for ann in objects:
-        if not isinstance(ann, dict) or ann.get("image_id") not in frames:
+        if (not isinstance(ann, dict)
+                or type(ann.get("image_id")) is not int
+                or ann["image_id"] not in frames
+                or type(ann.get("category_id")) is not int):
             raise ValueError("Malformed or orphan annotation")
         # COCO annotation IDs identify GT records across every category.
         # Missing, null, non-integer or repeated IDs make the source count
