@@ -146,6 +146,7 @@ def test_evidence_files_are_immutable(tmp_path):
     assert second.returncode != 0
     assert "already" in second.stderr or "must be new" in second.stderr
 
+
 def test_duplicate_source_annotation_ids_fail_before_denominator_report(tmp_path):
     train, validation = dataset(tmp_path)
     source = json.loads(train.read_text(encoding="utf-8"))
