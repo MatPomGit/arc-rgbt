@@ -199,3 +199,18 @@ def test_duplicate_across_categories_is_not_ignored(tmp_path):
     assert proc.returncode != 0
     assert "repeated COCO annotation ID" in proc.stderr
     assert not output.exists()
+
+
+def test_boolean_foreign_keys_cannot_alias_integer_source_ids(tmp_path):
+    train, validation = dataset(tmp_path)
+    for invalid_field in ("image_id", "category_id"):
+        source = json.loads(train.read_text(encoding="utf-8"))
+        source["annotations"][0][invalid_field] = True
+        modified = tmp_path / f"{invalid_field}.json"
+        write_json(modified, source)
+        proc, output = run(
+            tmp_path, modified, validation, name=f"report-{invalid_field}.json"
+        )
+        assert proc.returncode != 0
+        assert "Malformed or orphan annotation" in proc.stderr
+        assert not output.exists()
