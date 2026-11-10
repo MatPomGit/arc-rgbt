@@ -24,9 +24,9 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
         ],
         "categories": categories,
         "annotations": [
-            {"image_id": 1, "category_id": 3, "bbox": [0, 0, 4, 4]},
-            {"image_id": 1, "category_id": 3, "bbox": [0, 0, 20, 20]},
-            {"image_id": 2, "category_id": 1, "bbox": [0, 0, 2, 2]},
+            {"id": 101, "image_id": 1, "category_id": 3, "bbox": [0, 0, 4, 4]},
+            {"id": 102, "image_id": 1, "category_id": 3, "bbox": [0, 0, 20, 20]},
+            {"id": 103, "image_id": 2, "category_id": 1, "bbox": [0, 0, 2, 2]},
         ],
     }
     validation = {
@@ -36,7 +36,7 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
         ],
         "categories": categories,
         "annotations": [
-            {"image_id": 10, "category_id": 3, "bbox": [0, 0, 8, 8]},
+            {"id": 201, "image_id": 10, "category_id": 3, "bbox": [0, 0, 8, 8]},
         ],
     }
     if missing_group:
@@ -145,3 +145,72 @@ def test_evidence_files_are_immutable(tmp_path):
     assert first.returncode == 0
     assert second.returncode != 0
     assert "already" in second.stderr or "must be new" in second.stderr
+
+
+def test_duplicate_source_annotation_ids_fail_before_denominator_report(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    # Two distinct target boxes with the same COCO identity must not inflate
+    # small/reference-bin denominators or produce a provisional green status.
+    source["annotations"][0]["id"] = 42
+    source["annotations"][1]["id"] = 42
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode != 0
+    assert "repeated COCO annotation ID" in proc.stderr
+    assert not output.exists()
+
+
+def test_bool_source_annotation_id_is_not_an_integer(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    source["annotations"][0]["id"] = True
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode != 0
+    assert "COCO annotation ID" in proc.stderr
+    assert not output.exists()
+
+def test_missing_or_null_annotation_id_is_not_accepted(tmp_path):
+    train, validation = dataset(tmp_path)
+    for invalid in ("missing", None):
+        source = json.loads(train.read_text(encoding="utf-8"))
+        if invalid == "missing":
+            del source["annotations"][0]["id"]
+        else:
+            source["annotations"][0]["id"] = invalid
+        write_json(tmp_path / "modified-train.json", source)
+        proc, output = run(
+            tmp_path, tmp_path / "modified-train.json", validation,
+            name=f"report-{invalid}.json",
+        )
+        assert proc.returncode != 0
+        assert "COCO annotation ID" in proc.stderr
+        assert not output.exists()
+
+
+def test_duplicate_across_categories_is_not_ignored(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    # Category 1 is not selected, yet its ID must still be unique.
+    source["annotations"][2]["id"] = source["annotations"][0]["id"]
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode != 0
+    assert "repeated COCO annotation ID" in proc.stderr
+    assert not output.exists()
+
+
+def test_boolean_foreign_keys_cannot_alias_integer_source_ids(tmp_path):
+    train, validation = dataset(tmp_path)
+    for invalid_field in ("image_id", "category_id"):
+        source = json.loads(train.read_text(encoding="utf-8"))
+        source["annotations"][0][invalid_field] = True
+        modified = tmp_path / f"{invalid_field}.json"
+        write_json(modified, source)
+        proc, output = run(
+            tmp_path, modified, validation, name=f"report-{invalid_field}.json"
+        )
+        assert proc.returncode != 0
+        assert "Malformed or orphan annotation" in proc.stderr
+        assert not output.exists()
