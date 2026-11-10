@@ -145,3 +145,27 @@ def test_evidence_files_are_immutable(tmp_path):
     assert first.returncode == 0
     assert second.returncode != 0
     assert "already" in second.stderr or "must be new" in second.stderr
+
+def test_duplicate_source_annotation_ids_fail_before_denominator_report(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    # Two distinct target boxes with the same COCO identity must not inflate
+    # small/reference-bin denominators or produce a provisional green status.
+    source["annotations"][0]["id"] = 42
+    source["annotations"][1]["id"] = 42
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode != 0
+    assert "repeated COCO annotation ID" in proc.stderr
+    assert not output.exists()
+
+
+def test_bool_source_annotation_id_is_not_an_integer(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    source["annotations"][0]["id"] = True
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode != 0
+    assert "COCO annotation ID" in proc.stderr
+    assert not output.exists()
