@@ -24,9 +24,9 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
         ],
         "categories": categories,
         "annotations": [
-            {"image_id": 1, "category_id": 3, "bbox": [0, 0, 4, 4]},
-            {"image_id": 1, "category_id": 3, "bbox": [0, 0, 20, 20]},
-            {"image_id": 2, "category_id": 1, "bbox": [0, 0, 2, 2]},
+            {"id": 101, "image_id": 1, "category_id": 3, "bbox": [0, 0, 4, 4]},
+            {"id": 102, "image_id": 1, "category_id": 3, "bbox": [0, 0, 20, 20]},
+            {"id": 103, "image_id": 2, "category_id": 1, "bbox": [0, 0, 2, 2]},
         ],
     }
     validation = {
@@ -36,7 +36,7 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
         ],
         "categories": categories,
         "annotations": [
-            {"image_id": 10, "category_id": 3, "bbox": [0, 0, 8, 8]},
+            {"id": 201, "image_id": 10, "category_id": 3, "bbox": [0, 0, 8, 8]},
         ],
     }
     if missing_group:
@@ -169,4 +169,33 @@ def test_bool_source_annotation_id_is_not_an_integer(tmp_path):
     proc, output = run(tmp_path, train, validation)
     assert proc.returncode != 0
     assert "COCO annotation ID" in proc.stderr
+    assert not output.exists()
+
+def test_missing_or_null_annotation_id_is_not_accepted(tmp_path):
+    train, validation = dataset(tmp_path)
+    for invalid in ("missing", None):
+        source = json.loads(train.read_text(encoding="utf-8"))
+        if invalid == "missing":
+            del source["annotations"][0]["id"]
+        else:
+            source["annotations"][0]["id"] = invalid
+        write_json(tmp_path / "modified-train.json", source)
+        proc, output = run(
+            tmp_path, tmp_path / "modified-train.json", validation,
+            name=f"report-{invalid}.json",
+        )
+        assert proc.returncode != 0
+        assert "COCO annotation ID" in proc.stderr
+        assert not output.exists()
+
+
+def test_duplicate_across_categories_is_not_ignored(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    # Category 1 is not selected, yet its ID must still be unique.
+    source["annotations"][2]["id"] = source["annotations"][0]["id"]
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode != 0
+    assert "repeated COCO annotation ID" in proc.stderr
     assert not output.exists()
