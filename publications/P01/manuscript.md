@@ -1,7 +1,7 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.0, 2026-11-11. **Status:** UNSENT, UNFROZEN, no empirical results.
-This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
+**Version:** 0.1.1, 2026-11-11. **Status:** UNSENT, UNFROZEN, no empirical results.
+This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](P01/protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
 
@@ -61,12 +61,12 @@ The final paper must name the lawful dataset release, original owner and terms, 
 
 | Manuscript element | Current evidence | State |
 | --- | --- | --- |
-| Candidate estimand, footprint bins, FP/frame conventions | [Hypothesis sheet](hypotheses/README.md), [protocol](protocol/README.md) | UNFROZEN |
-| Journal scope and related-work starting points | [P01 overview](README.md), #52 | PROVISIONAL |
-| Lawful source identity, rights, original grid and optics | #45, #46, #54 | BLOCKED |
-| Authentic group counts, split and checkpoint provenance | #48, #55, #58 | BLOCKED |
-| Real validation cutoff and held-out performance | #58, #59, #60 | NOT_RUN |
-| Independent numerical and manuscript review | #29, #62 | PENDING |
-| Author protocol/claim approval and submission | #53, #40 | NOT_AUTHORIZED |
+| Candidate estimand, footprint bins, FP/frame conventions | [Hypothesis sheet](P01/hypotheses/README.md), [protocol](P01/protocol/README.md) | UNFROZEN |
+| Journal scope and related-work starting points | [P01 overview](P01/README.md), [#52](https://github.com/MatPomGit/arc-rgbt/issues/52) | PROVISIONAL |
+| Lawful source identity, rights, original grid and optics | [#45](https://github.com/MatPomGit/arc-rgbt/issues/45), [#46](https://github.com/MatPomGit/arc-rgbt/issues/46), [#54](https://github.com/MatPomGit/arc-rgbt/issues/54) | BLOCKED |
+| Authentic group counts, split and checkpoint provenance | [#48](https://github.com/MatPomGit/arc-rgbt/issues/48), [#55](https://github.com/MatPomGit/arc-rgbt/issues/55), [#58](https://github.com/MatPomGit/arc-rgbt/issues/58) | BLOCKED |
+| Real validation cutoff and held-out performance | [#58](https://github.com/MatPomGit/arc-rgbt/issues/58), [#59](https://github.com/MatPomGit/arc-rgbt/issues/59), [#60](https://github.com/MatPomGit/arc-rgbt/issues/60) | NOT_RUN |
+| Independent numerical and manuscript review | [#29](https://github.com/MatPomGit/arc-rgbt/issues/29), [#62](https://github.com/MatPomGit/arc-rgbt/issues/62) | PENDING |
+| Author protocol/claim approval and submission | [#53](https://github.com/MatPomGit/arc-rgbt/issues/53), [#40](https://github.com/MatPomGit/arc-rgbt/issues/40) | NOT_AUTHORIZED |
 
 This draft is intentionally limited to prospective prose. Its Git commit is **not** scientific approval.
