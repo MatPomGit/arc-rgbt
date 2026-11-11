@@ -1,6 +1,6 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.1, 2026-11-11. **Status:** UNSENT, UNFROZEN, no empirical results.
+**Version:** 0.1.2, 2026-11-11. **Status:** UNSENT, UNFROZEN, no empirical results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](P01/protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
@@ -35,13 +35,19 @@ For each eligible supplied bounding box in COCO export coordinates, define the f
 
 The candidate false-alert budget is 0.10 unmatched eligible detections per **all** selected source-labelled frames. Select the confidence threshold exclusively from validation predictions, retaining score ties and requiring at least one validation true positive. If the budget is infeasible, record `BLOCKED_VALIDATION`. A locked threshold must not be changed in response to held-out FP/frame, even if the holdout exceeds the validation budget. Report any such violation as `OPERATING_CONDITION_NOT_MET`, not as a reason to tune the test.
 
-Average precision, when computable under the declared class and IoU convention, is secondary to the fixed-operating-point analysis. Apparent false positives can include objects omitted from source annotations; neither FP/frame nor recall is a physical sensor detection bound.
+The implemented runner reports all-points interpolated AP at IoU 0.50, **not** COCO mAP averaged over IoU 0.50:0.95. This AP uses the full score ranking rather than the locked FP/frame operating threshold and is secondary to the fixed-operating-point analysis. Apparent false positives can include objects omitted from source annotations; neither FP/frame nor recall is a physical sensor detection bound.
 
 ### Estimand and uncertainty
 
 If verified independent acquisitions contain both the small and reference bins, define for each eligible acquisition `g`: `d_g = TP_small,g / N_small,g - TP_reference,g / N_reference,g`. The candidate primary contrast is `Delta = mean_g(d_g)`, weighting acquisitions equally. Report the number of eligible acquisitions and within-group target counts. A one-sided acquisition-level t procedure for `H1: Delta < 0` is **not authorized** without source-informed assumption checks, sufficient independent groups, methodological review and the author's prospective freeze. In particular, a two-sided 95% interval cannot silently substitute for a one-sided alpha 0.05 decision.
 
 If authentic acquisition IDs or inferential support are unavailable, report `DESCRIPTIVE_ONLY` counts, per-bin recall, reference-relative FP/frame and transparent descriptive variability without confirmatory p-values. No frame-wise IID uncertainty estimate is a substitute for independent acquisition-level inference.
+
+### Reproducible execution boundary
+
+The existing [P01 analysis interface](P01/analyses/README.md) provides three separate stages: (1) train/validation-only COCO group and denominator manifest generation; (2) guarded validation-only TorchScript inference with a pre-existing trusted, SHA-pinned checkpoint; and (3) validation-only source-reference threshold selection. These stages must not be conflated with an executed experiment. The manifest can propose new partitions, but applying a proposal to a checkpoint already trained on those validation frames would invalidate the split. The current inference adapter accepts 8-bit grayscale thermal JPEG/PNG and a declared post-NMS tensor layout; it does not support arbitrary original 14/16-bit TIFF or unverified preprocessing. These are substantive eligibility constraints, not implementation details to silently bypass.
+
+The evaluator's held-out mode requires a prospective author-declared freeze record with actual artifact digests and paths; the record is not independent proof of author identity, source rights, checkpoint training isolation or true acquisition independence. Any future manuscript result must link to the exact input/model/config/split/code hashes, validation decision and held-out output. Until then, the outcome remains NOT_RUN.
 
 ## Results
 
