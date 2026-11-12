@@ -80,5 +80,5 @@ Read the latest [AUTOPILOT_PLAN.md](AUTOPILOT_PLAN.md) v1.4.0 or later and [P01 
 - Keep editable Markdown, not generated HTML/build assets. Each MkDocs page must be in `mkdocs.yml` and pass the documentation checks.
 
 ## Dodatkowy kontrakt operacyjny (2026-10-31)
-- Przed nowym zadaniem, rezerwacją Issue, użyciem skilli, zmianą kodu, testami i PR czytaj [procedurę autonomiczną](docs/development/agent-workflow.md). Wszystkie powyższe reguły projektu nadal obowiązują.
+- Przed każdym zadaniem stosuj powyższy kontrakt, aktualny plan projektu i wymagane bramki naukowe. Nie publikuj wewnętrznych procedur agentów, orkiestracji ani harmonogramów w MkDocs/GitHub Pages.
 - Weryfikuj exact SHA, pochodzenie danych, wymagane zatwierdzenia GitHub i różnicę między merge, badaniem a wdrożeniem.
