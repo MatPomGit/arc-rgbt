@@ -1,7 +1,7 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.2, 2026-11-11. **Status:** UNSENT, UNFROZEN, no empirical results.
-This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](P01/protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
+**Version:** 0.1.3, 2026-11-12. **Status:** UNSENT, UNFROZEN, no empirical results.
+This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
 
@@ -45,7 +45,7 @@ If authentic acquisition IDs or inferential support are unavailable, report `DES
 
 ### Reproducible execution boundary
 
-The existing [P01 analysis interface](P01/analyses/README.md) provides three separate stages: (1) train/validation-only COCO group and denominator manifest generation; (2) guarded validation-only TorchScript inference with a pre-existing trusted, SHA-pinned checkpoint; and (3) validation-only source-reference threshold selection. These stages must not be conflated with an executed experiment. The manifest can propose new partitions, but applying a proposal to a checkpoint already trained on those validation frames would invalidate the split. The current inference adapter accepts 8-bit grayscale thermal JPEG/PNG and a declared post-NMS tensor layout; it does not support arbitrary original 14/16-bit TIFF or unverified preprocessing. These are substantive eligibility constraints, not implementation details to silently bypass.
+The existing [P01 analysis interface](analyses/README.md) provides three separate stages: (1) train/validation-only COCO group and denominator manifest generation; (2) guarded validation-only TorchScript inference with a pre-existing trusted, SHA-pinned checkpoint; and (3) validation-only source-reference threshold selection. These stages must not be conflated with an executed experiment. The manifest can propose new partitions, but applying a proposal to a checkpoint already trained on those validation frames would invalidate the split. The current inference adapter accepts 8-bit grayscale thermal JPEG/PNG and a declared post-NMS tensor layout; it does not support arbitrary original 14/16-bit TIFF or unverified preprocessing. These are substantive eligibility constraints, not implementation details to silently bypass.
 
 The evaluator's held-out mode requires a prospective author-declared freeze record with actual artifact digests and paths; the record is not independent proof of author identity, source rights, checkpoint training isolation or true acquisition independence. Any future manuscript result must link to the exact input/model/config/split/code hashes, validation decision and held-out output. Until then, the outcome remains NOT_RUN.
 
@@ -67,8 +67,8 @@ The final paper must name the lawful dataset release, original owner and terms, 
 
 | Manuscript element | Current evidence | State |
 | --- | --- | --- |
-| Candidate estimand, footprint bins, FP/frame conventions | [Hypothesis sheet](P01/hypotheses/README.md), [protocol](P01/protocol/README.md) | UNFROZEN |
-| Journal scope and related-work starting points | [P01 overview](P01/README.md), [#52](https://github.com/MatPomGit/arc-rgbt/issues/52) | PROVISIONAL |
+| Candidate estimand, footprint bins, FP/frame conventions | [Hypothesis sheet](hypotheses/README.md), [protocol](protocol/README.md) | UNFROZEN |
+| Journal scope and related-work starting points | [P01 overview](README.md), [#52](https://github.com/MatPomGit/arc-rgbt/issues/52) | PROVISIONAL |
 | Lawful source identity, rights, original grid and optics | [#45](https://github.com/MatPomGit/arc-rgbt/issues/45), [#46](https://github.com/MatPomGit/arc-rgbt/issues/46), [#54](https://github.com/MatPomGit/arc-rgbt/issues/54) | BLOCKED |
 | Authentic group counts, split and checkpoint provenance | [#48](https://github.com/MatPomGit/arc-rgbt/issues/48), [#55](https://github.com/MatPomGit/arc-rgbt/issues/55), [#58](https://github.com/MatPomGit/arc-rgbt/issues/58) | BLOCKED |
 | Real validation cutoff and held-out performance | [#58](https://github.com/MatPomGit/arc-rgbt/issues/58), [#59](https://github.com/MatPomGit/arc-rgbt/issues/59), [#60](https://github.com/MatPomGit/arc-rgbt/issues/60) | NOT_RUN |
