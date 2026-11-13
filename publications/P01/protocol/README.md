@@ -54,7 +54,7 @@ Specify inclusion/exclusion criteria, sensor calibration, datasets, controls, sp
 
 ## Current protocol interpretation: automation-first (2026-11-07)
 
-**Tier A, existing-data benchmark:** use the dataset's existing reference annotations, with predeclared target/class/ignore rules and group-disjoint train/validation/test partitions where authentic grouping exists. Detection recall, AP and FP/frame are **relative to supplied labels**. Unlabelled real targets could be apparent FPs. Annotations are not guaranteed complete. If group IDs or native optics are insufficient, report descriptive estimates and bounded dataset-relative claims rather than physical limits.
+**Tier A, existing-data benchmark:** use the dataset's existing reference annotations, with predeclared target/class/ignore rules and group-disjoint train/validation/test partitions where authentic grouping exists. Detection recall, AP and FP/frame are **relative to supplied labels**. Unlabelled real targets could be apparent FPs. Annotations are not guaranteed complete. If independent acquisition identifiers cannot be verified, limit group-based inference to `DESCRIPTIVE_ONLY`. Lack of native optics evidence blocks Tier B physical claims but does not itself preclude a properly documented Tier A source-GT-relative analysis.
 
 **Tier B, physical native-sensor interpretation:** requires independent already-available original LWIR sensor/grid/optical and acquisition evidence, source terms and a frozen prospective protocol. If unavailable, physical sensor-range and causal/native-optical claims stay BLOCKED while a legal Tier A experiment may proceed in its narrower claim class. A change of confirmatory claims requires explicit author decision before viewing untouched test outcomes.
 
@@ -99,7 +99,7 @@ available. It therefore **must not** be called preregistration.
 
 | ID | Candidate decision | Evidence still needed before freeze |
 | --- | --- | --- |
-| D1: target population | Lawfully usable LWIR frames with supplied GT for Tier A descriptive/reference-relative analysis; authentic original-grid geometry and independent acquisition IDs are separately required for Tier B physical claims and defensible confirmatory group inference. For the primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified native-footprint bins. Frames with zero GT remain in FP/frame assessment. | Original archive, lawful terms, supplied-label convention and group/geometry evidence status (#45-#48); missing source-label completeness restricts the claim, not an automatic demand for new human annotation. |
+| D1: target population | Lawfully usable LWIR frames with supplied GT for Tier A descriptive/reference-relative analysis; authentic original-grid geometry and independent acquisition IDs are separately required for Tier B physical claims and defensible confirmatory group inference. For the Tier A primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified COCO export-grid footprint bins; Tier B physical interpretation has separate original-sensor requirements. Frames with zero GT remain in FP/frame assessment. | Original archive, lawful terms, supplied-label convention and group/geometry evidence status (#45-#48); missing source-label completeness restricts the claim, not an automatic demand for new human annotation. |
 | D2: contrast | For acquisition `g`, compute `d_g = TP_small,g / N_small,g - TP_reference,g / N_reference,g` at the **same** validation-locked LWIR detector threshold. Primary estimand is `Delta = mean_g(d_g)`, giving each eligible acquisition equal weight, not each target. The population is the eligible paired-bin acquisition cohort, **not** all LWIR scenes. | Counts by acquisition/bin and overlap of class, contrast, viewpoint and occlusion; review potential selection induced by requiring both bins (#48/#50). |
 | D10: inference | Directional candidate `H1: Delta < 0`, `H0: Delta >= 0` (calibrate at boundary `Delta = 0`); proposed one-sided alpha `0.05`. A two-sided 95% interval is **descriptive**, not the alpha-0.05 decision. Candidate confirmatory test: one-sided acquisition-level Student t of mean `d_g` against zero with `G-1` degrees of freedom; group-level validity and source-informed calibration remain unresolved. | Independent group count, group heterogeneity, distributional diagnostics, finite-sample type-I error and power simulations informed by non-test data, independent scientific review and author approval (#49/#50/#53). |
 
@@ -353,7 +353,7 @@ descriptive; do not present a confirmatory candidate CI or retune test.
 
 #### Implementation and evidence boundary
 
-`native_footprint_recall` provides per-GT native footprint, match flags,
+`native_footprint_recall` computes per-GT footprint from supplied bounding boxes on the declared coordinate grid; its historical function name does **not** authenticate native sensor pixels. It also provides match flags,
 paired-group target denominators, singleton-bin and excluded-acquisition
 counts, an equal-group contrast, a target-pooled contrast restricted to the
 same paired groups for exploratory weighting sensitivity, and a deterministic
@@ -376,7 +376,10 @@ objects, the annotation may describe the visible region or the inferred full
 extent; record that convention and predefine exclusion/sensitivity handling
 before freeze. No physical distance threshold follows from `s` alone.
 If a source offers only resized/cropped images with unknown native geometry,
-it cannot enter the confirmatory population.
+it cannot support Tier B physical native-sensor conclusions. A Tier A analysis may
+still use a documented COCO export grid, but confirmatory group inference
+separately requires verified independent acquisitions and a prospectively
+justified finite-group decision procedure.
 
 **Denominators and stop rules.** Every eligible source-annotated
 target is counted in the recall denominator, including misses. Dataset-relative FP/frame uses
