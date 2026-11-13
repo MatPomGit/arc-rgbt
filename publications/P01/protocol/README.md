@@ -1,6 +1,6 @@
 # P01 study protocol
 
-## P01 S09 author decision packet v0.4.0 (2026-11-09; UNFROZEN)
+## P01 S09 author decision packet v0.4.1 (2026-11-13; UNFROZEN)
 
 **Purpose:** one prospective choice for [#35](https://github.com/MatPomGit/arc-rgbt/issues/35)
 and [#53](https://github.com/MatPomGit/arc-rgbt/issues/53), due 2026-11-13.
@@ -80,6 +80,8 @@ and [screened literature](../../../docs/experiments/literature-screening.md).
 
 ## Planned confirmatory study (not yet preregistered)
 
+The legacy native-sensor planning items in this section concern possible Tier B extensions. For the currently proposed Tier A endpoint, use the source-export footprint and dataset-relative claim conventions of the S09 v0.4.1 decision table above. No physical native-pixel claim is authorized.
+
 - **Primary candidate:** equal-weight mean of within-acquisition LWIR small-minus-reference IoU-0.50 recall differences at a validation-locked FP/frame operating point. This is an observational association, not a causal effect of image resolution. Class, contrast, geometry and viewpoint balance must be assessed.
 - **Baselines:** LWIR-only fixed checkpoint for the single primary analysis, RGB-only as secondary; RGB/LWIR fusion belongs to P02. Artificial downsampling remains a separate software ablation, not measured physical low-resolution performance.
 - **Controls:** native focal length/pixel pitch, projection geometry, image-frame orientation, blur, occlusion, thermal contrast and completeness of negative frames.
@@ -146,11 +148,11 @@ Changes after that point must be logged as deviations, not silently applied.
 
 | Decision | Proposed rule | Freeze status |
 | --- | --- | --- |
-| Population | Verified native LWIR objects from independent acquisition groups with fully labelled positive and negative frames; RGB only secondary | PENDING source and class mapping |
+| Population | Tier A: eligible source-labelled LWIR `car` targets on a documented COCO export grid, with source-GT-relative negatives; independent acquisition verification is necessary for confirmatory inference, not a prerequisite to honest descriptive measurement. RGB only secondary. Tier B has additional native-optics requirements. | PENDING lawful source, class map, split and inferential group proof |
 | Primary estimand | Equal-acquisition-weighted mean of within-group small minus reference LWIR GT recall differences, both bins in each contributing acquisition | PENDING eligible groups and author freeze |
 | Independent unit | Original acquisition/scene or flight group; adjacent frames from one acquisition are not independent replicates | PENDING source IDs |
 | Operating point | Select detector thresholds on validation groups only, targeting the same FP/frame ceiling; never tune on held-out test data | PENDING numerical ceiling |
-| Native footprint | Derive visible annotated target width/height/area on each modality's **original** grid; retain calibrated geometry and visibility metadata; do not use resized detector input as native footprint | PENDING native grid and optics |
+| Footprint provenance | Tier A: `s = sqrt(w_export * h_export)` on the declared COCO export grid, without calling it native. Tier B: original sensor geometry, coordinate transforms and optics separately verified; detector-input resizing is not native footprint evidence. | PENDING export transform; physical calibration BLOCKED for Tier B |
 | Baselines | LWIR-only fixed primary checkpoint; RGB secondary; pairing/fusion belongs to P02 | PENDING admissible data |
 | Primary inference candidate | One-sided acquisition-level t test, alpha 0.05, conditional on calibration under source-informed bounded and heterogeneous group differences | PENDING type-I error, power, source-independent groups and approval |
 | Descriptive uncertainty | Two-sided 95% whole-acquisition percentile bootstrap and two-sided group t interval; neither serves as the primary directional decision | PENDING coverage and pilot precision audit |
@@ -198,11 +200,11 @@ record the replacement and rationale in #35 before unblinding test outcomes.
 
 | Item | Proposed prespecification | Gate |
 | --- | --- | --- |
-| Primary modality | Physically acquired native **LWIR** only. RGB is a prespecified secondary comparison; fusion belongs to P02 unless a separate P01 ablation is justified. | Native LWIR and original labels verified |
-| Independent outcome | Within-acquisition **IoU-0.50 localization-qualified** GT recall difference (small minus reference), averaged equally across acquisitions. Expected sign negative, no causal interpretation. | Source-verified acquisitions with both bins and complete labels |
-| Footprint proxy | `s = sqrt(w_native * h_native)` in pixels from the original-grid target bounding box. Small: `s < 8`; intermediate: `8 <= s < 16`; reference: `s >= 16`. Only small vs reference is confirmatory. | Original grid and annotation conventions independently checked |
-| Match rule | Class-aware, score-descending one-to-one IoU `>= 0.50`, original prediction order breaks ties. Each GT is counted once and assigned to a bin by its **original-grid GT box** before matching. | [P01 metrics tests](../analyses/README.md), plus shared #23 reference audit |
-| False-alert budget | Candidate `0.10 FP/frame`. Choose lowest validation-only score threshold meeting observed ceiling using sorted unique prediction scores plus 0 and 1; no zero-TP solution. Keep fixed on test; this is not a guarantee of future FP/frame. | Complete validation frames and adequate exposure/groups |
+| Primary modality | Lawfully obtained **LWIR** source imagery with supplied labels; Tier A may use documented export coordinates without proving the sensor's native pixel geometry. RGB secondary; fusion belongs to P02. | Source modality, release, lawful use and label lineage; physical native geometry reserved for Tier B |
+| Independent outcome | Source-GT-relative **IoU-0.50 localization-qualified** recall difference (small minus reference), equally weighted across eligible paired acquisitions; negative sign is a hypothesis, not an assumed finding. | Confirmatory inference needs verified independent acquisitions with both bins and justified finite-group method; otherwise DESCRIPTIVE_ONLY |
+| Footprint proxy | Tier A: `s = sqrt(w_export * h_export)` in pixels from the declared COCO export-grid GT box. Small: `s < 8`; intermediate: `8 <= s < 16`; reference: `s >= 16`. Small vs reference is the only primary candidate; neither bins nor physical interpretation are approved. | Exact export grid and box transform documented; Tier B native footprint requires separate evidence |
+| Match rule | Class-aware, score-descending one-to-one IoU `>= 0.50`, original prediction order breaks ties. Each GT is counted once and assigned to a bin by its **source-export-grid GT box** before matching. | [P01 metrics tests](../analyses/README.md), plus shared #23 reference contract |
+| False-alert budget | Candidate `0.10 source-GT-relative FP/frame` across all eligible source-labelled frames. Choose lowest validation-only score threshold meeting observed ceiling using sorted unique prediction scores plus 0 and 1; no zero-TP solution. Keep fixed on test; this is not a guarantee of future FP/frame or true physical false alarms. | Source-labelled validation frames and documented exposure/groups; label completeness is not presumed |
 | Test reporting | Report observed held-out FP/frame over all eligible positive and empty frames. If above `0.10`, label **OPERATING_CONDITION_NOT_MET**; report fixed-threshold recall descriptively, never retune test. | No test-outcome-driven threshold selection |
 | Directional inference | Candidate one-sided group Student t test of `Delta < 0` at alpha 0.05; reject `H0: Delta >= 0` only if its one-sided 95% upper t bound is below zero. No test if the sample variance is zero. | Minimum independent groups, empirical type-I calibration and prospective power remain pending |
 | Descriptive interval | Candidate 2000-resample whole-paired-acquisition percentile bootstrap, seed `20261101`, two-sided 95% (2.5/97.5%) endpoints. This is **not** the primary hypothesis test. | Provisional >=10 paired groups; source-informed coverage audit still required |
@@ -216,7 +218,7 @@ least one **small** and one **reference** GT, compute
 `r_ref,g = TP_ref,g / GT_ref,g`. The primary candidate is
 `Delta = mean_g(r_small,g - r_ref,g)`, with exactly **one equal weight per
 acquisition**, not an object-pooled difference. Matching is assigned to
-original-grid GT objects, including misses. Acquisitions lacking one bin
+source-export-grid GT objects, including misses. Acquisitions lacking one bin
 contribute only descriptive denominators and must be reported separately.
 The current >=10 **paired** groups criterion is a *provisional computational
 floor*, not a sufficient-power guarantee. The code permits a group with
