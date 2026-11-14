@@ -244,6 +244,40 @@ coverage falls below 95%; ten groups cannot be treated as a sufficient
 confirmatory minimum merely because the software can compute an interval.
 The t comparison is not automatically a validated replacement.
 
+**Reproduction ledger (review #49, 2026-11-13; synthetic only).**
+The [independent analytical/computational review](https://github.com/MatPomGit/arc-rgbt/issues/49#issuecomment-6858200418)
+reports byte-verified reproduction of the final PR #44 pilot (blob
+`c4cc191776dd02dc2b47b14837843cda73bf82cb`) and the current
+`main` pilot (blob `52f1a1fee393399dfbd176af87a55eef977e4cf5`)
+using `--trials 250 --bootstrap 2000 --seed 20261102`. For the
+**balanced, 10-group, 20-targets-per-bin** scenario, reported two-sided
+95% interval coverage was:
+
+| Synthetic group-mean delta | Percentile bootstrap | Group Student t |
+| --- | ---: | ---: |
+| 0.00 | 0.908 (227/250) | 0.944 (236/250) |
+| -0.15 | 0.872 (218/250) | 0.916 (229/250) |
+
+The historic PR #44 description reported **0.876 (219/250)** instead
+of **0.872 (218/250)** for the second-row bootstrap result. The review
+reports 0.872 for **both** pinned final code versions and this seed;
+the origin of the historic discrepancy is unknown. These figures are
+**review-reported reproductions, not a new run in this documentation
+change**. The simulation's Monte Carlo standard error at coverage 0.872
+is approximately 0.0211 (250 trials), and neither method's synthetic
+coverage validates its use on actual LWIR acquisitions.
+
+The same review gives an exact **null counterexample** to automatic
+one-sided t-test calibration: with ten independent paired-acquisition
+differences taking -0.3 with probability 0.7 and +0.7 with probability
+0.3, the mean difference is zero, yet the candidate t rule rejects with
+probability 0.121060821, treating zero-variance samples as undefined.
+This is an analytical illustration, **not an estimate of the FLIR error
+rate**. Consequently, 10/20/40 are simulation grid sizes, not approved
+minimum independent-acquisition counts. Without source-informed
+independence, finite-sample calibration and prospective author approval,
+report `DESCRIPTIVE_ONLY`; never infer a scientific GO from this ledger.
+
 Neither model includes detector score selection, FP/frame constraints,
 imaging physics, correlated targets beyond group probability heterogeneity,
 missing annotations, source rights or real sensor measurements. The
