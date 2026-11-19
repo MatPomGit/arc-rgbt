@@ -4,8 +4,13 @@
 
 **Purpose:** one prospective choice for [#35](https://github.com/MatPomGit/arc-rgbt/issues/35)
 and [#53](https://github.com/MatPomGit/arc-rgbt/issues/53), due 2026-11-13.
-**Current author decision:** `CONDITIONAL_DESIGN` (2026-11-04); no frozen
-preregistration, source admission, confirmatory test, or experimental result.
+**Current author decision:** `CONDITIONAL_DESIGN` (2026-11-04), with the
+current research plan explicitly approved on 2026-11-14
+([author-decision record #53](https://github.com/MatPomGit/arc-rgbt/issues/53#issuecomment-6885084888)).
+This approves continued prospective Tier A preparation and methodological
+corrections, **not** a specific source/model/split/threshold freeze, G01
+admission, confirmatory test, held-out access or empirical result. A separate
+artifact-specific `FROZEN` decision remains required before held-out analysis.
 This packet summarizes existing decisions without changing their scientific
 authority. Its Git revision records the *candidate*, not author approval.
 

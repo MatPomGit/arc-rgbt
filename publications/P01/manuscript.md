@@ -1,6 +1,6 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.6, 2026-11-13. **Status:** UNSENT, UNFROZEN, no empirical results.
+**Version:** 0.1.8, 2026-11-19. **Status:** UNSENT, UNFROZEN, no empirical results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
@@ -45,6 +45,14 @@ The finite-sample level of the candidate directional Student t test is not guara
 
 If authentic acquisition IDs or inferential support are unavailable, report `DESCRIPTIVE_ONLY` counts, per-bin recall, reference-relative FP/frame and transparent descriptive variability without confirmatory p-values or inferential confidence intervals based on unverified clusters. If an acquisition-supported interval is eventually approved, document its units, resampling/calibration assumptions, paired-group support, method and multiplicity policy prospectively. No frame-wise IID uncertainty estimate is a substitute for independent acquisition-level inference.
 
+### Interpretation of the validation-selected operating point (prospective)
+
+The threshold is a **data-dependent calibration output**, selected using validation annotations and predictions under the prespecified source-reference FP/frame rule. It is not an independently fixed instrument constant, and the resulting holdout contrast estimates performance of the **entire fixed model-plus-validation-calibration procedure** on the eligible holdout distribution. Validation-based selection does not, by itself, establish that the expected false-alert rate on new acquisitions is at most 0.10 per frame. The manuscript must therefore report the selected score cutoff, validation exposure and observed FP/frame, holdout exposure and observed FP/frame, and any `OPERATING_CONDITION_NOT_MET` status separately; it must not describe the validation budget as a certified population-level error guarantee.
+
+The paired-acquisition estimand conditions on the presence of **both** prespecified GT footprint bins in the same acquisition. This eligibility is defined from supplied annotations, not from detector successes, and must be evaluated without using held-out predictions to select groups. The paired estimate describes that eligible cohort; it is not an estimate for acquisitions containing only small objects, only reference-sized objects or no annotated cars. In addition to the paired contrast, report the total number of source acquisitions, numbers excluded for each absent bin, their frame and target denominators, and the target-pooled descriptive recalls. This prevents a positive or negative paired contrast from being generalized silently to all source frames.
+
+No inferential interval or p-value may be derived by treating frames or individual boxes as independent replicates. If authentic independent acquisition units cannot be established, or the prespecified directional procedure lacks defensible finite-sample calibration, the result remains `DESCRIPTIVE_ONLY`, even when the observed paired mean is numerically nonzero. This is a limitation of the inferential claim, not grounds to alter the holdout or rerun threshold selection.
+
 ### Predeclared confounding and sensitivity reporting (candidate)
 
 The footprint–recall relationship is observational. For each eligible size bin, the eventual report should distinguish (a) source-annotated target counts and matched targets, (b) source-labelled frame exposure, and (c) acquisition-level coverage. The primary paired-acquisition contrast is **not** adjusted for contrast, occlusion, range or weather: these covariates are not yet verified as consistently available in the permitted source. Consequently, a difference between footprint bins must be described as an association in the sampled source distribution, not an isolated effect of image resolution. No unrecorded covariate should be reconstructed from predictions or test outcomes to justify a causal interpretation.
@@ -62,6 +70,21 @@ The evaluator's held-out mode requires a prospective author-declared freeze reco
 ## Results
 
 **Not available.** No original source release, lawful data admission, compatible checkpoint, validation cutoff or real held-out outcome has been verified in this manuscript revision. Insert only hash-backed, reproducible empirical tables and plots after the applicable author decision and execution gates. Never substitute E00 simulated findings for real LWIR measurements.
+
+### Prespecified empirical reporting structure (unpopulated)
+
+The eventual Results section will separate **validation calibration** from the **untouched held-out evaluation**. The following are reporting specifications, not observed data. Populate every field only from versioned machine outputs and retain an explicit `NOT_AVAILABLE` value when a denominator or provenance item is absent; never replace a missing observation with zero.
+
+| Reported quantity | Unit and denominator | Source and interpretation |
+| --- | --- | --- |
+| Validation score cutoff | Confidence score in [0,1]; validation frames and reference-negative frames | Frozen validation-only selection; report feasible/blocked status and observed source-GT FP/frame |
+| Holdout apparent FP/frame | Unmatched eligible detections / all eligible holdout frames | Source-label-relative rate; report `OPERATING_CONDITION_NOT_MET` if the frozen operating budget is exceeded |
+| Holdout small/intermediate/reference recall | Matched GT boxes / eligible supplied GT boxes in each export-grid bin | Each numerator and denominator required; undefined for an empty bin |
+| Holdout AP at IoU 0.50 | Per-class all-points interpolated AP over score ranking | Secondary metric, not COCO mAP@[0.50:0.95] or recall at the frozen cutoff |
+| Paired-acquisition contrast | Equal-weight mean of within-acquisition small-minus-reference recall | Report eligible independent groups, missing-bin exclusions, group denominators and descriptive-only status when inference is unsupported |
+| Sensitivity at IoU 0.25 | Matched GT / supplied GT and unmatched detections / all frames | Secondary; identical eligible frames, bins and frozen score cutoff; no threshold reselection |
+
+In the main text, distinguish the total number of source acquisitions from the number of eligible **paired** acquisitions, and report excluded groups by missing-small, missing-reference or missing-both status. Where only `video_id` proxies exist, label them as proxy groups and do not silently convert their count into an independent-acquisition sample size. Present a footprint-stratified recall plot only with its GT denominators and the explicitly named coordinate grid. Do not add confidence whiskers unless the interval procedure and its independent sampling units were prospectively justified. The raw difference of pooled bin recalls may be shown as a secondary descriptive quantity but must never be labelled as the primary equal-acquisition estimand.
 
 ## Discussion: prespecified interpretation limits
 

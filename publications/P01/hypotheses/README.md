@@ -7,9 +7,17 @@ experiment or assert that missing labels prove real negative scenes.
 
 ## Current Tier A research question and estimand (#50)
 
-**Question:** Among source-labelled LWIR targets, is recall lower for
-smaller annotated image-plane footprints when a fixed detector is evaluated
-at a validation-selected false-positive budget, *relative to supplied GT*?
+**Question (candidate Tier A, paired-acquisition estimand):** Among
+independently verified source acquisitions that contain at least one eligible
+source-labelled `car` in **each** of the small and reference COCO export-grid
+footprint bins, is the **mean within-acquisition** small-minus-reference
+recall difference below zero for a fixed LWIR detector at one validation-locked
+source-GT-relative false-alert operating point? This asks about a typical
+**eligible paired-bin acquisition**, not a random labelled target in the
+whole dataset, and does not identify a causal effect of pixel resolution.
+Per-bin recall across all eligible targets remains a descriptive secondary
+summary; report the count and source characteristics of acquisitions excluded
+from the paired contrast without inspecting holdout predictions.
 
 - Candidate primary target class: **car**, without reclassifying `rider` as
   `person`. Other source classes require separately specified mappings.
