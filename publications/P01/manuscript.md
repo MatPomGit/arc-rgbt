@@ -1,6 +1,6 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.7, 2026-11-17. **Status:** UNSENT, UNFROZEN, no empirical results.
+**Version:** 0.1.8, 2026-11-19. **Status:** UNSENT, UNFROZEN, no empirical results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
@@ -70,6 +70,21 @@ The evaluator's held-out mode requires a prospective author-declared freeze reco
 ## Results
 
 **Not available.** No original source release, lawful data admission, compatible checkpoint, validation cutoff or real held-out outcome has been verified in this manuscript revision. Insert only hash-backed, reproducible empirical tables and plots after the applicable author decision and execution gates. Never substitute E00 simulated findings for real LWIR measurements.
+
+### Prespecified empirical reporting structure (unpopulated)
+
+The eventual Results section will separate **validation calibration** from the **untouched held-out evaluation**. The following are reporting specifications, not observed data. Populate every field only from versioned machine outputs and retain an explicit `NOT_AVAILABLE` value when a denominator or provenance item is absent; never replace a missing observation with zero.
+
+| Reported quantity | Unit and denominator | Source and interpretation |
+| --- | --- | --- |
+| Validation score cutoff | Confidence score in [0,1]; validation frames and reference-negative frames | Frozen validation-only selection; report feasible/blocked status and observed source-GT FP/frame |
+| Holdout apparent FP/frame | Unmatched eligible detections / all eligible holdout frames | Source-label-relative rate; report `OPERATING_CONDITION_NOT_MET` if the frozen operating budget is exceeded |
+| Holdout small/intermediate/reference recall | Matched GT boxes / eligible supplied GT boxes in each export-grid bin | Each numerator and denominator required; undefined for an empty bin |
+| Holdout AP at IoU 0.50 | Per-class all-points interpolated AP over score ranking | Secondary metric, not COCO mAP@[0.50:0.95] or recall at the frozen cutoff |
+| Paired-acquisition contrast | Equal-weight mean of within-acquisition small-minus-reference recall | Report eligible independent groups, missing-bin exclusions, group denominators and descriptive-only status when inference is unsupported |
+| Sensitivity at IoU 0.25 | Matched GT / supplied GT and unmatched detections / all frames | Secondary; identical eligible frames, bins and frozen score cutoff; no threshold reselection |
+
+In the main text, distinguish the total number of source acquisitions from the number of eligible **paired** acquisitions, and report excluded groups by missing-small, missing-reference or missing-both status. Where only `video_id` proxies exist, label them as proxy groups and do not silently convert their count into an independent-acquisition sample size. Present a footprint-stratified recall plot only with its GT denominators and the explicitly named coordinate grid. Do not add confidence whiskers unless the interval procedure and its independent sampling units were prospectively justified. The raw difference of pooled bin recalls may be shown as a secondary descriptive quantity but must never be labelled as the primary equal-acquisition estimand.
 
 ## Discussion: prespecified interpretation limits
 
