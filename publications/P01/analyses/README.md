@@ -1,5 +1,31 @@
 # P01 reproducible analyses
 
+## Direct metadata extraction from verified FLIR v2 ZIP parts (#54–#55)
+
+When the manufacturer's twelve `FLIR_ADAS_v2.zip.00` through `.11`
+parts are already present locally, `read_flir_multipart_coco.py` views
+them as one read-only, seekable ZIP. It extracts **only train and validation
+COCO JSON**, never images or held-out annotations, and calls the existing
+`build_coco_group_manifest.py` on these files. It does not create a second
+11 GB archive, download source files or modify the original parts.
+The output directory must be new and outside Git; it contains per-part
+SHA-256, annotation SHA-256 and the pre-test group/denominator manifest.
+Archive-size and checksum matching do not establish research-use rights.
+
+On Fedora, after the repository includes this script:
+
+```bash
+python publications/P01/analyses/read_flir_multipart_coco.py --parts-dir "$HOME/datasets/flir-adas-v2" --output-dir "$HOME/datasets/flir-adas-v2/p01_preflight_$(date +%Y%m%d_%H%M%S)"
+```
+
+The script does **not** change shell options and does not close an interactive
+terminal on failure. If archive member names differ, it lists matching
+COCO candidates and stops without opening any holdout member. A successful
+metadata run can still return `BLOCKED_MISSING_OR_NONCANONICAL_GROUPS`,
+`BLOCKED_SOURCE_GROUP_OVERLAP` or other non-admission states. Source
+`video_id` values are not verified independent acquisitions. The command
+never grants G01, test access, a model freeze, inference or physical Tier B.
+
 ## Automatic pre-test COCO group and denominator manifest (#48)
 
 For an already authorized source release, use existing **train and validation**
