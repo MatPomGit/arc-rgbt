@@ -31,6 +31,15 @@ checkpoint demonstrably independent of the newly assigned validation
 groups; **never apply the proposal to a model trained on those frames**.
 No held-out data are read or partitioned by this pre-test tool.
 
+The preflight requires each COCO image to declare positive integer
+`width` and `height`, and every selected car bounding box to be finite,
+positive-area and entirely inside that **declared export grid** (edge-touching
+is allowed). Invalid or missing geometry **fails closed without writing a
+manifest**, rather than counting an impossible box toward paired-bin support.
+This verifies metadata consistency, not physical/native image dimensions.
+The current preflight has no per-reason exclusion report: such an accounting
+is reserved for a separately frozen downstream analysis contract.
+
 Missing/noncanonical group IDs, too few groups and preserved cross-split
 overlap produce explicit BLOCKED states, not scientific PASS. Output is
 local-only and never overwrites existing evidence. `video_id` remains
