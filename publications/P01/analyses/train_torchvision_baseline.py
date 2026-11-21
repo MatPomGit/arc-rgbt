@@ -17,7 +17,7 @@ from pathlib import Path, PurePosixPath
 
 import cv2
 import numpy as np
-from predict_torchscript_coco import predict
+from predict_torchscript_coco import load_validation, predict
 from read_flir_multipart_coco import MultipartZip, source_parts
 from run_coco_reference import digest, validation_candidate
 
@@ -180,6 +180,7 @@ def verify_preflight(evidence_dir: Path) -> dict:
     if (manifest.get("status") != "PROVISIONAL_VIDEO_PROXY_SPLIT"
             or manifest.get("split_mode") != "preserve"
             or manifest.get("heldout_opened") is not False
+            or manifest.get("validation_threshold_exposure_meets_software_floor") is not True
             or manifest.get("selected_class") != "car"):
         raise ValueError("Source manifest is not an eligible original train/val proposal")
     for role, name in (("train", "train_coco.json"), ("validation", "val_coco.json")):
@@ -237,6 +238,11 @@ def train_and_validate(parts_dir: Path, evidence_dir: Path, output_dir: Path, *,
     if output_dir.exists() or output_dir.is_relative_to(root):
         raise ValueError("Training output must be new and outside the repository")
     manifest = verify_preflight(evidence_dir)
+    # Reuse the full, hash-bound group-isolation contract before training.
+    load_validation(
+        evidence_dir / "val_coco.json",
+        evidence_dir / "p01_group_manifest.json", "car",
+    )
     import torch
     import torchvision
     if device == "cuda" and not torch.cuda.is_available():
@@ -322,7 +328,11 @@ def train_and_validate(parts_dir: Path, evidence_dir: Path, output_dir: Path, *,
     )
     result = {
         "schema_version": 1,
-        "status": "VALIDATION_CANDIDATE_ONLY_UNFROZEN",
+        "status": (
+            "VALIDATION_CANDIDATE_ONLY_UNFROZEN"
+            if candidate["status"] == "VALIDATION_CANDIDATE_ONLY"
+            else "BLOCKED_VALIDATION_NO_OPERATING_POINT"
+        ),
         "model": "scratch_torchvision_frcnn_mobilenetv3_single_car",
         "source_rights_acknowledged_by_operator": rights_acknowledged,
         "legal_admission_independently_verified": False,
