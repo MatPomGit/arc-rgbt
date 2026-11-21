@@ -74,6 +74,48 @@ geometry, detector training independence, empirical G01 and author
 protocol freeze remain unverified. No additional manual annotation or
 dataset QA is required.
 
+## Local scratch LWIR detector and validation-only baseline (#58)
+
+If no trusted, provenance-compatible LWIR checkpoint is available, use
+\`train_torchvision_baseline.py\` as a **separate scratch baseline**, not as a
+claim of a state-of-the-art pretrained FLIR detector. It instantiates
+TorchVision Faster R-CNN/MobileNetV3 with \`weights=None\` and
+\`weights_backbone=None\`. No models or datasets are downloaded. All model
+optimization reads **only** source \`images_thermal_train\`, using the
+existing SHA-256-bound preflight. The source thermal images are loaded
+read-only from the original 12 ZIP pieces; no 11 GB archive reassembly.
+The resulting TorchScript model emits the existing adapter's single-class
+post-NMS \`[N,6]\` format with class index 0, and only then does the
+**existing** \`predict_torchscript_coco.py\` evaluate the original validation
+partition, followed by the existing \`validation_candidate\` selector.
+No images from \`video_thermal_test\` are opened.
+
+This baseline assumes a \`512x640\` COCO export grid, grayscale 8-bit
+AGC JPEG/PNG images, fixed 8 training epochs by default and model input
+\`512x640\`. A different export, preprocessing or group policy stops
+rather than being silently remapped. Torch and TorchVision are optional
+locally installed dependencies; CUDA is required by default, with no
+automatic CPU fallback. Expected research outputs are a locally saved
+TorchScript checkpoint, training losses, source/weight/prediction SHA-256,
+validation predictions and a **candidate** threshold. None proves
+native-grid physics, group independence or scientific admission.
+
+**Do not run on FLIR without verifying applicable original dataset terms.**
+The \`--rights-acknowledged\` flag records the operator's affirmative
+acknowledgment only; it is **not** independent licence verification.
+After lawful source use and GPU access are established:
+
+\`\`\`bash
+python publications/P01/analyses/train_torchvision_baseline.py --parts-dir "$HOME/datasets/flir-adas-v2" --preflight-dir "$HOME/datasets/flir-adas-v2/p01_preflight_20261121_092129" --output-dir "$HOME/datasets/flir-adas-v2/p01_scratch_$(date +%Y%m%d_%H%M%S)" --rights-acknowledged --device cuda
+\`\`\`
+
+This is one local command; it does not modify shell options or the
+original multipart files. It may be computationally intensive. The
+generated \`validation_candidate.json\` is **not** an author-approved
+locked operating point, and does not grant permission to open held-out
+annotations. The training output directory and model are not committed
+to GitHub.
+
 ## Validation-only offline TorchScript detector predictions (#58)
 
 For a **locally available, trusted, author-permitted and SHA-pinned**

@@ -140,9 +140,16 @@ identifies `FLIR_ADAS_v2.zip` with MD5
 `3150533d3a712c598aa110d5513a1671`. The
 [owner's 12-part checksum list](https://adas-dataset-v2.flirconservator.com/dataset/parts/md5sums_parts.txt)
 provides individually verifiable `FLIR_ADAS_v2.zip.00` through
-`FLIR_ADAS_v2.zip.11` checksums; this matches the **format** of the
-earlier operator-reported multipart inventory but does not establish byte
-identity. No dataset archive or model was downloaded in this review.
+`FLIR_ADAS_v2.zip.11` checksums. On 2026-11-21 the author ran the
+manufacturer's `md5sum -c` locally and reported **12/12 matching parts**.
+An existing read-only parser subsequently opened **only** train/validation
+COCO annotations, yielding 10,742/1,144 frames and their exact SHA-256:
+train `3002e26d4c79ff777dff5ec9200e459630b338e4b7a78871b4d892edd1e9420a`;
+validation `14726d929f26229fd0b5059f8ca02613473affd66fda3fd790213a98b59ba486`.
+See [the source evidence record](https://github.com/MatPomGit/arc-rgbt/issues/54#issuecomment-7059877272)
+and [the complete GT denominator inventory](https://github.com/MatPomGit/arc-rgbt/issues/55#issuecomment-7060078058).
+No data or weights were downloaded by the agent, and no held-out
+annotations, detector predictions or images were inspected in this run.
 
 This resolves the **identity of an original manufacturer-hosted distribution
 and its published integrity reference**, not the admissibility of any
@@ -154,9 +161,16 @@ manufacturer's `9711` still-image count: the relationship is
 **UNRESOLVED**, and these are not interchangeable denominators. The
 manufacturer's [dataset specification](https://oem.flir.com/en-gb/solutions/automotive/adas-dataset-form/)
 does not supply the applicable download agreement as an independently
-authenticated licence grant to this study. **Rights, local file hashes,
-checkpoint training lineage, original acquisition IDs and Tier B remain
-BLOCKED/UNKNOWN.** No implicit label re-annotation is required.
+authenticated licence grant to this study. **Dataset-specific rights and final consent terms, checkpoint training
+lineage, authentic acquisition independence and Tier B remain BLOCKED/UNKNOWN.**
+The original dataset README refers to
+[an ADAS-specific agreement](https://www.flir.com/oem/adas/adas-dataset-agree/)
+whose binding version could not be retrieved from the public website.
+The manufacturer's [description](https://oem.flir.com/solutions/automotive/adas-dataset-form/)
+explicitly invites algorithm-training research and specifies 8-bit AGC JPEG
+and 14-bit TIFF thermal formats, but is not an independently authenticated
+individual licence grant. The observed COCO hashes demonstrate source
+label provenance, not authorization or physical optics. No implicit label re-annotation is required.
 
 ## P01 native-geometry screening contract (2026-11-05; #46)
 
@@ -174,7 +188,7 @@ known. A thermal-looking or infrared image does not establish the LWIR band.
 | LLVIP | Owner reports paired visible/infrared scenes; pair membership is not native-grid provenance. | **UNKNOWN** for original thermal band, sensor grid, pitch and optics. | **UNKNOWN** for resampling, pairing transform and occluded/amodal labels. | **CONDITIONAL SCREENING**, not admitted. |
 | DroneVehicle | Owner describes aerial visible/infrared oriented boxes; reported white borders may alter exported coordinates. | **UNKNOWN** for native thermal grid, band, pitch and optics. | **UNKNOWN** original-to-export crop/pad transform and conversion of oriented boxes to a physical footprint. | **HOLD RIGHTS AND GEOMETRY**. |
 | CART | Owner describes aerial RGB/thermal segmentation and geographic/time splits. | **UNKNOWN** for independently verified original LWIR grid, pitch and optics. | Segmentation polygons are not validated detector boxes; original-to-export mapping **UNKNOWN**. | **HOLD RIGHTS AND ANNOTATIONS**. |
-| FLIR ADAS | Owner describes thermal imagery and pre-AGC frames; exact original archive is not inspected. | **UNKNOWN** for the specific release's source detector grid and optics. | **UNKNOWN** box-coordinate provenance, crop/AGC and full negative-frame labels. | **HOLD RELEASE TERMS AND GEOMETRY**. |
+| FLIR ADAS | Exact manufacturer ZIP chunks pass local owner-reported 12/12 MD5 checks, and source train/val COCO SHA-256 and counts are recorded; no images were inspected. | **UNKNOWN** for the specific release's source detector grid and optics. | **UNKNOWN** box-coordinate provenance, crop/AGC and full negative-frame labels. | **HOLD RELEASE TERMS AND GEOMETRY**. |
 
 **Source-specific evidence required before changing a decision:** (1) exact
 archive/release and owner-controlled, immutable sensor documentation; (2)
