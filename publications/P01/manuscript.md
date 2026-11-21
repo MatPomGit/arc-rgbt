@@ -1,6 +1,6 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.10, 2026-11-21. **Status:** UNSENT, UNFROZEN, no empirical results.
+**Version:** 0.1.11, 2026-11-21. **Status:** UNSENT, UNFROZEN, source-annotation census available; no detector-performance results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
@@ -28,6 +28,26 @@ Poster, Hu and Nasrabadi (2023, [*Long-Range Thermal Target Detection in Data-Li
 The primary input will be a permitted original release of FLIR ADAS v2 or a separately approved lawful alternative, with original source annotations converted by the existing repository parser into a documented COCO-compatible representation. Prior to analysis, record the exact release identity, terms of use, annotation version, source hashes, coordinate transforms, and any available original LWIR grid and optics metadata. Verify that exported annotation boxes and postprocessed predictions occupy the same declared COCO image coordinate grid and that any image scaling/letterboxing has been inverted consistently. Do not equate a third-party export with an authenticated original sensor grid. Missing provenance must be marked UNKNOWN, not reconstructed from detector output.
 
 The candidate primary target category is `car`. Source `rider` must not be silently merged with `person`. Any ignored or crowd annotations require a prospective rule compatible with the source convention; the current reference evaluator rejects unsupported conventions. Images without an annotated eligible target remain in the denominator for apparent false positives per frame. They are **reference-negative** and are not independently established to be object-free.
+
+### Observed source-annotation inventory (pre-detector, 21 November 2026)
+
+A read-only pretest inventory was executed against the manufacturer's FLIR ADAS v2 twelve-part archive, after all twelve parts matched the publisher-supplied MD5 checksums. Only the provided thermal train and validation COCO annotations were accessed; neither images, detector predictions nor the holdout were examined. This is an **observed count of source annotation records**, not a measurement of detector performance or independent verification of label completeness.
+
+| Source-annotation denominator | Train | Validation |
+| --- | ---: | ---: |
+| Frames with supplied source metadata | 10,742 | 1,144 |
+| Source `video_id` groups (unverified acquisition proxies) | 133 | 17 |
+| Frames with no annotated `car` | 918 | 97 |
+| Groups containing such reference-negative frames | 93 | 11 |
+| `car` targets with export-grid `sqrt(w*h) < 8` px | 7,703 | 491 |
+| `car` targets with `8 <= sqrt(w*h) < 16` px | 17,753 | 1,698 |
+| `car` targets with `sqrt(w*h) >= 16` px | 48,167 | 4,944 |
+| Total supplied `car` targets | 73,623 | 7,133 |
+| Video-ID groups containing both small and reference targets | 122 | 17 |
+
+The source metadata contain zero missing/noncanonical `video_id` values and zero overlapping `video_id` groups across the supplied train and validation partitions; **this is not proof of independent physical acquisition sessions or exclusion of visually near-identical frames**. All four prespecified validation **software exposure floors** were satisfied: at least 200 frames, 10 video-ID groups, 20 reference-negative frames and two groups with reference-negative frames. Actual detector operating-point feasibility is still unknown without score-bearing validation predictions. The 97 reference-negative validation frames are not certified to contain no real cars.
+
+The original annotation files have SHA-256 `3002e26d4c79ff777dff5ec9200e459630b338e4b7a78871b4d892edd1e9420a` (train) and `14726d929f26229fd0b5059f8ca02613473affd66fda3fd790213a98b59ba486` (validation); the analysis implementation was taken from repository commit `d55b8bbcd5efd2fa39dabc89184fd1e1d7f791c5`. The local run and its denominators were reported to the [source-provenance and split records](https://github.com/MatPomGit/arc-rgbt/issues/55#issuecomment-7060078058). These records are not an authorization to use the data commercially, scientific source admission or author freeze. The mismatch between the manufacturer's published still-image count and the source COCO frame inventory requires release-specific interpretation rather than assuming equivalent populations.
 
 ### Partitions and detector provenance
 
