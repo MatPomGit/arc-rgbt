@@ -18,9 +18,9 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
     categories = [{"id": 3, "name": "car"}, {"id": 1, "name": "person"}]
     train = {
         "images": [
-            {"id": 1, "video_id": "video-A"},
-            {"id": 2, "video_id": "video-A"},
-            {"id": 3, "extra_info": {"video_id": "video-B"}},
+            {"id": 1, "video_id": "video-A", "width": 640, "height": 512},
+            {"id": 2, "video_id": "video-A", "width": 640, "height": 512},
+            {"id": 3, "extra_info": {"video_id": "video-B"}, "width": 640, "height": 512},
         ],
         "categories": categories,
         "annotations": [
@@ -31,8 +31,9 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
     }
     validation = {
         "images": [
-            {"id": 10, "video_id": "video-A" if duplicate_group else "video-C"},
-            {"id": 11, "video_id": "video-D"},
+            {"id": 10, "video_id": "video-A" if duplicate_group else "video-C",
+             "width": 640, "height": 512},
+            {"id": 11, "video_id": "video-D", "width": 640, "height": 512},
         ],
         "categories": categories,
         "annotations": [
@@ -214,3 +215,102 @@ def test_boolean_foreign_keys_cannot_alias_integer_source_ids(tmp_path):
         assert proc.returncode != 0
         assert "Malformed or orphan annotation" in proc.stderr
         assert not output.exists()
+
+def test_source_video_proxy_paired_bin_support_without_holdout(tmp_path):
+    train, validation = dataset(tmp_path)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode == 0, proc.stderr
+    report = json.loads(output.read_text(encoding="utf-8"))
+    train_counts = report["per_split"]["train"]
+    validation_counts = report["per_split"]["validation"]
+    assert train_counts["paired_small_reference_video_proxy_groups"] == 1
+    assert validation_counts["paired_small_reference_video_proxy_groups"] == 0
+    assert train_counts["frames_missing_source_video_id"] == 0
+    assert validation_counts["frames_missing_source_video_id"] == 0
+    grouped = {
+        row["source_video_id"]: row
+        for row in train_counts["source_video_proxy_group_support"]
+    }
+    assert grouped["video-A"]["frames"] == 2
+    assert grouped["video-A"]["source_reference_negative_frames"] == 1
+    assert grouped["video-A"]["source_gt_targets_by_footprint_bin"] == {
+        "small": 1, "intermediate": 0, "reference": 1,
+    }
+    assert grouped["video-A"]["paired_small_reference_bin_support"] is True
+    assert grouped["video-B"]["paired_small_reference_bin_support"] is False
+    assert report["independent_acquisitions_verified"] is False
+    assert report["heldout_opened"] is False
+
+
+def test_reassigned_groups_preserve_paired_support_counts(tmp_path):
+    train, validation = dataset(tmp_path, duplicate_group=True)
+    proc, output = run(tmp_path, train, validation, mode="propose")
+    assert proc.returncode == 0, proc.stderr
+    report = json.loads(output.read_text(encoding="utf-8"))
+    total_paired = sum(
+        report["per_split"][name]["paired_small_reference_video_proxy_groups"]
+        for name in ("train", "validation")
+    )
+    assert total_paired == 1
+    all_groups = [
+        item["source_video_id"]
+        for name in ("train", "validation")
+        for item in report["per_split"][name]["source_video_proxy_group_support"]
+    ]
+    assert len(all_groups) == len(set(all_groups))
+    assert report["status"] == "PROVISIONAL_VIDEO_PROXY_SPLIT"
+
+
+def test_off_grid_bbox_cannot_create_false_paired_support(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    # This invalid reference-sized car must never establish paired support.
+    source["annotations"][1]["bbox"] = [10000, 10000, 20, 20]
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode != 0
+    assert "outside COCO image grid" in proc.stderr
+    assert not output.exists()
+
+
+def test_reject_out_of_grid_extent_and_negative_origin(tmp_path):
+    train, validation = dataset(tmp_path)
+    for i, bbox in enumerate((
+        [-1, 0, 4, 4],
+        [0, -1, 4, 4],
+        [639, 0, 4, 4],
+        [0, 511, 4, 4],
+    )):
+        source = json.loads(train.read_text(encoding="utf-8"))
+        source["annotations"][0]["bbox"] = bbox
+        modified = write_json(tmp_path / f"off-grid-{i}.json", source)
+        proc, output = run(tmp_path, modified, validation, name=f"report-{i}.json")
+        assert proc.returncode != 0
+        assert "outside COCO image grid" in proc.stderr
+        assert not output.exists()
+
+
+def test_missing_or_invalid_image_dimensions_fail_closed(tmp_path):
+    train, validation = dataset(tmp_path)
+    for i, value in enumerate(("missing", None, 0, -1, True, 640.0, "640")):
+        source = json.loads(train.read_text(encoding="utf-8"))
+        if value == "missing":
+            source["images"][0].pop("width")
+        else:
+            source["images"][0]["width"] = value
+        modified = write_json(tmp_path / f"invalid-dim-{i}.json", source)
+        proc, output = run(tmp_path, modified, validation, name=f"report-dim-{i}.json")
+        assert proc.returncode != 0
+        assert "Missing or invalid COCO image dimensions" in proc.stderr
+        assert not output.exists()
+
+
+def test_bbox_exactly_on_image_boundary_is_eligible(tmp_path):
+    train, validation = dataset(tmp_path)
+    source = json.loads(train.read_text(encoding="utf-8"))
+    source["annotations"][1]["bbox"] = [620, 492, 20, 20]
+    write_json(train, source)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode == 0, proc.stderr
+    report = json.loads(output.read_text(encoding="utf-8"))
+    assert report["per_split"]["train"]["paired_small_reference_video_proxy_groups"] == 1

@@ -45,10 +45,18 @@ def _load(path: Path, class_name: str, source_split: str) -> tuple[list[dict], d
             group = source_group(image)
         except ValueError:
             group = None
+        # Export-grid validity is necessary before source GT may contribute
+        # to size-bin or paired-video feasibility denominators.
+        width, height = image.get("width"), image.get("height")
+        if (type(width) is not int or type(height) is not int
+                or width <= 0 or height <= 0):
+            raise ValueError("Missing or invalid COCO image dimensions")
         frames[image_id] = {
             "frame_id": f"{source_split}:{image_id}",
             "group_id": group,
             "original_split": source_split,
+            "width": width,
+            "height": height,
             "bins": Counter(),
         }
     seen_annotation_ids = set()
@@ -75,7 +83,13 @@ def _load(path: Path, class_name: str, source_split: str) -> tuple[list[dict], d
                        for x in bbox)
                 or bbox[2] <= 0 or bbox[3] <= 0):
             raise ValueError("Malformed selected source bbox")
-        footprint = math.sqrt(bbox[2] * bbox[3])
+        x, y, width, height = bbox
+        image = frames[ann["image_id"]]
+        if (x < 0 or y < 0
+                or x + width > image["width"]
+                or y + height > image["height"]):
+            raise ValueError("Selected source bbox outside COCO image grid")
+        footprint = math.sqrt(width * height)
         name = ("small" if footprint < 8 else
                 "intermediate" if footprint < 16 else "reference")
         frames[ann["image_id"]]["bins"][name] += 1
@@ -151,6 +165,50 @@ def prepare(train: Path, validation: Path, class_name: str,
                 f["group_id"] for f in selected if f["group_id"] is not None
             }),
         }
+    # Per-video support is needed to assess paired-bin feasibility before
+    # any detector predictions or untouched holdout access.
+    for name in ("train", "validation"):
+        grouped = {}
+        for frame in frames:
+            allocated = (assignments.get(frame["group_id"])
+                         if mode == "propose" and
+                         frame["group_id"] in assignments
+                         else frame["original_split"])
+            if allocated != name or frame["group_id"] is None:
+                continue
+            group_id = frame["group_id"]
+            if group_id not in grouped:
+                grouped[group_id] = {
+                    "source_video_id": group_id,
+                    "frames": 0,
+                    "source_reference_negative_frames": 0,
+                    "source_gt_targets_by_footprint_bin": {
+                        bin_name: 0 for bin_name in BINS
+                    },
+                }
+            item = grouped[group_id]
+            item["frames"] += 1
+            item["source_reference_negative_frames"] += not frame["bins"]
+            for bin_name in BINS:
+                item["source_gt_targets_by_footprint_bin"][bin_name] += (
+                    frame["bins"][bin_name]
+                )
+        rows = [grouped[key] for key in sorted(grouped)]
+        for item in rows:
+            counts = item["source_gt_targets_by_footprint_bin"]
+            item["paired_small_reference_bin_support"] = (
+                counts["small"] > 0 and counts["reference"] > 0
+            )
+        per_split[name]["source_video_proxy_group_support"] = rows
+        per_split[name]["paired_small_reference_video_proxy_groups"] = sum(
+            item["paired_small_reference_bin_support"] for item in rows
+        )
+        per_split[name]["frames_missing_source_video_id"] = sum(
+            frame["group_id"] is None for frame in frames
+            if (assignments.get(frame["group_id"])
+                if mode == "propose" and frame["group_id"] in assignments
+                else frame["original_split"]) == name
+        )
     validation_counts = per_split["validation"]
     validation_threshold_exposure = {
         "at_least_200_frames": validation_counts["frames"] >= 200,
