@@ -151,6 +151,50 @@ def prepare(train: Path, validation: Path, class_name: str,
                 f["group_id"] for f in selected if f["group_id"] is not None
             }),
         }
+    # Per-video support is needed to assess paired-bin feasibility before
+    # any detector predictions or untouched holdout access.
+    for name in ("train", "validation"):
+        grouped = {}
+        for frame in frames:
+            allocated = (assignments.get(frame["group_id"])
+                         if mode == "propose" and
+                         frame["group_id"] in assignments
+                         else frame["original_split"])
+            if allocated != name or frame["group_id"] is None:
+                continue
+            group_id = frame["group_id"]
+            if group_id not in grouped:
+                grouped[group_id] = {
+                    "source_video_id": group_id,
+                    "frames": 0,
+                    "source_reference_negative_frames": 0,
+                    "source_gt_targets_by_footprint_bin": {
+                        bin_name: 0 for bin_name in BINS
+                    },
+                }
+            item = grouped[group_id]
+            item["frames"] += 1
+            item["source_reference_negative_frames"] += not frame["bins"]
+            for bin_name in BINS:
+                item["source_gt_targets_by_footprint_bin"][bin_name] += (
+                    frame["bins"][bin_name]
+                )
+        rows = [grouped[key] for key in sorted(grouped)]
+        for item in rows:
+            counts = item["source_gt_targets_by_footprint_bin"]
+            item["paired_small_reference_bin_support"] = (
+                counts["small"] > 0 and counts["reference"] > 0
+            )
+        per_split[name]["source_video_proxy_group_support"] = rows
+        per_split[name]["paired_small_reference_video_proxy_groups"] = sum(
+            item["paired_small_reference_bin_support"] for item in rows
+        )
+        per_split[name]["frames_missing_source_video_id"] = sum(
+            frame["group_id"] is None for frame in frames
+            if (assignments.get(frame["group_id"])
+                if mode == "propose" and frame["group_id"] in assignments
+                else frame["original_split"]) == name
+        )
     validation_counts = per_split["validation"]
     validation_threshold_exposure = {
         "at_least_200_frames": validation_counts["frames"] >= 200,
