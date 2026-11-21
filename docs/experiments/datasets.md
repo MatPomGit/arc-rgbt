@@ -129,6 +129,35 @@ establish independently verified annotation geometry, full negative
 coverage or physical acquisition identity. Current P01 status remains
 **G01 BLOCKED** and #46 remains open.
 
+## P01 official FLIR archive checksum discovery (2026-11-21; #54)
+
+Teledyne FLIR operates the [original v2 download portal](https://adas-dataset-v2.flirconservator.com/),
+which publishes a single `FLIR_ADAS_v2.zip` (~11.8 GB), an
+[owner-hosted README](https://adas-dataset-v2.flirconservator.com/dataset/README.txt),
+a frame-pair map and checksum files. The owner's
+[full-archive MD5 list](https://adas-dataset-v2.flirconservator.com/dataset/full/md5sums_full.txt)
+identifies `FLIR_ADAS_v2.zip` with MD5
+`3150533d3a712c598aa110d5513a1671`. The
+[owner's 12-part checksum list](https://adas-dataset-v2.flirconservator.com/dataset/parts/md5sums_parts.txt)
+provides individually verifiable `FLIR_ADAS_v2.zip.00` through
+`FLIR_ADAS_v2.zip.11` checksums; this matches the **format** of the
+earlier operator-reported multipart inventory but does not establish byte
+identity. No dataset archive or model was downloaded in this review.
+
+This resolves the **identity of an original manufacturer-hosted distribution
+and its published integrity reference**, not the admissibility of any
+locally held copy. Owner-published MD5 is an archive comparison reference,
+not a replacement for immutable local SHA-256 of the actual images,
+annotations and full/part files. The existing locally reported
+`10742+1144=11886` thermal frame-key index still conflicts with the
+manufacturer's `9711` still-image count: the relationship is
+**UNRESOLVED**, and these are not interchangeable denominators. The
+manufacturer's [dataset specification](https://oem.flir.com/en-gb/solutions/automotive/adas-dataset-form/)
+does not supply the applicable download agreement as an independently
+authenticated licence grant to this study. **Rights, local file hashes,
+checkpoint training lineage, original acquisition IDs and Tier B remain
+BLOCKED/UNKNOWN.** No implicit label re-annotation is required.
+
 ## P01 native-geometry screening contract (2026-11-05; #46)
 
 The dimensions of a distributed image, an aligned RGB/thermal pair, and the
