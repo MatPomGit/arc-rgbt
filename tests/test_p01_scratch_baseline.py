@@ -92,3 +92,16 @@ def test_training_cannot_bypass_rights_acknowledgement(tmp_path):
             seed=0, device="cpu", rights_acknowledged=False,
         )
     assert not (tmp_path / "out").exists()
+
+
+def test_optional_torchscript_output_is_existing_post_nms_contract():
+    torch = pytest.importorskip("torch")
+    pytest.importorskip("torchvision")
+    mod = baseline()
+    detector = mod.make_detector().eval()
+    scripted = torch.jit.script(mod.make_post_nms_wrapper(detector).eval())
+    rows = scripted(torch.zeros(1, 3, 512, 640))
+    assert rows.ndim == 2 and rows.shape[1] == 6
+    assert rows.shape[0] <= 1000
+    assert torch.isfinite(rows).all()
+    assert (rows[:, 5] == 0).all()
