@@ -1,6 +1,6 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.9, 2026-11-20. **Status:** UNSENT, UNFROZEN, no empirical results.
+**Version:** 0.1.10, 2026-11-21. **Status:** UNSENT, UNFROZEN, no empirical results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
@@ -58,6 +58,14 @@ The threshold is a **data-dependent calibration output**, selected using validat
 The paired-acquisition estimand conditions on the presence of **both** prespecified GT footprint bins in the same acquisition. This eligibility is defined from supplied annotations, not from detector successes, and must be evaluated without using held-out predictions to select groups. The paired estimate describes that eligible cohort; it is not an estimate for acquisitions containing only small objects, only reference-sized objects or no annotated cars. In addition to the paired contrast, report the total number of source acquisitions, numbers excluded for each absent bin, their frame and target denominators, and the target-pooled descriptive recalls. This prevents a positive or negative paired contrast from being generalized silently to all source frames.
 
 No inferential interval or p-value may be derived by treating frames or individual boxes as independent replicates. If authentic independent acquisition units cannot be established, or the prespecified directional procedure lacks defensible finite-sample calibration, the result remains `DESCRIPTIVE_ONLY`, even when the observed paired mean is numerically nonzero. This is a limitation of the inferential claim, not grounds to alter the holdout or rerun threshold selection.
+
+### Analysis populations and missing-data accounting (prospective)
+
+The analysis will distinguish three noninterchangeable populations. The **frame-exposure population** comprises all eligible source-labelled frames and is the denominator for source-reference FP/frame, including frames with no annotated car. The **target population** comprises eligible annotated car boxes with valid export-grid geometry and provides the denominators for footprint-stratified recall. The **paired-acquisition population** comprises only authenticated independent acquisitions containing at least one eligible annotated car in both the small and reference bins; only this last population contributes to the equally weighted paired contrast. These populations must be enumerated separately rather than represented by one overall sample size.
+
+Before evaluating held-out predictions, the analysis manifest will record the number of source frames, eligible frames, source-labelled targets per bin, reference-negative frames, acquisitions with each bin, acquisitions with both bins, and exclusions by prespecified reason. Missing or invalid boxes and unsupported ignore/crowd conventions will be reported as exclusions under the fixed parser contract, never silently recoded as missed detections or true negatives. If a source acquisition identifier is absent or only a video-ID proxy is available, the paired-acquisition count will be labelled unverified and inferential claims suppressed; the target-level and frame-exposure descriptive summaries may still be reported with their narrower provenance.
+
+Eligibility and bin membership will be determined from source metadata and supplied GT, not from detection success or the observed sign of the contrast. For every reported recall, the manuscript will give matched-target and eligible-target counts, while FP/frame will give unmatched-detection and eligible-frame counts. Zero eligible targets make a bin recall undefined, and zero eligible frames make FP/frame undefined. Neither quantity will be replaced by zero or pooled across incompatible populations to conceal missing support. The resulting accounting is an analysis-denominator record, not a separate source-label verification or reannotation exercise.
 
 ### Predeclared confounding and sensitivity reporting (candidate)
 
