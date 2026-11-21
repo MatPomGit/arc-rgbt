@@ -1,9 +1,9 @@
 """Focused pre-test FLIR COCO grouping and denominator regression checks."""
 
 import json
-import zipfile
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 SCRIPT = (Path(__file__).resolve().parents[1]
