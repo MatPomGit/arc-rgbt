@@ -1,11 +1,17 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.8, 2026-11-19. **Status:** UNSENT, UNFROZEN, no empirical results.
+**Version:** 0.1.9, 2026-11-20. **Status:** UNSENT, UNFROZEN, no empirical results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
 
 Source-Annotated LWIR Target Footprint and Localization-Qualified Detection Recall at a Validation-Locked False-Alert Operating Point
+
+## Structured abstract (prospective; results pending)
+
+**Background:** Thermal object detectors are used in perception systems where targets occupy widely varying image areas. Source-annotated bounding-box size, however, is not a direct measurement of a camera's native optical resolution. **Objective:** We propose to quantify the association between source-annotated LWIR target footprint and localization-qualified car detection recall at a validation-selected false-alert operating point. **Methods:** A fixed detector will be evaluated against existing annotations from a legally permitted, versioned FLIR ADAS v2 release or an approved alternative. Candidate footprint strata are defined on the declared COCO export grid as `sqrt(width * height)`: below 8 pixels, 8 to below 16 pixels, and at least 16 pixels. Same-class, one-to-one matching at IoU 0.50 will determine reference-relative recall. A confidence cutoff will be selected using validation data only under a candidate budget of 0.10 unmatched detections per eligible frame; the untouched test will retain that cutoff even if the budget is exceeded. We will report bin-level numerators and denominators, apparent false positives per frame, and secondary AP at IoU 0.50. Where authentic independent acquisitions and paired-bin support are established, the candidate estimand is the equally weighted acquisition-level difference between small- and reference-bin recall. Otherwise the analysis will remain descriptive. **Results:** No empirical results are available; source admission, checkpoint provenance, split integrity and the prospective protocol freeze remain outstanding. **Conclusions:** The proposed analysis can characterize dataset-relative detection performance, but cannot by itself identify causal pixel effects, native sensor limits or physical detection range.
+
+*Drafting status:* This is a prospective abstract, not an abstract reporting completed experiments. Replace the Results and Conclusions with evidence-backed findings before any submission; do not infer empirical superiority or statistical significance from synthetic tests.
 
 ## Introduction
 
