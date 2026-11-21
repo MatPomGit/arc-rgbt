@@ -45,10 +45,18 @@ def _load(path: Path, class_name: str, source_split: str) -> tuple[list[dict], d
             group = source_group(image)
         except ValueError:
             group = None
+        # Export-grid validity is necessary before source GT may contribute
+        # to size-bin or paired-video feasibility denominators.
+        width, height = image.get("width"), image.get("height")
+        if (type(width) is not int or type(height) is not int
+                or width <= 0 or height <= 0):
+            raise ValueError("Missing or invalid COCO image dimensions")
         frames[image_id] = {
             "frame_id": f"{source_split}:{image_id}",
             "group_id": group,
             "original_split": source_split,
+            "width": width,
+            "height": height,
             "bins": Counter(),
         }
     seen_annotation_ids = set()
@@ -75,7 +83,13 @@ def _load(path: Path, class_name: str, source_split: str) -> tuple[list[dict], d
                        for x in bbox)
                 or bbox[2] <= 0 or bbox[3] <= 0):
             raise ValueError("Malformed selected source bbox")
-        footprint = math.sqrt(bbox[2] * bbox[3])
+        x, y, width, height = bbox
+        image = frames[ann["image_id"]]
+        if (x < 0 or y < 0
+                or x + width > image["width"]
+                or y + height > image["height"]):
+            raise ValueError("Selected source bbox outside COCO image grid")
+        footprint = math.sqrt(width * height)
         name = ("small" if footprint < 8 else
                 "intermediate" if footprint < 16 else "reference")
         frames[ann["image_id"]]["bins"][name] += 1
