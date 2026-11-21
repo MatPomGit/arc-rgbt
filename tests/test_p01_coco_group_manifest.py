@@ -31,7 +31,8 @@ def dataset(tmp_path, *, duplicate_group=False, missing_group=False, ignored=Fal
     }
     validation = {
         "images": [
-            {"id": 10, "video_id": "video-A" if duplicate_group else "video-C", "width": 640, "height": 512},
+            {"id": 10, "video_id": "video-A" if duplicate_group else "video-C",
+             "width": 640, "height": 512},
             {"id": 11, "video_id": "video-D", "width": 640, "height": 512},
         ],
         "categories": categories,
