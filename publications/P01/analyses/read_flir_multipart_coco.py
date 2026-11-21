@@ -206,6 +206,7 @@ def main() -> int:
             ],
             check=True,
             env=env,
+            stdout=subprocess.DEVNULL,
         )
         report = json.loads(
             (output / "p01_group_manifest.json").read_text(encoding="utf-8")
