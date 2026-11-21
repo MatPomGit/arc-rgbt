@@ -7,8 +7,18 @@ COCO annotation files to create a hash-backed metadata manifest without
 accessing held-out annotations, images, detector predictions or checkpoints:
 
 ```bash
-python publications/P01/analyses/build_coco_group_manifest.py --train-annotations "$HOME/datasets/flir-adas-v2/train_coco.json" --validation-annotations "$HOME/datasets/flir-adas-v2/val_coco.json" --release-id "FLIR-ADAS-v2-UNVERIFIED" --output "$HOME/datasets/flir-adas-v2/p01_group_manifest.json"
+python publications/P01/analyses/build_coco_group_manifest.py --train-annotations "$HOME/datasets/FLIR_ADAS_v2/images_thermal_train/coco.json" --validation-annotations "$HOME/datasets/FLIR_ADAS_v2/images_thermal_val/coco.json" --release-id "FLIR-ADAS-v2.0.0-UNVERIFIED" --output "$HOME/datasets/FLIR_ADAS_v2/p01_group_manifest.json"
 ```
+
+The command uses the **manufacturer README's** `images_thermal_train/coco.json`
+and `images_thermal_val/coco.json` layout, conditional on an already
+lawfully held, locally extracted v2 release. The new manifest also reports
+**per-source-video counts** for frames, label-negative exposure and all
+three footprint bins, plus the number of video-proxy groups with at least
+one small and one reference car. These are *feasibility counts* only; video
+IDs do not authenticate independent acquisition sessions. No test labels,
+images or detector results are accessed. See the [manufacturer-hosted
+archive and published checksums](../../../docs/experiments/datasets.md).
 
 These paths are examples, not verified local files. The tool checks the
 original split for overlapping source `video_id` proxies (default
