@@ -214,3 +214,47 @@ def test_boolean_foreign_keys_cannot_alias_integer_source_ids(tmp_path):
         assert proc.returncode != 0
         assert "Malformed or orphan annotation" in proc.stderr
         assert not output.exists()
+
+def test_source_video_proxy_paired_bin_support_without_holdout(tmp_path):
+    train, validation = dataset(tmp_path)
+    proc, output = run(tmp_path, train, validation)
+    assert proc.returncode == 0, proc.stderr
+    report = json.loads(output.read_text(encoding="utf-8"))
+    train_counts = report["per_split"]["train"]
+    validation_counts = report["per_split"]["validation"]
+    assert train_counts["paired_small_reference_video_proxy_groups"] == 1
+    assert validation_counts["paired_small_reference_video_proxy_groups"] == 0
+    assert train_counts["frames_missing_source_video_id"] == 0
+    assert validation_counts["frames_missing_source_video_id"] == 0
+    grouped = {
+        row["source_video_id"]: row
+        for row in train_counts["source_video_proxy_group_support"]
+    }
+    assert grouped["video-A"]["frames"] == 2
+    assert grouped["video-A"]["source_reference_negative_frames"] == 1
+    assert grouped["video-A"]["source_gt_targets_by_footprint_bin"] == {
+        "small": 1, "intermediate": 0, "reference": 1,
+    }
+    assert grouped["video-A"]["paired_small_reference_bin_support"] is True
+    assert grouped["video-B"]["paired_small_reference_bin_support"] is False
+    assert report["independent_acquisitions_verified"] is False
+    assert report["heldout_opened"] is False
+
+
+def test_reassigned_groups_preserve_paired_support_counts(tmp_path):
+    train, validation = dataset(tmp_path, duplicate_group=True)
+    proc, output = run(tmp_path, train, validation, mode="propose")
+    assert proc.returncode == 0, proc.stderr
+    report = json.loads(output.read_text(encoding="utf-8"))
+    total_paired = sum(
+        report["per_split"][name]["paired_small_reference_video_proxy_groups"]
+        for name in ("train", "validation")
+    )
+    assert total_paired == 1
+    all_groups = [
+        item["source_video_id"]
+        for name in ("train", "validation")
+        for item in report["per_split"][name]["source_video_proxy_group_support"]
+    ]
+    assert len(all_groups) == len(set(all_groups))
+    assert report["status"] == "PROVISIONAL_VIDEO_PROXY_SPLIT"
