@@ -17,7 +17,6 @@ from pathlib import Path, PurePosixPath
 
 import cv2
 import numpy as np
-
 from predict_torchscript_coco import predict
 from read_flir_multipart_coco import MultipartZip, source_parts
 from run_coco_reference import digest, validation_candidate
@@ -264,7 +263,7 @@ def train_and_validate(parts_dir: Path, evidence_dir: Path, output_dir: Path, *,
         dataset = CarTrainDataset(records, archive)
 
         def collate(batch):
-            return tuple(zip(*batch))
+            return tuple(zip(*batch, strict=True))
 
         loader = torch.utils.data.DataLoader(
             dataset, batch_size=batch_size, shuffle=True, num_workers=0,
