@@ -3,6 +3,7 @@
 import json
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 SCRIPT = (Path(__file__).resolve().parents[1]
@@ -314,3 +315,55 @@ def test_bbox_exactly_on_image_boundary_is_eligible(tmp_path):
     assert proc.returncode == 0, proc.stderr
     report = json.loads(output.read_text(encoding="utf-8"))
     assert report["per_split"]["train"]["paired_small_reference_video_proxy_groups"] == 1
+
+
+def test_flir_multipart_zip_extracts_only_train_val_metadata(tmp_path):
+    train, validation = dataset(tmp_path)
+    archive_file = tmp_path / "FLIR_ADAS_v2.zip"
+    with zipfile.ZipFile(
+        archive_file, "w", compression=zipfile.ZIP_DEFLATED
+    ) as archive:
+        archive.write(train, arcname="FLIR_ADAS_v2/images_thermal_train/coco.json")
+        archive.write(
+            validation, arcname="FLIR_ADAS_v2/images_thermal_val/coco.json"
+        )
+        archive.writestr("FLIR_ADAS_v2/images_thermal_test/coco.json", "{}")
+        archive.writestr("FLIR_ADAS_v2/images_thermal_train/thermal.jpg", b"pixel")
+    payload = archive_file.read_bytes()
+    for index in range(12):
+        start = len(payload) * index // 12
+        end = len(payload) * (index + 1) // 12
+        (tmp_path / f"FLIR_ADAS_v2.zip.{index:02d}").write_bytes(
+            payload[start:end]
+        )
+
+    output = tmp_path / "p01_evidence"
+    script = (Path(__file__).resolve().parents[1]
+              / "publications/P01/analyses/read_flir_multipart_coco.py")
+    command = [
+        sys.executable, str(script), "--parts-dir", str(tmp_path),
+        "--output-dir", str(output),
+    ]
+    proc = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr
+    result = json.loads(proc.stdout[proc.stdout.index("{"):])
+    assert result["status"] == "PROVISIONAL_VIDEO_PROXY_SPLIT"
+    assert result["train_frames"] == 3
+    assert result["validation_frames"] == 2
+    assert result["validation_paired_video_proxy_groups"] == 0
+    assert result["heldout_opened"] is False
+    assert result["detector_executed"] is False
+    assert {path.name for path in output.iterdir()} == {
+        "source_manifest.json", "train_coco.json",
+        "val_coco.json", "p01_group_manifest.json",
+    }
+    evidence = json.loads((output / "source_manifest.json").read_text())
+    assert len(evidence["parts"]) == 12
+    assert all(len(part["sha256"]) == 64 for part in evidence["parts"])
+    assert evidence["images_extracted"] is False
+    assert evidence["heldout_opened"] is False
+    second = subprocess.run(
+        command, capture_output=True, text=True, check=False
+    )
+    assert second.returncode != 0
+    assert "output exists" in second.stderr.lower()
