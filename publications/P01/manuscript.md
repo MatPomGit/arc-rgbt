@@ -1,6 +1,6 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.11, 2026-11-21. **Status:** UNSENT, UNFROZEN, source-annotation census available; no detector-performance results.
+**Version:** 0.1.12, 2026-11-22. **Status:** UNSENT, UNFROZEN, source-annotation census available; no detector-performance results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
@@ -55,6 +55,14 @@ Separate training, validation and untouched holdout by genuine source acquisitio
 
 The detector checkpoint, preprocessing, input grid, class mapping and inference configuration must be fixed before the held-out run. A compatible existing TorchScript checkpoint may be used with the repository's current validation inference adapter; no model download, training on holdout or manual reannotation is part of this design.
 
+#### Scratch-trained LWIR baseline (implemented, not executed)
+
+When no independently documented, compatible checkpoint is available, the repository provides [`analyses/train_torchvision_baseline.py`](analyses/train_torchvision_baseline.py) as a candidate *training-from-scratch* comparison. It instantiates a TorchVision Faster R-CNN detector with a MobileNetV3 backbone and no downloaded pretrained weights. Training uses only the declared thermal training partition and its supplied `car` annotations. The resulting model is not a pretrained FLIR detector, an optimized small-target architecture, or an independently validated state-of-the-art baseline. In particular, random initialization may be data-hungry and a weak result would not establish an intrinsic LWIR sensor limit.
+
+The baseline uses the original multipart archive read-only, requires a matching preflight manifest, and writes local checkpoint, training-loss and provenance artifacts outside Git. Its candidate checkpoint must be bound to the exact source annotation hashes, training code revision, configuration, random seed, model-class mapping and image preprocessing before validation. The exported TorchScript post-NMS output must conform to the existing prediction adapter's letterbox coordinate contract; passing unit tests does not establish this compatibility on actual FLIR frames. A baseline trained from scratch is a distinct experimental model and must not be silently substituted for a previously proposed fixed detector after viewing held-out outcomes.
+
+The validation-only score selection remains separate from model training. The source-provided train/validation split is usable only as a *provisional video-ID-proxy separation* until actual acquisition independence and leakage risks are resolved. Model selection using repeated validation outcomes would consume the calibration set and requires an explicitly separated selection/calibration design or an exploratory designation. Neither the existence of this script nor its software tests constitutes an observed training run, checkpoint freeze, dataset admission or scientific GO.
+
 ### Outcomes and operating point
 
 For each eligible supplied bounding box in COCO export coordinates, define the footprint proxy `s = sqrt(w * h)` pixels. Candidate strata are small (`s < 8`), intermediate (`8 <= s < 16`) and reference (`s >= 16`). These are export-grid measurements, **not verified native sensor pixels**. Use same-class, one-to-one score-ordered matching at IoU >= 0.50, assigning a target to a bin from its GT box before matching. Report true positives, false negatives and recall relative to supplied annotations for each stratum, with denominators, including a declared policy for empty strata (undefined recall, not zero recall). IoU 0.25 may be examined as a declared sensitivity analysis. For very small bounding boxes, a one-pixel localization displacement can strongly change IoU; neither the IoU 0.50 criterion nor a footprint-bin cutoff is a validated physical resolution threshold.
@@ -103,7 +111,7 @@ The evaluator's held-out mode requires a prospective author-declared freeze reco
 
 ## Results
 
-**Not available.** No original source release, lawful data admission, compatible checkpoint, validation cutoff or real held-out outcome has been verified in this manuscript revision. Insert only hash-backed, reproducible empirical tables and plots after the applicable author decision and execution gates. Never substitute E00 simulated findings for real LWIR measurements.
+**Detector-performance results not available.** A train/validation source-annotation inventory with source file hashes is recorded above, but lawful-use admission, compatible trained checkpoint, validation cutoff and real held-out detector outcomes remain unverified in this manuscript revision. Insert only hash-backed, reproducible empirical tables and plots after the applicable author decision and execution gates. Never substitute E00 simulated findings for real LWIR measurements.
 
 ### Prespecified empirical reporting structure (unpopulated)
 
