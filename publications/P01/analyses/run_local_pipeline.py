@@ -11,6 +11,7 @@ import hashlib
 import json
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -132,9 +133,26 @@ def publish(summary: Path) -> None:
         sha = json.loads(gh(f"repos/{REPO}/git/ref/heads/main"))["object"]["sha"]
         gh("-X", "POST", f"repos/{REPO}/git/refs",
            "-f", f"ref=refs/heads/{branch}", "-f", f"sha={sha}")
-    gh("-X", "PUT", f"repos/{REPO}/contents/{relative}",
-       "-f", f"message=P01: record validation-only run {run_id}",
-       "-f", f"branch={branch}", "-f", f"content={payload}")
+    existing = None
+    try:
+        existing = json.loads(gh(f"repos/{REPO}/contents/{relative}?ref={branch}"))
+    except subprocess.CalledProcessError:
+        pass
+    if existing is not None:
+        encoded = existing.get("content", "").replace("\\n", "")
+        if base64.b64decode(encoded) != raw:
+            raise ValueError("Existing run identifier conflicts with different bytes")
+    else:
+        # Windows has a limited command-line length: use a temporary JSON body.
+        request = {
+            "message": f"P01: record validation-only run {run_id}",
+            "branch": branch, "content": payload,
+        }
+        with tempfile.TemporaryDirectory(prefix="p01-gh-") as temp:
+            body = Path(temp) / "request.json"
+            body.write_text(json.dumps(request), encoding="utf-8")
+            gh("-X", "PUT", f"repos/{REPO}/contents/{relative}",
+               "--input", str(body))
     prs = json.loads(gh(f"repos/{REPO}/pulls?state=open&head=MatPomGit:{branch}"))
     if not prs:
         command([
