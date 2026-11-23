@@ -178,7 +178,7 @@ SENSITIVE = re.compile(
     r"|sk-[A-Za-z0-9_-]{16,}|(?i:bearer)\s+[A-Za-z0-9._-]+)"
 )
 KEY_VALUE = re.compile(
-    r"(?i)\b(?:authorization|access[_-]?token|password|api[_-]?key|secret)"
+    r"(?i)\b(?:authorization|access[_-]?token|token|password|api[_-]?key|secret)"
     r"\s*[=:]\s*[^\s,;]+"
 )
 URL = re.compile(r"https?://[^\s\x22\x27]+")
