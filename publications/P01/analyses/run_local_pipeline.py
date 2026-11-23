@@ -30,10 +30,12 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def command(args: list[str]) -> str:
-    """Execute a known local subprocess, propagating failures."""
-    completed = subprocess.run(args, cwd=ROOT, check=True, text=True, capture_output=True)
-    return completed.stdout
+def command(args: list[str], *, capture: bool = False) -> str:
+    """Show training logs in real time; capture only GitHub API responses."""
+    completed = subprocess.run(
+        args, cwd=ROOT, check=True, text=True, capture_output=capture,
+    )
+    return completed.stdout or ""
 
 
 def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
@@ -117,7 +119,7 @@ def publish(summary: Path) -> None:
     relative = f"publications/P01/results/runs/{run_id}.json"
     payload = base64.b64encode(raw).decode("ascii")
     def gh(*args: str) -> str:
-        return command(["gh", "api", *args]).strip()
+        return command(["gh", "api", *args], capture=True).strip()
 
     # Preserve the repository-wide limit of one active pull request.
     opened = json.loads(gh(f"repos/{REPO}/pulls?state=open&per_page=100"))
