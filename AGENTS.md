@@ -3,7 +3,7 @@
 ## Scope and safety
 - Vendor-independent open research code only. Do not mention or infer any industrial partner, product, contact or confidential project.
 - No paid APIs. Do not download datasets or models.
-- Never commit reports, weights, secrets, user data or local paths.
+- Never commit raw reports, weights, secrets, user data or local paths. Exception: explicitly authorized, sanitized, size-bounded diagnostic JSON may be committed directly to the dedicated research-telemetry branch; extended redacted logs require operator confirmation.
 - Implement functionality, not empty directories or stubs.
 - Tie every benchmark claim to labelled evidence with explicit provenance.
 - Keep it simple (KISS): no speculative abstractions, no duplicate implementations, docs or configs. Prefer editing existing files over creating new ones.
