@@ -23,12 +23,14 @@ Its current numbered menu is:
 3. Diagnose Torch, TorchVision, CUDA and existing archive filenames.
 4. Choose an algorithm and device, acknowledge lawful research use, then
    perform training and validation. Each run gets its own immutable folder.
-5. Publish an existing result summary to the GitHub results PR, without
-   repeating training. Requires `gh auth login`; blocked while another
-   PR is open. Never uploads raw data, predictions or weights.
+5. Publish a completed scientific validation summary via an optional results PR,
+   without retraining. Requires `gh auth login`; respects the global four-PR
+   portfolio limit. Never uploads raw data, predictions or weights.
 6. Show recent runs, statuses, failing stages, and open their diagnostic folders.
 7. Open the official FLIR source-access page in the browser.
-8. Retry pending diagnostic uploads after GitHub access or PR restrictions clear.
+8. Retry queued automatic diagnostic pushes after restoring GitHub access.
+9. Preview and explicitly upload a redacted extended console log from a
+   selected completed run. This is **never** triggered automatically.
 0. Exit.
 
 The experiment registry in `research_console.EXPERIMENTS` centralises the
@@ -38,23 +40,37 @@ and result-publication controls remain shared. A new dataset gets its own
 persisted location under `dataset_dirs`. Profiles must point to trusted
 repository code, not user-supplied arbitrary commands.
 
-### Automatic diagnostics synchronization
+### Automatic diagnostic commits and optional extended logs
 
-After **every completed or failed menu operation**, the console attempts to
-record a small structured diagnostic JSON in the GitHub `p01-validation-results`
-branch and associated reviewable PR. Each JSON contains UTC timestamps with
-millisecond precision, elapsed durations, stage identifiers, sampled training
-progress/ETA, process exit codes and the SHA-256 and byte length of the local
-console log. The telemetry is restricted to an explicit allowlist and capped
-at **96 KiB per run**. It never includes full console text, tracebacks,
-device data, local filesystem paths, secrets, weights, images or predictions.
+After **every finished or failed menu operation**, the console tries to push
+a small structured diagnostic JSON **directly to the `research-telemetry`
+branch** in this GitHub repository. Each report becomes a regular Git commit,
+not a pull request. The branch can be inspected independently of `main`.
+This telemetry pipeline does **not** consume one of the four global PR slots.
 
-The shared repository's **one active PR** rule still applies. While the
-pipeline implementation PR is open, or when GitHub CLI is unavailable or
-unauthenticated, diagnostic uploads are **deferred**, not silently discarded.
-The local `sync_pending.txt` explains the reason. After the PR is merged,
-use menu option 8 to retry. `sync_success.json` records completed uploads.
-A failed run does not trigger a retraining attempt.
+Basic telemetry includes UTC timestamps with millisecond precision,
+elapsed durations, named stages, sampled progress/ETA, subprocess exit codes,
+and the local console byte length and SHA-256. An explicit allowlist excludes
+console text, tracebacks, dataset contents, credentials, full filesystem
+paths, weights and predictions. The small report is capped at **96 KiB**.
+
+Option **9** lets the operator choose a completed run, review the last
+12 redacted console lines, then explicitly upload a richer diagnostic
+(maximum **512 KiB**) containing a redacted excerpt of up to the final
+256 KiB of console output. This is still a **public GitHub upload** and
+redaction cannot guarantee that every sensitive free-form value is removed;
+inspect the preview and do not upload logs containing confidential data.
+The complete original log remains local.
+
+A successful push writes `sync_success.json`; failed pushes write
+`sync_pending.txt`. If the machine is offline, `gh` is unavailable,
+GitHub authentication has expired, or branch rules reject the operation,
+**instant delivery cannot be guaranteed**. Local evidence persists and
+retry is attempted after subsequent runs and through option 8. This is
+eventual delivery, not a promise of an impossible offline push. Telemetry
+never creates PRs or silently merges anything. The global **4 active PR**
+limit applies to actual code and scientific-result PRs; there is no
+one-active-PR-per-repository restriction.
 
 The console displays a 25-character percentage bar during **training
 minibatches**, with ETA computed from actual batches processed. ETA is an
@@ -177,11 +193,12 @@ protocol and author approval are separately required for a confirmatory
 held-out experiment. The run is not complete until real local data and GPU
 (or CPU) execute the code successfully.
 
-If GitHub publication fails due to missing credentials or another open PR,
-local evidence is retained. Retry from BAT menu option 4, or run
+If scientific-results PR publication fails due to missing credentials or
+a portfolio-wide PR limit, local evidence is retained. Retry from BAT menu option 4, or run
 `python publications/P01/analyses/run_local_pipeline.py --publish-summary PATH`
 with a previously completed `summary.json`, without retraining.
 The publisher checks the validation-only evidence schema and rejects unexpected
-summary fields. Only a small SHA-addressed result JSON is committed, using a PR.
- No external emails, expenses, or
-publisher submission occur.
+summary fields. Only a small SHA-addressed result JSON is committed through
+the optional scientific-results PR. Diagnostics use direct Git commits on
+`research-telemetry`. No external emails, expenses, or publisher submissions
+occur.
