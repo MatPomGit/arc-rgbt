@@ -1,0 +1,213 @@
+"""Offline FLIR P01 train/validation pipeline for Windows and Fedora.
+
+Uses the existing local multipart reader, group manifest, detector and COCO
+evaluation. No held-out access; nothing is published without --publish.
+"""
+from __future__ import annotations
+
+import argparse
+import base64
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[3]
+ANALYSES = Path(__file__).resolve().parent
+REPO = "MatPomGit/arc-rgbt"
+PARTS = tuple(f"FLIR_ADAS_v2.zip.{i:02d}" for i in range(12))
+
+
+def sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def command(args: list[str]) -> str:
+    """Execute a known local subprocess, propagating failures."""
+    completed = subprocess.run(args, cwd=ROOT, check=True, text=True, capture_output=True)
+    return completed.stdout
+
+
+def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
+    """Optional download only from explicitly supplied HTTPS URLs and pinned SHA."""
+    missing = [name for name in PARTS if not (parts_dir / name).is_file()]
+    if not missing:
+        return
+    if manifest_path is None:
+        raise ValueError(
+            "FLIR archive absent. Supply official 12-part archive locally, or "
+            "--download-manifest with independently verified HTTPS URL/SHA-256 per part."
+        )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if set(manifest) != set(PARTS):
+        raise ValueError("Download manifest must name exactly 12 canonical ZIP parts")
+    for name in PARTS:
+        record = manifest[name]
+        url, expected = record["url"], record["sha256"]
+        parsed = urllib.parse.urlparse(url)
+        if (parsed.scheme != "https" or not parsed.hostname or parsed.username
+                or parsed.password or len(expected) != 64
+                or any(c not in "0123456789abcdef" for c in expected)):
+            raise ValueError(f"Unsafe or unpinned archive part: {name}")
+        target = parts_dir / name
+        if target.exists():
+            if sha256(target) != expected:
+                raise ValueError(f"Existing archive part SHA mismatch: {name}")
+            continue
+        tmp = target.with_suffix(target.suffix + ".partial")
+        if tmp.exists():
+            raise ValueError(f"Partial download exists; inspect before retry: {name}")
+        parts_dir.mkdir(parents=True, exist_ok=True)
+        digest = hashlib.sha256()
+        try:
+            with urllib.request.urlopen(url, timeout=60) as response, tmp.open("xb") as output:
+                final = urllib.parse.urlparse(response.url)
+                if final.scheme != "https" or final.hostname != parsed.hostname:
+                    raise ValueError("Unsafe archive redirect")
+                received = 0
+                while chunk := response.read(1024 * 1024):
+                    received += len(chunk)
+                    if received > 8 * 1024**3:
+                        raise ValueError("Archive part exceeds 8 GiB")
+                    digest.update(chunk)
+                    output.write(chunk)
+            if digest.hexdigest() != expected:
+                raise ValueError(f"Downloaded archive SHA mismatch: {name}")
+            tmp.replace(target)
+        finally:
+            tmp.unlink(missing_ok=True)
+    if any(sha256(parts_dir / name) != manifest[name]["sha256"] for name in PARTS):
+        raise ValueError("Archive fingerprint verification failed")
+
+
+def publish(summary: Path) -> None:
+    """Open/update one results PR, never push raw assets or directly to main."""
+    branch = "p01-validation-results"
+    relative = f"publications/P01/results/runs/{summary.parent.name}.json"
+    payload = base64.b64encode(summary.read_bytes()).decode("ascii")
+    def gh(*args: str) -> str:
+        return command(["gh", "api", *args]).strip()
+
+    # A results branch is only created after code changes have been merged.
+    try:
+        gh(f"repos/{REPO}/git/ref/heads/{branch}")
+    except subprocess.CalledProcessError:
+        sha = json.loads(gh(f"repos/{REPO}/git/ref/heads/main"))["object"]["sha"]
+        gh("-X", "POST", f"repos/{REPO}/git/refs",
+           "-f", f"ref=refs/heads/{branch}", "-f", f"sha={sha}")
+    gh("-X", "PUT", f"repos/{REPO}/contents/{relative}",
+       "-f", f"message=P01: record validation-only run {summary.parent.name}",
+       "-f", f"branch={branch}", "-f", f"content={payload}")
+    prs = json.loads(gh(f"repos/{REPO}/pulls?state=open&head=MatPomGit:{branch}"))
+    if not prs:
+        command([
+            "gh", "pr", "create", "--repo", REPO, "--base", "main",
+            "--head", branch, "--title", "P01: recorded validation-only runs",
+            "--body", "Machine-generated sanitized source-GT-relative validation evidence. "
+            "Not held-out results, protocol freeze, Tier B evidence or scientific GO.",
+        ])
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--parts-dir", required=True, type=Path)
+    parser.add_argument("--work-dir", required=True, type=Path)
+    parser.add_argument("--download-manifest", type=Path)
+    parser.add_argument("--rights-acknowledged", action="store_true")
+    parser.add_argument("--epochs", type=int, default=8)
+    parser.add_argument("--batch-size", type=int, default=2)
+    parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
+    parser.add_argument("--publish", action="store_true")
+    args = parser.parse_args(argv)
+    if not args.rights_acknowledged:
+        parser.error("Review source licence and specify --rights-acknowledged")
+    if args.epochs < 1 or args.epochs > 100 or args.batch_size < 1 or args.batch_size > 8:
+        parser.error("Training budget out of range")
+    parts_dir = args.parts_dir.expanduser().resolve()
+    work = args.work_dir.expanduser().resolve()
+    if work.is_relative_to(ROOT) or parts_dir.is_relative_to(ROOT):
+        parser.error("Source archive and work directory must be outside the repository")
+    if work.exists():
+        parser.error("Work directory already exists; use a new run directory")
+    try:
+        acquire(parts_dir, args.download_manifest)
+        work.mkdir(parents=True)
+        evidence = work / "preflight"
+        output = work / "training"
+        command([
+            sys.executable, str(ANALYSES / "read_flir_multipart_coco.py"),
+            "--parts-dir", str(parts_dir), "--output-dir", str(evidence),
+        ])
+        command([
+            sys.executable, str(ANALYSES / "train_torchvision_baseline.py"),
+            "--parts-dir", str(parts_dir), "--preflight-dir", str(evidence),
+            "--output-dir", str(output), "--rights-acknowledged",
+            "--epochs", str(args.epochs), "--batch-size", str(args.batch_size),
+            "--device", args.device,
+        ])
+        command([
+            sys.executable, str(ANALYSES / "run_coco_reference.py"),
+            "--validation-annotations", str(evidence / "val_coco.json"),
+            "--validation-predictions", str(output / "validation_predictions" / "predictions.json"),
+            "--mode", "validation", "--output", str(work / "validation_metrics.json"),
+        ])
+        provenance = json.loads((output / "training_provenance.json").read_text())
+        metrics = json.loads((work / "validation_metrics.json").read_text())
+        source = json.loads((evidence / "source_manifest.json").read_text())
+        summary = {
+            "schema_version": 1,
+            "generated_utc": datetime.now(timezone.utc).isoformat(),
+            "research_tier": "A_SOURCE_GT_RELATIVE_DESCRIPTIVE_CANDIDATE",
+            "status": provenance["status"],
+            "heldout_opened": False,
+            "test_tuned": False,
+            "physical_sensor_limit_claim": False,
+            "rights_verified_independently": False,
+            "native_optics_verified": False,
+            "independent_acquisitions_verified": False,
+            "checkpoint_sha256": provenance["checkpoint_sha256"],
+            "train_annotation_sha256": provenance["input_annotation_sha256"]["train"],
+            "validation_annotation_sha256": provenance["input_annotation_sha256"]["validation"],
+            "split_manifest_sha256": provenance["input_preflight_manifest_sha256"],
+            "validation_predictions_sha256": provenance["validation_predictions_sha256"],
+            "source_part_sha256": {p["filename"]: p["sha256"] for p in source["parts"]},
+            "training": {
+                "model": provenance["model"], "seed": provenance["seed"],
+                "epochs": provenance["epochs"], "batch_size": provenance["batch_size"],
+                "device": provenance["device"], "torch": provenance["torch"],
+                "torchvision": provenance["torchvision"],
+                "loss_by_epoch": provenance["training_loss_by_epoch"],
+            },
+            "validation": {
+                "status": metrics["status"],
+                "threshold_candidate": metrics["validation_threshold"],
+            },
+            "limitations": [
+                "Reference labels may be incomplete; FP/frame is source-label-relative.",
+                "Video ID is not proof of independently acquired scenes.",
+                "No test results, physical optical limits or scientific GO.",
+            ],
+        }
+        summary_path = work / "summary.json"
+        summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n",
+                                encoding="utf-8")
+        if args.publish:
+            publish(summary_path)
+        print(json.dumps({"status": summary["status"], "summary": str(summary_path),
+                          "published": args.publish}))
+        return 0
+    except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as exc:
+        parser.exit(1, f"P01 pipeline BLOCKED/FAIL: {type(exc).__name__}: {exc}\n")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
