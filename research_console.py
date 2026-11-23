@@ -44,7 +44,7 @@ DEFAULTS = {
 
 
 def timestamp() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
 def read_settings() -> dict:
@@ -98,7 +98,7 @@ class RunLog:
             self.stage_started = now
         self.stage = stage
         row = {"time_utc": timestamp(), "run_id": self.id,
-               "action": self.action, "stage": stage, "status": status, **details}
+               "action": self.action, "stage": stage, "status": status, "elapsed_seconds": round(now - self.started, 3), **details}
         with self.events.open("a", encoding="utf-8") as out:
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
         self.status.write_text(json.dumps(row, indent=2, ensure_ascii=False) + "\n",
@@ -113,6 +113,7 @@ class RunLog:
         event = {
             "time_utc": timestamp(), "run_id": self.id, "action": self.action,
             "stage": "training_progress", "status": "RUNNING",
+            "elapsed_seconds": round(time.monotonic() - self.started, 3),
             "completed": complete, "total": total,
             "progress_percent": round(100 * complete / total, 2),
             "eta_seconds": eta,
@@ -144,10 +145,10 @@ class RunLog:
                         bar = "#" * int(25 * fraction) + "." * (25 - int(25 * fraction))
                         eta = progress.get("eta_seconds")
                         self.progress(complete, total, eta)
-                        print(f"\\r[{bar}] {fraction:.1%} | {stage} | ETA {eta}s   ",
+                        print(f"\r[{bar}] {fraction:.1%} | {stage} | ETA {eta}s   ",
                               end="", flush=True)
                     except (ValueError, TypeError, KeyError, json.JSONDecodeError):
-                        print("\\nInvalid progress marker (see local console log)")
+                        print("\nInvalid progress marker (see local console log)")
                     if complete == total:
                         print()
                 else:
