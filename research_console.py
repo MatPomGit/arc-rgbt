@@ -42,6 +42,10 @@ DEFAULTS = {
 }
 
 
+class ValidationGateBlocked(RuntimeError):
+    """Training finished, but validation did not yield an eligible operating point."""
+
+
 def timestamp() -> str:
     return datetime.now(UTC).isoformat(timespec="milliseconds")
 
@@ -165,6 +169,16 @@ class RunLog:
                     detail = json.loads(substage.read_text(encoding="utf-8")).get(
                         "stage", "unknown"
                     )
+                summary = self.path / "artifacts" / "summary.json"
+                if summary.is_file():
+                    try:
+                        outcome = json.loads(summary.read_text(encoding="utf-8"))
+                    except (OSError, ValueError, json.JSONDecodeError):
+                        outcome = {}
+                    if outcome.get("status") == "BLOCKED_VALIDATION_NO_OPERATING_POINT":
+                        self.emit("BLOCKED", "validation_gate", returncode=rc,
+                                  substage="blocked_validation_no_operating_point")
+                        raise ValidationGateBlocked("Training completed; validation gate BLOCKED")
             self.emit("FAIL", stage, returncode=rc, substage=detail,
                       message=f"Exit code {rc}; substage={detail}; read {self.console}")
             raise RuntimeError(f"{stage}/{detail} failed (exit code {rc})")
@@ -184,6 +198,9 @@ def run_action(action: str, callback) -> None:
             log.emit("BLOCKED", "cancelled")
         else:
             log.emit("PASS", "complete")
+    except ValidationGateBlocked:
+        # RunLog already persisted an explicit BLOCKED outcome and stage.
+        pass
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.SubprocessError) as exc:
         log.emit("FAIL", log.stage, error_type=type(exc).__name__, message=str(exc))
         with log.console.open("a", encoding="utf-8") as out:
@@ -314,10 +331,15 @@ def train(settings: dict, log: RunLog) -> None:
     summary = work / "summary.json"
     if not summary.is_file():
         raise ValueError("Training ended without summary.json")
+    summary_record = json.loads(summary.read_text(encoding="utf-8"))
+    status = summary_record["status"]
     (log.path / "result.json").write_text(json.dumps({
         "experiment": profile_id, "summary_sha256": file_hash(summary),
-        "status": "VALIDATION_ONLY", "summary_file": str(summary),
+        "status": status, "summary_file": str(summary),
     }, indent=2) + "\n", encoding="utf-8")
+    if status != "VALIDATION_CANDIDATE_ONLY_UNFROZEN":
+        log.emit("BLOCKED", "validation_gate", message=f"Actual status: {status}")
+        raise ValidationGateBlocked(status)
 
 
 def file_hash(path: Path) -> str:
