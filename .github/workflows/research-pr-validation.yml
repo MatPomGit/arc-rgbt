@@ -57,7 +57,7 @@ jobs:
       - name: Run complete non-browser unit suite and lint
         run: |
           python -m pytest -q
-          python -m ruff check src tests tools research_console.py diagnostic_sync.py publications/P01/analyses/audit_group_feasibility.py publications/P01/analyses/run_coco_reference.py publications/P01/analyses/build_coco_group_manifest.py publications/P01/analyses/predict_torchscript_coco.py publications/P01/analyses/train_torchvision_baseline.py
+          python -m ruff check src tests tools research_console.py diagnostic_sync.py publications/P01/analyses/run_local_pipeline.py publications/P01/analyses/audit_group_feasibility.py publications/P01/analyses/run_coco_reference.py publications/P01/analyses/build_coco_group_manifest.py publications/P01/analyses/predict_torchscript_coco.py publications/P01/analyses/train_torchvision_baseline.py
       - name: Verify MkDocs navigation and build
         run: |
           python -m tools.check_docs
