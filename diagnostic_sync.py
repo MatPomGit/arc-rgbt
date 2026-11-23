@@ -81,7 +81,7 @@ def snapshot(folder: Path) -> dict:
     # Event timestamps are UTC ISO-8601. Exact epoch timings remain locally
     # in the full log; published spans use monotonic-independent UTC timestamps.
     durations = []
-    for prev, nxt in zip(sanitized, sanitized[1:]):
+    for prev, nxt in zip(sanitized, sanitized[1:], strict=False):
         delta = (datetime.fromisoformat(nxt["time_utc"]) -
                  datetime.fromisoformat(prev["time_utc"])).total_seconds()
         durations.append(max(0.0, round(delta, 3)))
