@@ -9,6 +9,8 @@ import argparse
 import base64
 import hashlib
 import json
+import math
+import re
 import subprocess
 import sys
 import tempfile
@@ -94,21 +96,28 @@ def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
         raise ValueError("Archive fingerprint verification failed")
 
 
-def publish(summary: Path) -> None:
-    """Open/update one results PR, never push raw assets or directly to main."""
-    branch = "p01-validation-results"
-    raw = summary.read_bytes()
-    if len(raw) > 128 * 1024:
-        raise ValueError("Summary exceeds the 128 KiB publication limit")
-    record = json.loads(raw)
-    if (not isinstance(record, dict) or record.get("schema_version") != 1
-            or record.get("heldout_opened") is not False
-            or record.get("test_tuned") is not False
-            or record.get("physical_sensor_limit_claim") is not False
-            or record.get("research_tier") != "A_SOURCE_GT_RELATIVE_DESCRIPTIVE_CANDIDATE"):
-        raise ValueError("Not a validated P01 source-relative summary")
-    # Never publish arbitrary user-edited keys, paths or raw predictions.
-    allowed = {
+
+def validate_public_summary(record: object) -> None:
+    """Fail closed on every public summary field, including nested values."""
+    def fields(value: object, required: set[str], optional: set[str] | None = None) -> dict:
+        if not isinstance(value, dict):
+            raise ValueError("Expected a structured summary object")
+        keys = set(value)
+        if not required <= keys or keys - required - (optional or set()):
+            raise ValueError("Unrecognized or missing public summary field")
+        return value
+
+    def integer(value: object, minimum: int, maximum: int) -> bool:
+        return type(value) is int and minimum <= value <= maximum
+
+    def number(value: object, minimum: float, maximum: float) -> bool:
+        return (type(value) in (int, float) and math.isfinite(value)
+                and minimum <= value <= maximum)
+
+    def digest(value: object) -> bool:
+        return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+
+    top = {
         "schema_version", "generated_utc", "research_tier", "status",
         "heldout_opened", "test_tuned", "physical_sensor_limit_claim",
         "rights_verified_independently", "native_optics_verified",
@@ -117,22 +126,123 @@ def publish(summary: Path) -> None:
         "split_manifest_sha256", "validation_predictions_sha256",
         "source_part_sha256", "training", "validation", "limitations",
     }
-    if set(record) != allowed:
-        raise ValueError("Unexpected summary fields; refusing public upload")
+    record = fields(record, top)
+    if (record["schema_version"] != 1
+            or record["research_tier"] != "A_SOURCE_GT_RELATIVE_DESCRIPTIVE_CANDIDATE"
+            or record["status"] != "VALIDATION_CANDIDATE_ONLY_UNFROZEN"
+            or any(record[key] is not False for key in (
+                "heldout_opened", "test_tuned", "physical_sensor_limit_claim",
+                "rights_verified_independently", "native_optics_verified",
+                "independent_acquisitions_verified",
+            ))):
+        raise ValueError("No eligible validation-only evidence for public upload")
+    date = record["generated_utc"]
+    if not isinstance(date, str) or len(date) > 40:
+        raise ValueError("Invalid evidence timestamp")
+    try:
+        instant = datetime.fromisoformat(date)
+    except ValueError as exc:
+        raise ValueError("Invalid evidence timestamp") from exc
+    if instant.utcoffset() is None or instant.utcoffset().total_seconds() != 0:
+        raise ValueError("Evidence timestamp must be in UTC")
+    for key in ("checkpoint_sha256", "train_annotation_sha256",
+                "validation_annotation_sha256", "split_manifest_sha256",
+                "validation_predictions_sha256"):
+        if not digest(record[key]):
+            raise ValueError(f"Invalid {key}")
+    source = fields(record["source_part_sha256"], set(PARTS))
+    if any(not digest(sha) for sha in source.values()):
+        raise ValueError("Invalid source-part digest")
+    training = fields(record["training"], {
+        "model", "seed", "epochs", "batch_size", "device", "torch",
+        "torchvision", "loss_by_epoch",
+    })
+    if (training["model"] != "scratch_torchvision_frcnn_mobilenetv3_single_car"
+            or training["device"] not in ("cpu", "cuda")
+            or not integer(training["seed"], 0, 2**32 - 1)
+            or not integer(training["epochs"], 1, 100)
+            or not integer(training["batch_size"], 1, 8)):
+        raise ValueError("Invalid training configuration")
+    for key in ("torch", "torchvision"):
+        version = training[key]
+        if not isinstance(version, str) or not re.fullmatch(
+            r"[0-9][0-9A-Za-z.+_-]{0,39}", version
+        ):
+            raise ValueError("Unsafe training dependency version")
+    losses = training["loss_by_epoch"]
+    if not isinstance(losses, list) or len(losses) != training["epochs"]:
+        raise ValueError("Incomplete or invalid training loss series")
+    for epoch, item in enumerate(losses, 1):
+        item = fields(item, {"epoch", "train_mean_loss"})
+        if item["epoch"] != epoch or not number(item["train_mean_loss"], 0, 1e12):
+            raise ValueError("Invalid training loss")
+    validation = fields(record["validation"], {"status", "threshold_candidate"})
+    if validation["status"] != "VALIDATION_CANDIDATE_ONLY":
+        raise ValueError("Blocked validation cannot be published as a result")
+    threshold = fields(validation["threshold_candidate"], {
+        "status", "threshold", "empirical_admission", "split_role",
+        "annotation_reference", "group_basis", "threshold_selection",
+        "score_inclusion_rule", "frames", "groups", "limitations",
+        "negative_frames", "negative_groups", "validation_fp_per_frame",
+        "validation_tp", "validation_fp_bootstrap_ci_95",
+        "validation_fp_upper_ci_exceeds_ceiling", "bootstrap_replicates",
+        "uncertainty_status",
+    })
+    expected = {
+        "status": "CANDIDATE_ONLY",
+        "empirical_admission": False,
+        "split_role": "declared_validation_unverified",
+        "annotation_reference": "source_reference_unverified",
+        "group_basis": "source_video_proxy",
+        "threshold_selection": "lowest_feasible_sorted_unique_score",
+        "score_inclusion_rule": "score >= threshold; ties indivisible",
+        "limitations": "Observed validation FP/frame is not a future upper bound",
+        "uncertainty_status": "SUPPRESSED_UNVERIFIED_GROUP_INDEPENDENCE",
+        "validation_fp_bootstrap_ci_95": None,
+        "validation_fp_upper_ci_exceeds_ceiling": None,
+        "bootstrap_replicates": 0,
+    }
+    if any(threshold[key] != value for key, value in expected.items()):
+        raise ValueError("Invalid validation status or scientific gate")
+    if (not number(threshold["threshold"], 0, 1)
+            or not number(threshold["validation_fp_per_frame"], 0, 0.1)
+            or not integer(threshold["validation_tp"], 1, 10**9)
+            or not integer(threshold["frames"], 1, 10**9)
+            or not integer(threshold["groups"], 1, 10**8)
+            or not integer(threshold["negative_frames"], 0, 10**9)
+            or not integer(threshold["negative_groups"], 0, 10**8)):
+        raise ValueError("Invalid validation metrics")
+    if record["limitations"] != [
+        "Reference labels may be incomplete; FP/frame is source-label-relative.",
+        "Video ID is not proof of independently acquired scenes.",
+        "No test results, physical optical limits or scientific GO.",
+    ]:
+        raise ValueError("Unrecognized scientific limitations")
+
+
+
+def publish(summary: Path) -> None:
+    """Open/update one results PR, never push raw assets or directly to main."""
+    branch = "p01-validation-results"
+    raw = summary.read_bytes()
+    if len(raw) > 128 * 1024:
+        raise ValueError("Summary exceeds the 128 KiB publication limit")
+    record = json.loads(raw)
+    validate_public_summary(record)
     run_id = hashlib.sha256(raw).hexdigest()[:20]
     relative = f"publications/P01/results/runs/{run_id}.json"
     payload = base64.b64encode(raw).decode("ascii")
     def gh(*args: str) -> str:
         return command(["gh", "api", *args], capture=True).strip()
 
-    # This optional results PR is independent of direct-push diagnostic telemetry.
-    # Respect the portfolio-wide four-PR cap through the shared controller.
-    try:
-        gh(f"repos/{REPO}/git/ref/heads/{branch}")
-    except subprocess.CalledProcessError:
-        sha = json.loads(gh(f"repos/{REPO}/git/ref/heads/main"))["object"]["sha"]
-        gh("-X", "POST", f"repos/{REPO}/git/refs",
-           "-f", f"ref=refs/heads/{branch}", "-f", f"sha={sha}")
+    # Only the shared controller may authorize a new portfolio PR. Reuse an
+    # existing results PR; otherwise stop before creating or exposing a branch.
+    prs = json.loads(gh(f"repos/{REPO}/pulls?state=open&head=MatPomGit:{branch}"))
+    if not isinstance(prs, list) or not prs:
+        raise ValueError(
+            "Results PR not authorized by portfolio controller; "
+            "ask controller to reserve a slot within the global four-PR cap"
+        )
     existing = None
     try:
         existing = json.loads(gh(f"repos/{REPO}/contents/{relative}?ref={branch}"))
@@ -153,14 +263,6 @@ def publish(summary: Path) -> None:
             body.write_text(json.dumps(request), encoding="utf-8")
             gh("-X", "PUT", f"repos/{REPO}/contents/{relative}",
                "--input", str(body))
-    prs = json.loads(gh(f"repos/{REPO}/pulls?state=open&head=MatPomGit:{branch}"))
-    if not prs:
-        command([
-            "gh", "pr", "create", "--repo", REPO, "--base", "main",
-            "--head", branch, "--title", "P01: recorded validation-only runs",
-            "--body", "Machine-generated sanitized source-GT-relative validation evidence. "
-            "Not held-out results, protocol freeze, Tier B evidence or scientific GO.",
-        ])
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -291,6 +393,11 @@ def main(argv: list[str] | None = None) -> int:
         summary_path = work / "summary.json"
         summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n",
                                 encoding="utf-8")
+        if summary["status"] == "BLOCKED_VALIDATION_NO_OPERATING_POINT":
+            stage("blocked_validation_no_operating_point")
+            print(json.dumps({"status": summary["status"], "summary": str(summary_path),
+                              "published": False}))
+            return 2
         if args.publish:
             stage("publish_results")
             publish(summary_path)
