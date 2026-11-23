@@ -176,6 +176,12 @@ class RunLog:
                     except (OSError, ValueError, json.JSONDecodeError):
                         outcome = {}
                     if outcome.get("status") == "BLOCKED_VALIDATION_NO_OPERATING_POINT":
+                        (self.path / "result.json").write_text(json.dumps({
+                            "experiment": "p01_frcnn_lwir",
+                            "summary_sha256": file_hash(summary),
+                            "status": "BLOCKED_VALIDATION_NO_OPERATING_POINT",
+                            "summary_file": str(summary),
+                        }, indent=2) + "\n", encoding="utf-8")
                         self.emit("BLOCKED", "validation_gate", returncode=rc,
                                   substage="blocked_validation_no_operating_point")
                         raise ValidationGateBlocked("Training completed; validation gate BLOCKED")
