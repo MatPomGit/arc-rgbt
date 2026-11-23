@@ -51,3 +51,26 @@ def test_data_and_log_paths_cannot_be_inside_repository() -> None:
         pass
     else:
         raise AssertionError("Data paths under Git must be rejected")
+
+
+def test_blocked_validation_preserves_blocked_status(tmp_path: Path) -> None:
+    log = console.RunLog(tmp_path, "experiment")
+    summary = log.path / "artifacts" / "summary.json"
+    script = (
+        "import json,sys; from pathlib import Path; "
+        "p=Path(sys.argv[1]); p.parent.mkdir(parents=True); "
+        "p.write_text(json.dumps({'status': "
+        "'BLOCKED_VALIDATION_NO_OPERATING_POINT'})); sys.exit(2)"
+    )
+    try:
+        log.execute("training_and_validation", [
+            console.sys.executable, "-c", script, str(summary),
+        ])
+    except console.ValidationGateBlocked:
+        pass
+    else:
+        raise AssertionError("Blocked validation must not be marked as PASS")
+    status = json.loads(log.status.read_text(encoding="utf-8"))
+    assert status["status"] == "BLOCKED"
+    assert status["stage"] == "validation_gate"
+    assert status["returncode"] == 2
