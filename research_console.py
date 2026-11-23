@@ -88,7 +88,8 @@ class RunLog:
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
         self.status.write_text(json.dumps(row, indent=2, ensure_ascii=False) + "\n",
                                encoding="utf-8")
-        print(f"[{status}] {stage}" + (f": {details.get('message')}" if details.get("message") else ""))
+        message = details.get("message")
+        print(f"[{status}] {stage}" + (f": {message}" if message else ""))
 
     def execute(self, stage: str, args: list[str]) -> None:
         self.emit("RUNNING", stage)
@@ -148,8 +149,11 @@ def install(settings: dict, log: RunLog) -> None:
         log.execute("create_venv", [sys.executable, "-m", "venv", str(ROOT / ".venv")])
     log.execute("install_dependencies",
                 [str(PYTHON), "-m", "pip", "install", "-e", ".[torch]"])
-    log.execute("verify_imports",
-                [str(PYTHON), "-c", "import torch, torchvision, arc_rgbt; print('torch', torch.__version__, 'CUDA', torch.cuda.is_available())"])
+    log.execute("verify_imports", [
+        str(PYTHON), "-c",
+        "import torch, torchvision, arc_rgbt; "
+        "print('torch', torch.__version__, 'CUDA', torch.cuda.is_available())",
+    ])
 
 
 def configure_data(settings: dict, log: RunLog) -> None:
