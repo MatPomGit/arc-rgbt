@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import sys
 import traceback
@@ -122,8 +121,11 @@ def run_action(action: str, callback) -> None:
         print(f"[BLOCKED] Cannot initialise logs: {exc}")
         return
     try:
-        callback(settings, log)
-        log.emit("PASS", "complete")
+        outcome = callback(settings, log)
+        if outcome is False:
+            log.emit("BLOCKED", "cancelled")
+        else:
+            log.emit("PASS", "complete")
     except (OSError, RuntimeError, ValueError, KeyError, subprocess.SubprocessError) as exc:
         log.emit("FAIL", log.stage, error_type=type(exc).__name__, message=str(exc))
         with log.console.open("a", encoding="utf-8") as out:
@@ -177,13 +179,12 @@ def configure_data(settings: dict, log: RunLog) -> None:
 
 def diagnostics(settings: dict, log: RunLog) -> None:
     data = directory(settings["dataset_dirs"]["flir_adas_v2"])
-    from pathlib import Path as _Path
     existing = [f"FLIR_ADAS_v2.zip.{n:02}" for n in range(12)
                 if (data / f"FLIR_ADAS_v2.zip.{n:02}").is_file()]
     log.emit("PASS", "check_archive_names", found=len(existing), required=12)
     if not PYTHON.is_file():
         log.emit("BLOCKED", "check_environment", message="Install .venv first")
-        return
+        return False
     log.execute("check_torch_cuda", [
         str(PYTHON), "-c",
         "import torch,torchvision; print('torch:',torch.__version__);"
@@ -212,10 +213,10 @@ def train(settings: dict, log: RunLog) -> None:
     if input("I have checked FLIR access terms and permit this local research use [y/N]: "
              ).strip().lower() != "y":
         log.emit("BLOCKED", "licence_acknowledgement")
-        return
+        return False
     if input("Start training and validation? [y/N]: ").strip().lower() != "y":
         log.emit("BLOCKED", "user_cancelled")
-        return
+        return False
     work = log.path / "artifacts"
     args = [
         str(PYTHON), str(profile["script"]),
