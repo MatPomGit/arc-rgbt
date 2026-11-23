@@ -41,7 +41,7 @@ def command(args: list[str], *, capture: bool = False) -> str:
 def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
     """Optional download only from explicitly supplied HTTPS URLs and pinned SHA."""
     missing = [name for name in PARTS if not (parts_dir / name).is_file()]
-    if not missing:
+    if not missing and manifest_path is None:
         return
     if manifest_path is None:
         raise ValueError(
@@ -155,9 +155,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--publish", action="store_true")
+    parser.add_argument("--acquire-only", action="store_true",
+                        help="Acquire and hash-check source parts; do not train")
     parser.add_argument("--publish-summary", type=Path,
                         help="Publish a completed local summary without retraining")
     args = parser.parse_args(argv)
+    if args.acquire_only:
+        if not args.parts_dir or not args.download_manifest or args.work_dir or args.publish:
+            parser.error("--acquire-only requires --parts-dir and --download-manifest only")
+        parts = args.parts_dir.expanduser().resolve()
+        if parts.is_relative_to(ROOT):
+            parser.error("Dataset directory must be outside the repository")
+        try:
+            acquire(parts, args.download_manifest)
+        except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+            parser.exit(1, f"P01 download BLOCKED/FAIL: {type(exc).__name__}: {exc}\n")
+        print(json.dumps({"status": "SOURCE_PARTS_VERIFIED", "count": len(PARTS)}))
+        return 0
     if args.publish_summary is not None:
         if args.publish or args.download_manifest or args.rights_acknowledged:
             parser.error("--publish-summary must be used by itself")
