@@ -5,11 +5,14 @@ Dataset archives and complete logs never enter the source repository.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
+import time
 import traceback
 import uuid
 import webbrowser
@@ -34,6 +37,7 @@ DEFAULTS = {
     "dataset_dirs": {"flir_adas_v2": str(Path.home() / "FLIR_ADAS_v2")},
     "runs_dir": str(Path.home() / "ArcRGBT_runs"),
     "download_manifest": "",
+    "auto_sync_diagnostics": True,
 }
 
 
@@ -79,9 +83,17 @@ class RunLog:
         self.status = self.path / "status.json"
         self.action = action
         self.stage = "start"
+        self.started = time.monotonic()
+        self.started_utc = timestamp()
+        self.stage_started = self.started
+        self.stage_elapsed = {}
         self.emit("RUNNING", "start")
 
     def emit(self, status: str, stage: str, **details: object) -> None:
+        now = time.monotonic()
+        if stage != self.stage:
+            self.stage_elapsed[self.stage] = round(now - self.stage_started, 3)
+            self.stage_started = now
         self.stage = stage
         row = {"time_utc": timestamp(), "run_id": self.id,
                "action": self.action, "stage": stage, "status": status, **details}
@@ -103,9 +115,26 @@ class RunLog:
             )
             assert process.stdout is not None
             for line in process.stdout:
-                print(line, end="", flush=True)
                 output.write(line)
                 output.flush()
+                if line.startswith("P01_PROGRESS "):
+                    try:
+                        progress = json.loads(line[len("P01_PROGRESS "):])
+                        complete, total = progress["completed"], progress["total"]
+                        if not (isinstance(complete, int) and isinstance(total, int)
+                                and 0 <= complete <= total and total > 0):
+                            raise ValueError("Bad progress values")
+                        fraction = complete / total
+                        bar = "#" * int(25 * fraction) + "." * (25 - int(25 * fraction))
+                        eta = progress.get("eta_seconds")
+                        print(f"\\r[{bar}] {fraction:.1%} | {stage} | ETA {eta}s   ",
+                              end="", flush=True)
+                    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+                        print("\\nInvalid progress marker (see local console log)")
+                    if complete == total:
+                        print()
+                else:
+                    print(line, end="", flush=True)
             rc = process.wait()
             output.write(f"\n[{timestamp()}] END stage={stage} returncode={rc}\n")
         if rc != 0:
