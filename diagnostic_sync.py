@@ -144,7 +144,7 @@ def _upload(relative: str, raw: bytes, message: str) -> str:
             raise
         existing = None
     if existing is not None:
-        previous = base64.b64decode(existing.get("content", "").replace("\\n", ""))
+        previous = base64.b64decode(existing.get("content", "").replace("\n", ""))
         if previous != raw:
             raise ValueError("Telemetry run ID already exists with different bytes")
         return "ALREADY_UPLOADED"
@@ -163,7 +163,7 @@ def _upload(relative: str, raw: bytes, message: str) -> str:
 def sync(folder: Path) -> str:
     """Push a small report after each completed/failed operation."""
     report = snapshot(folder)
-    raw = (json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\\n").encode()
+    raw = (json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode()
     if len(raw) > 96 * 1024:
         raise ValueError("Diagnostic report exceeds 96 KiB")
     path = f"publications/P01/results/diagnostics/{report['run_id']}.json"
@@ -174,18 +174,17 @@ def sync(folder: Path) -> str:
 # export before uploading; these are still not suitable for arbitrary secrets.
 SENSITIVE = re.compile(
     r"(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{12,}"
-    r"|sk-[A-Za-z0-9_-]{16,}|(?i:bearer)\\s+[A-Za-z0-9._-]+)"
+    r"|sk-[A-Za-z0-9_-]{16,}|(?i:bearer)\s+[A-Za-z0-9._-]+)"
 )
 KEY_VALUE = re.compile(
-    r"(?i)\\b(?:authorization|access[_-]?token|password|api[_-]?key|secret)"
-    r"\\s*[=:]\\s*[^\\s,;]+"
+    r"(?i)\b(?:authorization|access[_-]?token|password|api[_-]?key|secret)"
+    r"\s*[=:]\s*[^\s,;]+"
 )
-URL = re.compile(r"https?://[^\\s\\x22\\x27]+")
-WINDOWS_PATH = re.compile(r"(?i)(?:[A-Z]:[\\\\/]|\\\\\\\\)[^\\s\\x22\\x27]+")
-UNIX_PATH = re.compile(r"/(?:home|Users|mnt|tmp|var|opt)/[^\\s\\x22\\x27]+")
-EMAIL = re.compile(r"\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b")
-ANSI = re.compile(r"\\x1b\\[[0-9;]*[A-Za-z]")
-
+URL = re.compile(r"https?://[^\s\x22\x27]+")
+WINDOWS_PATH = re.compile(r"(?i)(?:[A-Z]:[\\/]|\\\\)[^\s\x22\x27]+")
+UNIX_PATH = re.compile(r"/(?:home|Users|mnt|tmp|var|opt)/[^\s\x22\x27]+")
+EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 def redact_line(line: str) -> str:
     line = ANSI.sub("", line)
@@ -227,7 +226,7 @@ def extended_report(folder: Path) -> dict:
 def sync_extended(folder: Path) -> str:
     """Manual, pre-confirmed upload. Never invoked in automatic sync."""
     report = extended_report(folder)
-    raw = (json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\\n").encode()
+    raw = (json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode()
     if len(raw) > 512 * 1024:
         raise ValueError("Extended diagnostic exceeds 512 KiB")
     path = f"publications/P01/results/diagnostics/extended/{report['run_id']}.json"
@@ -243,7 +242,7 @@ def sync_pending(logs: Path) -> tuple[int, int]:
         try:
             result = sync(folder)
             (folder / "sync_success.json").write_text(
-                json.dumps({"status": result, "branch": BRANCH}) + "\\n",
+                json.dumps({"status": result, "branch": BRANCH}) + "\n",
                 encoding="utf-8",
             )
             (folder / "sync_pending.txt").unlink(missing_ok=True)
@@ -252,7 +251,7 @@ def sync_pending(logs: Path) -> tuple[int, int]:
                 json.JSONDecodeError, subprocess.CalledProcessError) as exc:
             (folder / "sync_pending.txt").write_text(
                 f"{type(exc).__name__}: push unavailable; retry after resolving GitHub access"
-                "\\n", encoding="utf-8",
+                "\n", encoding="utf-8",
             )
             blocked += 1
             if isinstance(exc, (RuntimeError, subprocess.CalledProcessError)):
