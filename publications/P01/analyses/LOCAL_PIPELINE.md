@@ -9,28 +9,60 @@ workstream.
 
 ## Windows: double-click P01.bat
 
-Use **P01.bat** in the repository root. Its numbered menu offers:
-1. Create or update the local `.venv` using Python 3.12 and install the
-   package and Torch dependencies exclusively in that environment.
-2. Check installed Python, Torch, TorchVision, NVIDIA CUDA, and the 12 source
-   archive part names.
-3. Run source-GT-relative training and validation in a new, local results
-   directory, without any upload.
-4. Publish an existing `summary.json` to a GitHub results PR *without
-   repeating training*. This requires an authenticated GitHub CLI and an
-   explicit confirmation. The repository's one-open-PR rule may block this
-   action until the code PR has been merged.
-5. View the documentation path. `0` exits.
+From the repository root, launch `P01.bat`. It delegates to the shared
+standard-library `research_console.py`, which works before creating a venv.
+Its current numbered menu is:
 
-Python 3.12 must already be installed and available through the Windows
-`py` launcher. The BAT file never installs Python system-wide, changes
-PowerShell execution policy, or runs a model/test download implicitly.
-Dependencies are installed only after selecting menu option 1. Installation
-uses Python package repositories; choose it when network access is allowed.
-The setup never installs packages into system Python. CUDA availability is
-checked separately; a CPU run requires explicit selection.
+1. Install/update Python dependencies: create `.venv` with Python 3.12,
+   `pip install -e ".[torch]"` and confirm Torch imports. No system-wide pip.
+2. Configure the local FLIR directory and optional *verified* download manifest.
+   The setting survives restarts in `%LOCALAPPDATA%\\arc-rgbt\\settings.json`.
+   When a verified manifest is available, download and hash-check missing
+   original ZIP parts. The official portal may require registration/terms,
+   so no direct archive URL is fabricated or access control bypassed.
+3. Diagnose Torch, TorchVision, CUDA and existing archive filenames.
+4. Choose an algorithm and device, acknowledge lawful research use, then
+   perform training and validation. Each run gets its own immutable folder.
+5. Publish an existing result summary to the GitHub results PR, without
+   repeating training. Requires `gh auth login`; blocked while another
+   PR is open. Never uploads raw data, predictions or weights.
+6. Show recent runs, statuses, failing stages, and open their diagnostic folders.
+7. Open the official FLIR source-access page in the browser.
+0. Exit.
+
+The experiment registry in `research_console.EXPERIMENTS` centralises the
+addition of future algorithms. Each profile identifies the experiment
+entrypoint and dataset ID; installation, execution history, diagnostic logs
+and result-publication controls remain shared. A new dataset gets its own
+persisted location under `dataset_dirs`. Profiles must point to trusted
+repository code, not user-supplied arbitrary commands.
+
+### Debugging and local directory structure
+
+A typical local run creates:
+
+```text
+%USERPROFILE%\\ArcRGBT_runs\\logs\\20261123T120000Z_ab12cd34\\
+    status.json              latest status, operation, error stage and return code
+    events.jsonl             time-stamped transitions, one JSON per line
+    console.log              full command stdout/stderr, including epoch progress
+    artifacts\\
+        pipeline_stage.json  most recent internal stage, including failures
+        preflight\\          source/split manifests (local)
+        training\\           checkpoint, predictions, provenance (local)
+        validation_metrics.json
+        summary.json         small, publication-eligible validation record
+    result.json              SHA-256 and local summary location (on success)
+```
+
+Installations and dataset acquisitions also receive their own log folder.
+A failed experiment is never recorded as a successful training result.
+The console shows the last 15 run statuses and opens the selected directory
+in Windows Explorer. Failed steps retain their outputs, with no silent retry.
+No raw images, tokens, local paths, or weight files are committed to GitHub.
 
 ## Requirements
+
 
 Python 3.12+, free disk space for the original 12 ZIP parts and the local
 training outputs; compatible PyTorch/TorchVision and CUDA driver on Andromeda.
