@@ -177,6 +177,10 @@ def configure_data(settings: dict, log: RunLog) -> None:
         raise ValueError("Install dependencies first (option 1)")
     if not settings["download_manifest"]:
         raise ValueError("Verified download manifest not configured. Use official FLIR portal.")
+    if input("I accepted the source terms and am allowed to download [y/N]: "
+             ).strip().lower() != "y":
+        log.emit("BLOCKED", "source_terms")
+        return False
     log.execute("download_verify", [
         str(PYTHON), str(PIPELINE), "--acquire-only",
         "--parts-dir", settings["dataset_dirs"]["flir_adas_v2"],
