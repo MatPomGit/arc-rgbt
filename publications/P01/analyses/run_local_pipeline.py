@@ -16,7 +16,7 @@ import sys
 import tempfile
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -323,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
 
         def stage(name: str) -> None:
             stage_file.write_text(
-                json.dumps({"stage": name, "time_utc": datetime.now(timezone.utc).isoformat()})
+                json.dumps({"stage": name, "time_utc": datetime.now(UTC).isoformat()})
                 + "\n", encoding="utf-8"
             )
             print(f"[P01 STAGE] {name}", flush=True)
@@ -358,7 +358,7 @@ def main(argv: list[str] | None = None) -> int:
         source = json.loads((evidence / "source_manifest.json").read_text())
         summary = {
             "schema_version": 1,
-            "generated_utc": datetime.now(timezone.utc).isoformat(),
+            "generated_utc": datetime.now(UTC).isoformat(),
             "research_tier": "A_SOURCE_GT_RELATIVE_DESCRIPTIVE_CANDIDATE",
             "status": provenance["status"],
             "heldout_opened": False,
