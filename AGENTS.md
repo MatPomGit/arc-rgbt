@@ -30,7 +30,7 @@ Read the latest [AUTOPILOT_PLAN.md](AUTOPILOT_PLAN.md) v1.4.0 or later and [P01 
 - A normal local-only dataset handoff is one short reproducible Fedora command with local files/GPU and small hash-backed results, not repeated owner labour or raw-data upload. Never claim an experiment happened when the command was not executed.
 - Dataset-label-relative recall/FP/frame is permissible with clear annotation limitations. Claims about physical native sensor limits require distinct provenance/optics/independent-acquisition evidence. Do not claim unsupported G01 PASS or scientific GO.
 - Independent code/numerical/manuscript review and author protocol/submission decisions remain; they are not surrogate label review.
-- Security, licensing, no held-out tuning, zero-spend, one active PR and no automatic publication remain unchanged.
+- Security, licensing, no held-out tuning, zero-spend, a global cap of 4 active PRs, and no automatic scientific submission remain unchanged. Bounded diagnostic pushes to a telemetry branch are permitted; they do not approve scientific publication.
 
 ## Submission-first editorial rule (author directive, 2026-11-07)
 
@@ -42,8 +42,8 @@ Read the latest [AUTOPILOT_PLAN.md](AUTOPILOT_PLAN.md) v1.4.0 or later and [P01 
 - Read the active [research issue and milestone tracker M0–M6](https://github.com/MatPomGit/arc-rgbt/issues/21) **after** `PROJECT_STATE.yaml` and `AUTOPILOT_PLAN.md`. Follow dependency and evidence gates in the linked issue before selecting a task. Use the existing issue (and PR, if any) rather than opening a duplicate.
 - Check M0 rights/data prerequisites before any empirical study. M6 P07/P08 tasks are OPTIONAL HOLD: issue checkboxes or dates do not authorize promotion, physical experiments or submission.
 - Before any feature, read the full current PR inventory and existing task ownership.
-- Finish the repository's existing PR first; reuse its branch for repairs.
-- Limits: one active PR per repository, five across the managed portfolio. Drafts, testing, review and repair all count as active. A blocked PR does not free a slot.
+- Prefer finishing existing PRs and reuse their branches for related repairs; independent changes may use separate PRs within the global cap of four.
+- Limits: up to 4 active PRs across the managed portfolio. No per-repository one-PR cap. Drafts, testing, review and repair count toward the global 4. A blocked PR does not free a slot. Routine sanitized diagnostics may be pushed directly to the dedicated telemetry branch without a PR; full logs require explicit user action.
 - Priority order:
   1. Security and dependency blockers
   2. Repairs
