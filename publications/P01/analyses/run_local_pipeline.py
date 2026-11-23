@@ -9,7 +9,6 @@ import argparse
 import base64
 import hashlib
 import json
-import os
 import subprocess
 import sys
 import urllib.parse
@@ -97,6 +96,10 @@ def publish(summary: Path) -> None:
     def gh(*args: str) -> str:
         return command(["gh", "api", *args]).strip()
 
+    # Preserve the repository-wide limit of one active pull request.
+    opened = json.loads(gh(f"repos/{REPO}/pulls?state=open&per_page=100"))
+    if any(pr["head"]["ref"] != branch for pr in opened):
+        raise ValueError("Another PR is active; finish it before publishing results")
     # A results branch is only created after code changes have been merged.
     try:
         gh(f"repos/{REPO}/git/ref/heads/{branch}")
