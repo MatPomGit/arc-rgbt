@@ -103,3 +103,31 @@ def test_failed_git_sync_keeps_local_run_queued(monkeypatch, tmp_path: Path) -> 
     assert (uploaded, pending) == (0, 1)
     assert (log.path / "sync_pending.txt").exists()
     assert not (log.path / "sync_success.json").exists()
+
+
+def test_extended_report_redacts_quoted_json_fields_beyond_preview_tail(
+    tmp_path: Path,
+) -> None:
+    log = research_console.RunLog(tmp_path, "experiment")
+    secret = "MyVeryPrivateNonPatternSecret"
+    lines = [json.dumps({"password": secret, "step": "start"})]
+    lines.extend("training step completed" for _ in range(25))
+    log.console.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    log.emit("PASS", "complete")
+    report = diagnostic_sync.extended_report(log.path)
+    rendered = json.dumps(report)
+    assert secret not in rendered
+    assert "[SECRET_FIELD]" in rendered
+    assert len(report["redacted_console_excerpt"]) > 12
+
+
+def test_extended_report_covers_single_quoted_key_values(tmp_path: Path) -> None:
+    log = research_console.RunLog(tmp_path, "experiment")
+    log.console.write_text(
+        "'secret': 'classified value'\\n password='another private value'\\n",
+        encoding="utf-8",
+    )
+    log.emit("PASS", "complete")
+    rendered = json.dumps(diagnostic_sync.extended_report(log.path))
+    assert "classified value" not in rendered
+    assert "another private value" not in rendered
