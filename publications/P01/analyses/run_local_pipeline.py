@@ -53,6 +53,7 @@ def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
     if set(manifest) != set(PARTS):
         raise ValueError("Download manifest must name exactly 12 canonical ZIP parts")
     for name in PARTS:
+        print(f"[P01 DATA] verify {name}", flush=True)
         record = manifest[name]
         url, expected = record["url"], record["sha256"]
         parsed = urllib.parse.urlparse(url)
@@ -65,6 +66,7 @@ def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
             if sha256(target) != expected:
                 raise ValueError(f"Existing archive part SHA mismatch: {name}")
             continue
+        print(f"[P01 DATA] downloading {name} from approved source", flush=True)
         tmp = target.with_suffix(target.suffix + ".partial")
         if tmp.exists():
             raise ValueError(f"Partial download exists; inspect before retry: {name}")
@@ -85,6 +87,7 @@ def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
             if digest.hexdigest() != expected:
                 raise ValueError(f"Downloaded archive SHA mismatch: {name}")
             tmp.replace(target)
+            print(f"[P01 DATA] SHA-256 PASS {name}", flush=True)
         finally:
             tmp.unlink(missing_ok=True)
     if any(sha256(parts_dir / name) != manifest[name]["sha256"] for name in PARTS):
