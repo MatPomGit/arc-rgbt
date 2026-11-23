@@ -19,7 +19,8 @@ ROOT = Path(__file__).resolve().parent
 REPO = "MatPomGit/arc-rgbt"
 BRANCH = "research-telemetry"
 STATES = {"PASS", "FAIL", "BLOCKED", "RUNNING"}
-ACTIONS = {"install", "configure_data", "diagnostics", "experiment", "publication"}
+ACTIONS = {"install", "configure_data", "diagnostics", "experiment", "publication",
+           "extended_upload"}
 STAGE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 RUN_ID = re.compile(r"^\d{8}T\d{6}Z_[0-9a-f]{8}$")
 
