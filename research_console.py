@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import traceback
@@ -154,6 +155,17 @@ def install(settings: dict, log: RunLog) -> None:
         "import torch, torchvision, arc_rgbt; "
         "print('torch', torch.__version__, 'CUDA', torch.cuda.is_available())",
     ])
+    if os.name == "nt" and not shutil.which("gh"):
+        print("GitHub CLI is not installed (needed only to publish results).")
+        if shutil.which("winget") and input(
+            "Install free GitHub CLI with winget? [y/N]: "
+        ).strip().lower() == "y":
+            log.execute("install_github_cli", [
+                "winget", "install", "--id", "GitHub.cli", "--exact",
+                "--source", "winget", "--accept-package-agreements",
+                "--accept-source-agreements",
+            ])
+            print("Restart the console to refresh PATH; run 'gh auth login'.")
 
 
 def configure_data(settings: dict, log: RunLog) -> None:
