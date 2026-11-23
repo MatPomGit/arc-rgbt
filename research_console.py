@@ -107,9 +107,16 @@ class RunLog:
             rc = process.wait()
             output.write(f"\n[{timestamp()}] END stage={stage} returncode={rc}\n")
         if rc != 0:
-            self.emit("FAIL", stage, returncode=rc,
-                      message=f"Exit code {rc}; read {self.console}")
-            raise RuntimeError(f"{stage} failed (exit code {rc})")
+            detail = ""
+            if stage == "training_and_validation":
+                substage = self.path / "artifacts" / "pipeline_stage.json"
+                if substage.is_file():
+                    detail = json.loads(substage.read_text(encoding="utf-8")).get(
+                        "stage", "unknown"
+                    )
+            self.emit("FAIL", stage, returncode=rc, substage=detail,
+                      message=f"Exit code {rc}; substage={detail}; read {self.console}")
+            raise RuntimeError(f"{stage}/{detail} failed (exit code {rc})")
         self.emit("PASS", stage)
 
 
@@ -292,7 +299,7 @@ def publish_run(settings: dict, log: RunLog) -> None:
     if input("Publish sanitised summary to GitHub PR (not weights/images)? [y/N]: "
              ).strip().lower() != "y":
         log.emit("BLOCKED", "user_cancelled")
-        return
+        return False
     log.execute("publish_results", [
         str(PYTHON), str(PIPELINE), "--publish-summary", str(summary),
     ])
