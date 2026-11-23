@@ -147,10 +147,10 @@ class RunLog:
                         self.progress(complete, total, eta)
                         print(f"\r[{bar}] {fraction:.1%} | {stage} | ETA {eta}s   ",
                               end="", flush=True)
+                        if complete == total:
+                            print()
                     except (ValueError, TypeError, KeyError, json.JSONDecodeError):
                         print("\nInvalid progress marker (see local console log)")
-                    if complete == total:
-                        print()
                 else:
                     print(line, end="", flush=True)
             rc = process.wait()
