@@ -401,10 +401,16 @@ def upload_extended(settings: dict, log: RunLog) -> bool | None:
     print("Run:", report["run_id"])
     print("Original console bytes:", report["console_source_bytes"])
     print("Excerpt truncated:", report["excerpt_truncated"])
-    print("Preview (last 12 redacted lines):")
-    for line in report["redacted_console_excerpt"][-12:]:
-        print(line)
-    if input("Push this extended redacted log to GitHub? [y/N]: ").strip().lower() != "y":
+    # The payload, not just its tail, must be explicitly inspected before
+    # uploading potentially sensitive information to a public repository.
+    preview = log.path / "extended_upload_preview.json"
+    preview.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+                       encoding="utf-8")
+    print("Review the ENTIRE redacted payload before uploading:", preview)
+    if os.name == "nt":
+        os.startfile(str(preview))
+    confirmation = input(f"After reviewing ALL lines, type UPLOAD {report['run_id']}: ")
+    if confirmation.strip() != f"UPLOAD {report['run_id']}":
         return False
     log.emit("RUNNING", "extended_log_upload")
     result = sync_extended(folder)
