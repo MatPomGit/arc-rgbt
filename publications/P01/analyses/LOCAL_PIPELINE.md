@@ -28,6 +28,7 @@ Its current numbered menu is:
    PR is open. Never uploads raw data, predictions or weights.
 6. Show recent runs, statuses, failing stages, and open their diagnostic folders.
 7. Open the official FLIR source-access page in the browser.
+8. Retry pending diagnostic uploads after GitHub access or PR restrictions clear.
 0. Exit.
 
 The experiment registry in `research_console.EXPERIMENTS` centralises the
@@ -36,6 +37,36 @@ entrypoint and dataset ID; installation, execution history, diagnostic logs
 and result-publication controls remain shared. A new dataset gets its own
 persisted location under `dataset_dirs`. Profiles must point to trusted
 repository code, not user-supplied arbitrary commands.
+
+### Automatic diagnostics synchronization
+
+After **every completed or failed menu operation**, the console attempts to
+record a small structured diagnostic JSON in the GitHub `p01-validation-results`
+branch and associated reviewable PR. Each JSON contains UTC timestamps with
+millisecond precision, elapsed durations, stage identifiers, sampled training
+progress/ETA, process exit codes and the SHA-256 and byte length of the local
+console log. The telemetry is restricted to an explicit allowlist and capped
+at **96 KiB per run**. It never includes full console text, tracebacks,
+device data, local filesystem paths, secrets, weights, images or predictions.
+
+The shared repository's **one active PR** rule still applies. While the
+pipeline implementation PR is open, or when GitHub CLI is unavailable or
+unauthenticated, diagnostic uploads are **deferred**, not silently discarded.
+The local `sync_pending.txt` explains the reason. After the PR is merged,
+use menu option 8 to retry. `sync_success.json` records completed uploads.
+A failed run does not trigger a retraining attempt.
+
+The console displays a 25-character percentage bar during **training
+minibatches**, with ETA computed from actual batches processed. ETA is an
+estimate for the remaining training batches, **not** a promise of when
+validation inference or all artifact writing will finish. Other stages appear
+by name in the console and logs; no fake progress percentage is assigned to
+stages whose work units are unavailable.
+
+The remote metadata is sufficient to locate the failed stage and establish
+timing/provenance, but **not always to diagnose an exception's root cause**
+without inspecting the complete local traceback. This is intentional because
+the GitHub repository is public.
 
 ### Debugging and local directory structure
 
