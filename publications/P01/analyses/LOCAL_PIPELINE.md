@@ -7,6 +7,29 @@ source-GT-relative COCO scoring. It does **not** open held-out test data or
 authorise Tier B physical sensor claims. It does not create a new annotation
 workstream.
 
+## Windows: double-click P01.bat
+
+Use **P01.bat** in the repository root. Its numbered menu offers:
+1. Create or update the local `.venv` using Python 3.12 and install the
+   package and Torch dependencies exclusively in that environment.
+2. Check installed Python, Torch, TorchVision, NVIDIA CUDA, and the 12 source
+   archive part names.
+3. Run source-GT-relative training and validation in a new, local results
+   directory, without any upload.
+4. Publish an existing `summary.json` to a GitHub results PR *without
+   repeating training*. This requires an authenticated GitHub CLI and an
+   explicit confirmation. The repository's one-open-PR rule may block this
+   action until the code PR has been merged.
+5. View the documentation path. `0` exits.
+
+Python 3.12 must already be installed and available through the Windows
+`py` launcher. The BAT file never installs Python system-wide, changes
+PowerShell execution policy, or runs a model/test download implicitly.
+Dependencies are installed only after selecting menu option 1. Installation
+uses Python package repositories; choose it when network access is allowed.
+The setup never installs packages into system Python. CUDA availability is
+checked separately; a CPU run requires explicit selection.
+
 ## Requirements
 
 Python 3.12+, free disk space for the original 12 ZIP parts and the local
@@ -91,7 +114,11 @@ protocol and author approval are separately required for a confirmatory
 held-out experiment. The run is not complete until real local data and GPU
 (or CPU) execute the code successfully.
 
-If `--publish` fails due to missing GitHub credentials, local evidence
-is retained; rerun publication only after inspecting the failure, without
-restarting a completed training run. No external emails, expenses, or
+If GitHub publication fails due to missing credentials or another open PR,
+local evidence is retained. Retry from BAT menu option 4, or run
+`python publications/P01/analyses/run_local_pipeline.py --publish-summary PATH`
+with a previously completed `summary.json`, without retraining.
+The publisher checks the validation-only evidence schema and rejects unexpected
+summary fields. Only a small SHA-addressed result JSON is committed, using a PR.
+ No external emails, expenses, or
 publisher submission occur.
