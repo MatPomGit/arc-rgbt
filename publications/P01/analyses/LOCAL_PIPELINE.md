@@ -23,9 +23,10 @@ Its current numbered menu is:
 3. Diagnose Torch, TorchVision, CUDA and existing archive filenames.
 4. Choose an algorithm and device, acknowledge lawful research use, then
    perform training and validation. Each run gets its own immutable folder.
-5. Publish a completed scientific validation summary via an optional results PR,
-   without retraining. Requires `gh auth login`; respects the global four-PR
-   portfolio limit. Never uploads raw data, predictions or weights.
+5. Publish a successful validation-only summary through an existing, centrally
+   authorised results PR, without retraining. Requires `gh auth login`. The
+   publisher cannot create PRs or bypass the global four-PR portfolio limit.
+   Never uploads raw data, predictions or weights.
 6. Show recent runs, statuses, failing stages, and open their diagnostic folders.
 7. Open the official FLIR source-access page in the browser.
 8. Retry queued automatic diagnostic pushes after restoring GitHub access.
@@ -54,8 +55,9 @@ and the local console byte length and SHA-256. An explicit allowlist excludes
 console text, tracebacks, dataset contents, credentials, full filesystem
 paths, weights and predictions. The small report is capped at **96 KiB**.
 
-Option **9** lets the operator choose a completed run, review the last
-12 redacted console lines, then explicitly upload a richer diagnostic
+Option **9** lets the operator choose a completed run, inspect the **entire**
+redacted JSON payload stored locally, then enter an exact run-specific
+confirmation before uploading a richer diagnostic
 (maximum **512 KiB**) containing a redacted excerpt of up to the final
 256 KiB of console output. This is still a **public GitHub upload** and
 redaction cannot guarantee that every sensitive free-form value is removed;
@@ -99,7 +101,7 @@ A typical local run creates:
         training\\           checkpoint, predictions, provenance (local)
         validation_metrics.json
         summary.json         small, publication-eligible validation record
-    result.json              SHA-256 and local summary location (on success)
+    result.json              SHA-256 and truthful validation status, including BLOCKED
 ```
 
 Installations and dataset acquisitions also receive their own log folder.
@@ -146,9 +148,11 @@ still records source rights and native optics as unverified.
 Each work directory must be new and outside Git. No `--publish` means local
 results only. To enable publishing, install and authenticate the GitHub CLI
 (`gh auth login`) with permission to write to this repository and open PRs.
-Publication creates/updates the single `p01-validation-results` branch and
-opens a PR if needed. It never automatically merges, uploads images, uploads
-weights or grants scientific GO. Only a bounded, sanitised `summary.json`
+Publication updates the existing controller-authorised `p01-validation-results`
+PR and stops without changing the branch if no such PR is open. The shared
+portfolio controller alone may create a new results PR after checking the global
+limit of four active PRs. Publishing never automatically merges, uploads images,
+uploads weights or grants scientific GO. Only a bounded, sanitised `summary.json`
 is put into `publications/P01/results/runs/`; the full GT, predictions,
 checkpoint, loss traces and run artifacts remain local.
 
@@ -194,11 +198,14 @@ held-out experiment. The run is not complete until real local data and GPU
 (or CPU) execute the code successfully.
 
 If scientific-results PR publication fails due to missing credentials or
-a portfolio-wide PR limit, local evidence is retained. Retry from BAT menu option 4, or run
+the absence of a controller-authorised results PR, local evidence is retained.
+Use BAT menu option 5 to retry publishing without retraining, or run
 `python publications/P01/analyses/run_local_pipeline.py --publish-summary PATH`
 with a previously completed `summary.json`, without retraining.
-The publisher checks the validation-only evidence schema and rejects unexpected
-summary fields. Only a small SHA-addressed result JSON is committed through
+The publisher verifies a strict nested validation-only evidence schema and
+rejects unsupported statuses, unexpected fields, unsafe strings and paths.
+A blocked validation operating point is recorded locally and returns exit code 2;
+it is not called a successful run or published as a result. Only a small SHA-addressed result JSON is committed through
 the optional scientific-results PR. Diagnostics use direct Git commits on
 `research-telemetry`. No external emails, expenses, or publisher submissions
 occur.
