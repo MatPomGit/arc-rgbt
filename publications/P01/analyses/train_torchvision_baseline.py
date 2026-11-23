@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import random
+import time
 import zipfile
 from collections import defaultdict
 from pathlib import Path, PurePosixPath
@@ -278,6 +279,9 @@ def train_and_validate(parts_dir: Path, evidence_dir: Path, output_dir: Path, *,
         model = make_detector().to(device)
         optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9)
         losses = []
+        total_batches = epochs * len(loader)
+        completed_batches = 0
+        started = time.monotonic()
         for epoch in range(epochs):
             model.train()
             total_loss = 0.0
@@ -293,6 +297,20 @@ def train_and_validate(parts_dir: Path, evidence_dir: Path, output_dir: Path, *,
                 loss.backward()
                 optimizer.step()
                 total_loss += float(loss.detach().cpu())
+                completed_batches += 1
+                sample_progress = (
+                    completed_batches == 1
+                    or completed_batches % max(1, total_batches // 100) == 0
+                    or completed_batches == total_batches
+                )
+                if sample_progress:
+                    elapsed = time.monotonic() - started
+                    eta = elapsed * (total_batches - completed_batches) / completed_batches
+                    print("P01_PROGRESS " + json.dumps({
+                        "completed": completed_batches, "total": total_batches,
+                        "eta_seconds": round(eta), "epoch": epoch + 1,
+                        "epochs": epochs,
+                    }), flush=True)
             losses.append({"epoch": epoch + 1, "train_mean_loss": total_loss / len(loader)})
             print(json.dumps(losses[-1]), flush=True)
         model.eval()

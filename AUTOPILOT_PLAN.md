@@ -6,7 +6,7 @@
 
 **Execution ownership:** [Issue #21, M0–M6](https://github.com/MatPomGit/arc-rgbt/issues/21) is the current checklist and dependency index; linked issues #10, #17–#19, #22–#29 specify atomic agent runs, acceptance evidence and blocked tasks. Use this tracker before selecting the next run. This Markdown file owns work-package definitions; `PROJECT_STATE.yaml` remains the machine-readable scientific gate authority. An issue marked complete must not automatically promote a dataset or optional publication.
 
-**P01 current priority (2026-11-07):** see the mandatory dated execution queue below. Existing M3OT [#22](https://github.com/MatPomGit/arc-rgbt/issues/22) and common data contracts [#23](https://github.com/MatPomGit/arc-rgbt/issues/23) remain shared prerequisites, not permission to divert the active P01 stream. All tasks remain subject to the one-active-PR rule. Empirical M2–M4 work still depends on independently admitted actual data/hardware; P07/P08 remain M6 OPTIONAL HOLD.
+**P01 current priority (2026-11-07):** see the mandatory dated execution queue below. Existing M3OT [#22](https://github.com/MatPomGit/arc-rgbt/issues/22) and common data contracts [#23](https://github.com/MatPomGit/arc-rgbt/issues/23) remain shared prerequisites, not permission to divert the active P01 stream. All work is subject to a global limit of 4 active PRs; there is no one-PR-per-repository restriction. Empirical M2–M4 work still depends on independently admitted actual data/hardware; P07/P08 remain M6 OPTIONAL HOLD.
 
 
 ## Mandatory agent execution plan: P01 Sensors (2026-11-07; automation-first)
