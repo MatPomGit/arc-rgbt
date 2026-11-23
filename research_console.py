@@ -13,6 +13,8 @@ import subprocess
 import sys
 import tempfile
 import time
+
+from diagnostic_sync import sync_pending
 import traceback
 import uuid
 import webbrowser
@@ -104,6 +106,20 @@ class RunLog:
         message = details.get("message")
         print(f"[{status}] {stage}" + (f": {message}" if message else ""))
 
+    def progress(self, complete: int, total: int, eta: int | None) -> None:
+        """Record sampled progress independently of the lifecycle stage."""
+        if complete != total and complete % max(1, total // 20):
+            return
+        event = {
+            "time_utc": timestamp(), "run_id": self.id, "action": self.action,
+            "stage": "training_progress", "status": "RUNNING",
+            "completed": complete, "total": total,
+            "progress_percent": round(100 * complete / total, 2),
+            "eta_seconds": eta,
+        }
+        with self.events.open("a", encoding="utf-8") as out:
+            out.write(json.dumps(event, ensure_ascii=False) + "\n")
+
     def execute(self, stage: str, args: list[str]) -> None:
         self.emit("RUNNING", stage)
         with self.console.open("a", encoding="utf-8") as output:
@@ -127,6 +143,7 @@ class RunLog:
                         fraction = complete / total
                         bar = "#" * int(25 * fraction) + "." * (25 - int(25 * fraction))
                         eta = progress.get("eta_seconds")
+                        self.progress(complete, total, eta)
                         print(f"\\r[{bar}] {fraction:.1%} | {stage} | ETA {eta}s   ",
                               end="", flush=True)
                     except (ValueError, TypeError, KeyError, json.JSONDecodeError):
@@ -170,6 +187,13 @@ def run_action(action: str, callback) -> None:
             traceback.print_exc(file=out)
     finally:
         print(f"Diagnostics: {log.path}")
+        if settings.get("auto_sync_diagnostics", True):
+            sent, pending = sync_pending(log.path.parent)
+            if pending:
+                print(f"GitHub diagnostic sync deferred ({pending} pending).")
+                print("Local logs are preserved; retry from menu option 8.")
+            elif sent:
+                print(f"Uploaded {sent} diagnostic run(s) to the results PR.")
 
 
 def install(settings: dict, log: RunLog) -> None:
@@ -366,6 +390,7 @@ def main() -> int:
             print(" 5. Publish an existing summary to GitHub PR")
             print(" 6. Show run history, logs and error stages")
             print(" 7. Open official FLIR access page")
+            print(" 8. Retry pending diagnostic uploads")
             print(" 0. Exit")
             print("Data:", settings["dataset_dirs"]["flir_adas_v2"])
             print("Run logs:", str(directory(settings["runs_dir"]) / "logs"))
@@ -386,6 +411,9 @@ def main() -> int:
                 show_logs()
             elif choice == "7":
                 webbrowser.open(OFFICIAL_FLIR)
+            elif choice == "8":
+                sent, blocked = sync_pending(directory(settings["runs_dir"]) / "logs")
+                print(f"Diagnostic sync: uploaded={sent}, deferred={blocked}")
             else:
                 print("Unknown menu choice")
         except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
