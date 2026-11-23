@@ -48,7 +48,6 @@ def snapshot(folder: Path) -> dict:
     if action not in ACTIONS:
         raise ValueError("Invalid action")
     sanitized = []
-    start = None
     for row in rows:
         if (row.get("action") != action or row.get("run_id") != folder.name
                 or row.get("status") not in STATES
@@ -58,11 +57,18 @@ def snapshot(folder: Path) -> dict:
         point = datetime.fromisoformat(row["time_utc"])
         if point.tzinfo is None:
             raise ValueError("UTC offset required")
-        if start is None:
-            start = point
         sanitized.append({
             "time_utc": point.isoformat(), "stage": row["stage"],
             "status": row["status"],
+            **({"elapsed_seconds": row["elapsed_seconds"]}
+               if type(row.get("elapsed_seconds")) in (int, float)
+               and 0 <= row["elapsed_seconds"] <= 30 * 86400 else {}),
+            **({"progress_percent": row["progress_percent"]}
+               if type(row.get("progress_percent")) in (int, float)
+               and 0 <= row["progress_percent"] <= 100 else {}),
+            **({"eta_seconds": row["eta_seconds"]}
+               if type(row.get("eta_seconds")) is int
+               and 0 <= row["eta_seconds"] <= 30 * 86400 else {}),
             **({"returncode": row["returncode"]}
                if type(row.get("returncode")) is int else {}),
             **({"substage": row["substage"]}
@@ -85,10 +91,10 @@ def snapshot(folder: Path) -> dict:
         "run_id": folder.name, "action": action,
         "started_utc": sanitized[0]["time_utc"],
         "finished_utc": sanitized[-1]["time_utc"],
-        "elapsed_seconds": round((
+        "elapsed_seconds": sanitized[-1].get("elapsed_seconds", round((
             datetime.fromisoformat(sanitized[-1]["time_utc"]) -
             datetime.fromisoformat(sanitized[0]["time_utc"])
-        ).total_seconds(), 3),
+        ).total_seconds(), 3)),
         "outcome": last["status"],
         "events": sanitized,
         "between_event_seconds": durations,
