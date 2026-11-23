@@ -91,8 +91,31 @@ def acquire(parts_dir: Path, manifest_path: Path | None) -> None:
 def publish(summary: Path) -> None:
     """Open/update one results PR, never push raw assets or directly to main."""
     branch = "p01-validation-results"
-    relative = f"publications/P01/results/runs/{summary.parent.name}.json"
-    payload = base64.b64encode(summary.read_bytes()).decode("ascii")
+    raw = summary.read_bytes()
+    if len(raw) > 128 * 1024:
+        raise ValueError("Summary exceeds the 128 KiB publication limit")
+    record = json.loads(raw)
+    if (not isinstance(record, dict) or record.get("schema_version") != 1
+            or record.get("heldout_opened") is not False
+            or record.get("test_tuned") is not False
+            or record.get("physical_sensor_limit_claim") is not False
+            or record.get("research_tier") != "A_SOURCE_GT_RELATIVE_DESCRIPTIVE_CANDIDATE"):
+        raise ValueError("Not a validated P01 source-relative summary")
+    # Never publish arbitrary user-edited keys, paths or raw predictions.
+    allowed = {
+        "schema_version", "generated_utc", "research_tier", "status",
+        "heldout_opened", "test_tuned", "physical_sensor_limit_claim",
+        "rights_verified_independently", "native_optics_verified",
+        "independent_acquisitions_verified", "checkpoint_sha256",
+        "train_annotation_sha256", "validation_annotation_sha256",
+        "split_manifest_sha256", "validation_predictions_sha256",
+        "source_part_sha256", "training", "validation", "limitations",
+    }
+    if set(record) != allowed:
+        raise ValueError("Unexpected summary fields; refusing public upload")
+    run_id = hashlib.sha256(raw).hexdigest()[:20]
+    relative = f"publications/P01/results/runs/{run_id}.json"
+    payload = base64.b64encode(raw).decode("ascii")
     def gh(*args: str) -> str:
         return command(["gh", "api", *args]).strip()
 
@@ -108,7 +131,7 @@ def publish(summary: Path) -> None:
         gh("-X", "POST", f"repos/{REPO}/git/refs",
            "-f", f"ref=refs/heads/{branch}", "-f", f"sha={sha}")
     gh("-X", "PUT", f"repos/{REPO}/contents/{relative}",
-       "-f", f"message=P01: record validation-only run {summary.parent.name}",
+       "-f", f"message=P01: record validation-only run {run_id}",
        "-f", f"branch={branch}", "-f", f"content={payload}")
     prs = json.loads(gh(f"repos/{REPO}/pulls?state=open&head=MatPomGit:{branch}"))
     if not prs:
@@ -122,15 +145,32 @@ def publish(summary: Path) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--parts-dir", required=True, type=Path)
-    parser.add_argument("--work-dir", required=True, type=Path)
+    parser.add_argument("--parts-dir", type=Path)
+    parser.add_argument("--work-dir", type=Path)
     parser.add_argument("--download-manifest", type=Path)
     parser.add_argument("--rights-acknowledged", action="store_true")
     parser.add_argument("--epochs", type=int, default=8)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--publish", action="store_true")
+    parser.add_argument("--publish-summary", type=Path,
+                        help="Publish a completed local summary without retraining")
     args = parser.parse_args(argv)
+    if args.publish_summary is not None:
+        if args.publish or args.download_manifest or args.rights_acknowledged:
+            parser.error("--publish-summary must be used by itself")
+        summary = args.publish_summary.expanduser().resolve()
+        if not summary.is_file() or summary.is_relative_to(ROOT):
+            parser.error("Summary must exist outside the repository")
+        try:
+            publish(summary)
+        except (OSError, ValueError, KeyError, subprocess.CalledProcessError,
+                json.JSONDecodeError) as exc:
+            parser.exit(1, f"P01 publish BLOCKED/FAIL: {type(exc).__name__}: {exc}\n")
+        print(json.dumps({"published": True, "summary_sha256": sha256(summary)}))
+        return 0
+    if args.parts_dir is None or args.work_dir is None:
+        parser.error("--parts-dir and --work-dir are required for training")
     if not args.rights_acknowledged:
         parser.error("Review source licence and specify --rights-acknowledged")
     if args.epochs < 1 or args.epochs > 100 or args.batch_size < 1 or args.batch_size > 8:
