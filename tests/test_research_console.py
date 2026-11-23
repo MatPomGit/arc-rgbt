@@ -74,3 +74,5 @@ def test_blocked_validation_preserves_blocked_status(tmp_path: Path) -> None:
     assert status["status"] == "BLOCKED"
     assert status["stage"] == "validation_gate"
     assert status["returncode"] == 2
+    result = json.loads((log.path / "result.json").read_text(encoding="utf-8"))
+    assert result["status"] == "BLOCKED_VALIDATION_NO_OPERATING_POINT"
