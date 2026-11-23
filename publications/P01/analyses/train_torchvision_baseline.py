@@ -298,7 +298,12 @@ def train_and_validate(parts_dir: Path, evidence_dir: Path, output_dir: Path, *,
                 optimizer.step()
                 total_loss += float(loss.detach().cpu())
                 completed_batches += 1
-                if completed_batches == 1 or completed_batches % max(1, total_batches // 100) == 0 or completed_batches == total_batches:
+                sample_progress = (
+                    completed_batches == 1
+                    or completed_batches % max(1, total_batches // 100) == 0
+                    or completed_batches == total_batches
+                )
+                if sample_progress:
                     elapsed = time.monotonic() - started
                     eta = elapsed * (total_batches - completed_batches) / completed_batches
                     print("P01_PROGRESS " + json.dumps({
