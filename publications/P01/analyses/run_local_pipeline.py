@@ -198,14 +198,26 @@ def main(argv: list[str] | None = None) -> int:
     if work.exists():
         parser.error("Work directory already exists; use a new run directory")
     try:
-        acquire(parts_dir, args.download_manifest)
         work.mkdir(parents=True)
+        stage_file = work / "pipeline_stage.json"
+
+        def stage(name: str) -> None:
+            stage_file.write_text(
+                json.dumps({"stage": name, "time_utc": datetime.now(timezone.utc).isoformat()})
+                + "\n", encoding="utf-8"
+            )
+            print(f"[P01 STAGE] {name}", flush=True)
+
+        stage("download_and_verify_archive")
+        acquire(parts_dir, args.download_manifest)
         evidence = work / "preflight"
         output = work / "training"
+        stage("extract_source_annotations_and_split_manifest")
         command([
             sys.executable, str(ANALYSES / "read_flir_multipart_coco.py"),
             "--parts-dir", str(parts_dir), "--output-dir", str(evidence),
         ])
+        stage("train_and_validate_model")
         command([
             sys.executable, str(ANALYSES / "train_torchvision_baseline.py"),
             "--parts-dir", str(parts_dir), "--preflight-dir", str(evidence),
@@ -213,12 +225,14 @@ def main(argv: list[str] | None = None) -> int:
             "--epochs", str(args.epochs), "--batch-size", str(args.batch_size),
             "--device", args.device,
         ])
+        stage("evaluate_source_reference_metrics")
         command([
             sys.executable, str(ANALYSES / "run_coco_reference.py"),
             "--validation-annotations", str(evidence / "val_coco.json"),
             "--validation-predictions", str(output / "validation_predictions" / "predictions.json"),
             "--mode", "validation", "--output", str(work / "validation_metrics.json"),
         ])
+        stage("assemble_reproducible_results")
         provenance = json.loads((output / "training_provenance.json").read_text())
         metrics = json.loads((work / "validation_metrics.json").read_text())
         source = json.loads((evidence / "source_manifest.json").read_text())
@@ -260,7 +274,9 @@ def main(argv: list[str] | None = None) -> int:
         summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n",
                                 encoding="utf-8")
         if args.publish:
+            stage("publish_results")
             publish(summary_path)
+        stage("complete")
         print(json.dumps({"status": summary["status"], "summary": str(summary_path),
                           "published": args.publish}))
         return 0
