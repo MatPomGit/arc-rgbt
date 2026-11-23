@@ -11,15 +11,14 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
-
-from diagnostic_sync import sync_pending
 import traceback
 import uuid
 import webbrowser
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
+from diagnostic_sync import sync_pending
 
 ROOT = Path(__file__).resolve().parent
 STATE = Path(os.getenv("LOCALAPPDATA") or Path.home() / ".local" / "share") / "arc-rgbt"
@@ -44,7 +43,7 @@ DEFAULTS = {
 
 
 def timestamp() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
 def read_settings() -> dict:
@@ -77,7 +76,7 @@ class RunLog:
     """Every action has an independent, diagnosable and persistent audit trail."""
 
     def __init__(self, runs_dir: Path, action: str) -> None:
-        self.id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "_" + uuid.uuid4().hex[:8]
+        self.id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ") + "_" + uuid.uuid4().hex[:8]
         self.path = runs_dir / "logs" / self.id
         self.path.mkdir(parents=True, exist_ok=False)
         self.events = self.path / "events.jsonl"
@@ -97,8 +96,11 @@ class RunLog:
             self.stage_elapsed[self.stage] = round(now - self.stage_started, 3)
             self.stage_started = now
         self.stage = stage
-        row = {"time_utc": timestamp(), "run_id": self.id,
-               "action": self.action, "stage": stage, "status": status, "elapsed_seconds": round(now - self.started, 3), **details}
+        row = {
+            "time_utc": timestamp(), "run_id": self.id,
+            "action": self.action, "stage": stage, "status": status,
+            "elapsed_seconds": round(now - self.started, 3), **details,
+        }
         with self.events.open("a", encoding="utf-8") as out:
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
         self.status.write_text(json.dumps(row, indent=2, ensure_ascii=False) + "\n",
@@ -319,7 +321,6 @@ def train(settings: dict, log: RunLog) -> None:
 
 
 def file_hash(path: Path) -> str:
-    import hashlib
     h = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
