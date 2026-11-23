@@ -18,7 +18,7 @@ import webbrowser
 from datetime import UTC, datetime
 from pathlib import Path
 
-from diagnostic_sync import sync_pending
+from diagnostic_sync import extended_report, sync_extended, sync_pending
 
 ROOT = Path(__file__).resolve().parent
 STATE = Path(os.getenv("LOCALAPPDATA") or Path.home() / ".local" / "share") / "arc-rgbt"
@@ -196,7 +196,7 @@ def run_action(action: str, callback) -> None:
                 print(f"GitHub diagnostic sync deferred ({pending} pending).")
                 print("Local logs are preserved; retry from menu option 8.")
             elif sent:
-                print(f"Uploaded {sent} diagnostic run(s) to the results PR.")
+                print(f"Pushed {sent} diagnostic run(s) to the research-telemetry branch.")
 
 
 def install(settings: dict, log: RunLog) -> None:
@@ -380,6 +380,39 @@ def publish_run(settings: dict, log: RunLog) -> None:
     ])
 
 
+def upload_extended(settings: dict, log: RunLog) -> bool | None:
+    """Publish a redacted log excerpt only with an explicit manual confirmation."""
+    choices = [
+        folder for folder in recent_runs(settings)
+        if (folder / "status.json").is_file()
+        and (folder / "events.jsonl").is_file()
+    ][:15]
+    if not choices:
+        raise ValueError("No completed logs available for extended upload")
+    for index, folder in enumerate(choices, 1):
+        status = json.loads((folder / "status.json").read_text(encoding="utf-8"))
+        print(f"{index}. {folder.name}: {status['action']} / {status['status']}")
+    selected = input("Choose a completed run [1]: ").strip() or "1"
+    if not selected.isdigit() or not 1 <= int(selected) <= len(choices):
+        raise ValueError("Invalid run selection")
+    folder = choices[int(selected) - 1]
+    report = extended_report(folder)
+    print("This repository is public. Review the redacted log before uploading.")
+    print("Run:", report["run_id"])
+    print("Original console bytes:", report["console_source_bytes"])
+    print("Excerpt truncated:", report["excerpt_truncated"])
+    print("Preview (last 12 redacted lines):")
+    for line in report["redacted_console_excerpt"][-12:]:
+        print(line)
+    if input("Push this extended redacted log to GitHub? [y/N]: ").strip().lower() != "y":
+        return False
+    log.emit("RUNNING", "extended_log_upload")
+    result = sync_extended(folder)
+    log.emit("PASS", "extended_log_upload", upload_status=result)
+    print(f"Extended log {result} on research-telemetry branch")
+    return None
+
+
 def main() -> int:
     while True:
         try:
@@ -393,6 +426,7 @@ def main() -> int:
             print(" 6. Show run history, logs and error stages")
             print(" 7. Open official FLIR access page")
             print(" 8. Retry pending diagnostic uploads")
+            print(" 9. Upload extended redacted log (manual confirmation)")
             print(" 0. Exit")
             print("Data:", settings["dataset_dirs"]["flir_adas_v2"])
             print("Run logs:", str(directory(settings["runs_dir"]) / "logs"))
@@ -416,6 +450,8 @@ def main() -> int:
             elif choice == "8":
                 sent, blocked = sync_pending(directory(settings["runs_dir"]) / "logs")
                 print(f"Diagnostic sync: uploaded={sent}, deferred={blocked}")
+            elif choice == "9":
+                run_action("extended_upload", upload_extended)
             else:
                 print("Unknown menu choice")
         except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
