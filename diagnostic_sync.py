@@ -177,9 +177,15 @@ SENSITIVE = re.compile(
     r"(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{12,}"
     r"|sk-[A-Za-z0-9_-]{16,}|(?i:bearer)\s+[A-Za-z0-9._-]+)"
 )
+# JSON log fields often quote both the field name and value. Redact the
+# entire sensitive pair before attempting generic key=value substitutions.
+JSON_SECRET = re.compile(
+    r"""(?i)(?:["'](?:authorization|access[_-]?token|token|password|api[_-]?key|secret)["'])"""
+    r"""\s*:\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;}]+)"""
+)
 KEY_VALUE = re.compile(
-    r"(?i)\b(?:authorization|access[_-]?token|token|password|api[_-]?key|secret)"
-    r"\s*[=:]\s*[^\s,;]+"
+    r"""(?i)\b(?:authorization|access[_-]?token|token|password|api[_-]?key|secret)"""
+    r"""\s*[=:]\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;}]+)"""
 )
 URL = re.compile(r"https?://[^\s\x22\x27]+")
 WINDOWS_PATH = re.compile(r"(?i)(?:[A-Z]:[\\/]|\\\\)[^\s\x22\x27]+")
@@ -190,7 +196,8 @@ ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 def redact_line(line: str) -> str:
     line = ANSI.sub("", line)
     for pattern, replacement in (
-        (SENSITIVE, "[SECRET]"), (KEY_VALUE, "[SECRET_FIELD]"),
+        (SENSITIVE, "[SECRET]"), (JSON_SECRET, "[SECRET_FIELD]"),
+        (KEY_VALUE, "[SECRET_FIELD]"),
         (URL, "[URL]"), (WINDOWS_PATH, "[LOCAL_PATH]"),
         (UNIX_PATH, "[LOCAL_PATH]"), (EMAIL, "[EMAIL]"),
     ):
@@ -216,7 +223,7 @@ def extended_report(folder: Path) -> dict:
         "console_source_bytes": raw_size,
         "excerpt_truncated": raw_size > 256 * 1024,
         "redacted_console_excerpt": clean,
-        "contains_raw_training_data": False,
+        "operator_review_required": True,
     }
     raw = json.dumps(report, ensure_ascii=False, sort_keys=True).encode("utf-8")
     if len(raw) > 512 * 1024:
