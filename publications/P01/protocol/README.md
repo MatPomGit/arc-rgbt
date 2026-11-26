@@ -1,6 +1,6 @@
 # P01 study protocol
 
-## P01 S09 author decision packet v0.4.2 (2026-11-26; UNFROZEN)
+## P01 S09 author decision packet v0.4.3 (2026-11-26; UNFROZEN)
 
 **Purpose:** one prospective choice for [#35](https://github.com/MatPomGit/arc-rgbt/issues/35)
 and [#53](https://github.com/MatPomGit/arc-rgbt/issues/53), due 2026-11-13.
@@ -65,6 +65,10 @@ Specify inclusion/exclusion criteria, sensor calibration, datasets, controls, sp
 
 **No agent-created manual annotation gate:** no two source-image reviewers, assessor CSVs, blind image galleries, adjudication or independent relabelling; no standalone database/dataset QA program without permission. Reuse minimal necessary source-format checks, split/leakage controls and validated metric code as integral parts of real experiments. If data/GPU reside on local Fedora, a single short offline command and hash-backed machine outputs suffice as a handoff. Distinguish independent reproduction of results from human relabelling. Source rights, no test tuning, no spending and final author approval remain mandatory.
 
+## Candidate scratch-detector evaluation contract (2026-11-26)
+
+For the scratch TorchVision baseline, the candidate input is the 512 × 640 COCO export grid, three replicated grayscale channels scaled to [0,1]. The adapter's external letterbox is identity at that shape. The post-NMS wrapper maps TorchVision foreground label 1 to model class index 0, returning `N × 6` rows on the input grid. The internal score floor (0.001) and detection cap (300/image) restrict the emitted candidate set: validation threshold selection and AP use this set, not all pre-NMS scores. These settings are candidate model configuration, not new primary endpoint choices. Record and freeze them with the model and test the scripted round-trip before claiming compatibility. The group-bootstrap validation diagnostic using video-ID proxies is not an inferential confidence interval. No held-out access is authorized.
+
 ## Current non-test evidence (2026-11-26)
 
 The [manuscript source-annotation inventory](../manuscript.md#observed-source-annotation-inventory-pre-detector-21-november-2026) records 10,742 training and 1,144 validation frames, 133 and 17 source video-ID proxies, and 918 and 97 reference-negative frames, respectively. The four candidate validation software exposure floors are met. No detector performance, independent acquisition identity, lawful-use admission, validation cutoff or holdout result follows from these counts. Unknown true acquisition identity restricts inference to DESCRIPTIVE_ONLY; any proxy-group contrast must be labelled as such. The candidate numerical settings and G01 status remain unchanged.
@@ -89,13 +93,13 @@ and [screened literature](../../../docs/experiments/literature-screening.md).
 
 ## Planned confirmatory study (not yet preregistered)
 
-The legacy native-sensor planning items in this section concern possible Tier B extensions. For the currently proposed Tier A endpoint, use the source-export footprint and dataset-relative claim conventions of the S09 v0.4.2 decision table above. No physical native-pixel claim is authorized.
+The legacy native-sensor planning items in this section concern possible Tier B extensions. For the currently proposed Tier A endpoint, use the source-export footprint and dataset-relative claim conventions of the S09 v0.4.3 decision table above. No physical native-pixel claim is authorized.
 
 - **Primary candidate:** equal-weight mean of within-acquisition LWIR small-minus-reference IoU-0.50 recall differences at a validation-locked FP/frame operating point. This is an observational association, not a causal effect of image resolution. Class, contrast, geometry and viewpoint balance must be assessed.
 - **Baselines:** LWIR-only fixed checkpoint for the single primary analysis, RGB-only as secondary; RGB/LWIR fusion belongs to P02. Artificial downsampling remains a separate software ablation, not measured physical low-resolution performance.
-- **Controls:** native focal length/pixel pitch, projection geometry, image-frame orientation, blur, occlusion, thermal contrast and completeness of negative frames.
+- **Tier B controls:** native focal length/pixel pitch, projection geometry, image-frame orientation, blur, occlusion, thermal contrast and completeness of negative frames.
 - **Evaluation:** freeze inclusion/exclusion policy and footprint strata before analyzing held-out data. Use acquisition/sequence-group intervals, report detection failures and avoid frame-wise IID inference.
-- **GO:** physically acquired native frames, source/annotation licences, complete independent labels, test splits and uncertainty PASS. Otherwise NO-GO for physical detection-limit claims.
+- **Tier B GO:** physically acquired native frames, source/annotation licences, complete independent labels, test splits and uncertainty PASS. Otherwise NO-GO for physical detection-limit claims.
 
 [Hypothesis and estimands](../hypotheses/README.md) · [portfolio boundary](../../../RESEARCH.md).
 
@@ -106,7 +110,7 @@ question, not its scientific approval. A source-annotation inventory is now avai
 
 | ID | Candidate decision | Evidence still needed before freeze |
 | --- | --- | --- |
-| D1: target population | Lawfully usable LWIR frames with supplied GT for Tier A descriptive/reference-relative analysis; authentic original-grid geometry and independent acquisition IDs are separately required for Tier B physical claims and defensible confirmatory group inference. For the Tier A primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified COCO export-grid footprint bins; Tier B physical interpretation has separate original-sensor requirements. Frames with zero GT remain in FP/frame assessment. | Original archive, lawful terms, supplied-label convention and group/geometry evidence status (#45-#48); missing source-label completeness restricts the claim, not an automatic demand for new human annotation. |
+| D1: target population | Lawfully usable LWIR frames with supplied GT for Tier A descriptive/reference-relative analysis; authentic original-grid geometry is additionally required for Tier B physical claims; verified independent acquisition IDs are separately required for defensible confirmatory group inference. For the Tier A primary contrast, an acquisition contributes only when it contains at least one eligible target in **each** of the two prespecified COCO export-grid footprint bins; Tier B physical interpretation has separate original-sensor requirements. Frames with zero GT remain in FP/frame assessment. | Original archive, lawful terms, supplied-label convention and group/geometry evidence status (#45-#48); missing source-label completeness restricts the claim, not an automatic demand for new human annotation. |
 | D2: contrast | For acquisition `g`, compute `d_g = TP_small,g / N_small,g - TP_reference,g / N_reference,g` at the **same** validation-locked LWIR detector threshold. Primary estimand is `Delta = mean_g(d_g)`, giving each eligible acquisition equal weight, not each target. The population is the eligible paired-bin acquisition cohort, **not** all LWIR scenes. | Counts by acquisition/bin and overlap of class, contrast, viewpoint and occlusion; review potential selection induced by requiring both bins (#48/#50). |
 | D10: inference | Directional candidate `H1: Delta < 0`, `H0: Delta >= 0` (calibrate at boundary `Delta = 0`); proposed one-sided alpha `0.05`. A two-sided 95% interval is **descriptive**, not the alpha-0.05 decision. Candidate confirmatory test: one-sided acquisition-level Student t of mean `d_g` against zero with `G-1` degrees of freedom; group-level validity and source-informed calibration remain unresolved. | Independent group count, group heterogeneity, distributional diagnostics, finite-sample type-I error and power simulations informed by non-test data, independent scientific review and author approval (#49/#50/#53). |
 
@@ -308,8 +312,8 @@ calibration.
 | Too few reference-negative frames or groups containing reference-negative frames | `BLOCKED_NEGATIVE_EXPOSURE`; no cutoff |
 | No score threshold with observed FP/frame <= proposed 0.10 and nonzero TP | `BLOCKED_NO_TRUE_POSITIVES` or `BLOCKED_NO_FEASIBLE_THRESHOLD`; no cutoff |
 | Confidence ties around the budget boundary | Use `score >= threshold`: all predictions tied at the threshold are included; never partially retain a tie to meet budget |
-| First valid lowest cutoff in sorted distinct validation scores plus 0 and 1 | `CANDIDATE_ONLY`, with observed validation FP/frame, TP and acquisition-bootstrap 95% diagnostic |
-| Validation bootstrap upper 95% FP/frame bound above 0.10 | Preserve candidate cutoff and set `validation_fp_upper_ci_exceeds_ceiling=true`; review uncertainty, do not claim high-confidence budget control |
+| First valid lowest cutoff in sorted distinct validation scores plus 0 and 1 | `CANDIDATE_ONLY`, with observed validation FP/frame, TP and group-bootstrap 95% diagnostic, labelled proxy-based when acquisition identity is unverified |
+| Validation bootstrap upper 95% FP/frame bound above 0.10 | Preserve candidate cutoff and set `validation_fp_upper_ci_exceeds_ceiling=true`; review the diagnostic, not an inferential CI when group identity is unverified; do not claim high-confidence budget control |
 | Untouched held-out test FP/frame > frozen budget | `OPERATING_CONDITION_NOT_MET`; retain threshold and descriptive evidence, suppress candidate confirmatory inference; no retuning |
 
 Threshold proposals and this software fixture matrix do **not** authorize
