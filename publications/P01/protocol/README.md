@@ -1,6 +1,6 @@
 # P01 study protocol
 
-## P01 S09 author decision packet v0.4.1 (2026-11-13; UNFROZEN)
+## P01 S09 author decision packet v0.4.2 (2026-11-26; UNFROZEN)
 
 **Purpose:** one prospective choice for [#35](https://github.com/MatPomGit/arc-rgbt/issues/35)
 and [#53](https://github.com/MatPomGit/arc-rgbt/issues/53), due 2026-11-13.
@@ -65,13 +65,17 @@ Specify inclusion/exclusion criteria, sensor calibration, datasets, controls, sp
 
 **No agent-created manual annotation gate:** no two source-image reviewers, assessor CSVs, blind image galleries, adjudication or independent relabelling; no standalone database/dataset QA program without permission. Reuse minimal necessary source-format checks, split/leakage controls and validated metric code as integral parts of real experiments. If data/GPU reside on local Fedora, a single short offline command and hash-backed machine outputs suffice as a handoff. Distinguish independent reproduction of results from human relabelling. Source rights, no test tuning, no spending and final author approval remain mandatory.
 
+## Current non-test evidence (2026-11-26)
+
+The [manuscript source-annotation inventory](../manuscript.md#observed-source-annotation-inventory-pre-detector-21-november-2026) records 10,742 training and 1,144 validation frames, 133 and 17 source video-ID proxies, and 918 and 97 reference-negative frames, respectively. The four candidate validation software exposure floors are met. No detector performance, independent acquisition identity, lawful-use admission, validation cutoff or holdout result follows from these counts. Unknown true acquisition identity restricts inference to DESCRIPTIVE_ONLY; any proxy-group contrast must be labelled as such. The candidate numerical settings and G01 status remain unchanged.
+
 ## Review-derived preregistration checks
 
-- Define object appearance in **native pixels**, optical geometry, target
+- For Tier B only, define object appearance in **native pixels**, optical geometry, target
   orientation and projection plane. For near-nadir imagery, standing body
   height is **not** the projected target height; do not infer universal
   distance limits from an assumed 1.7 m visual extent.
-- Predefine strata for native grid, optical blur, noise, thermal contrast,
+- For Tier B only, predefine strata for native grid, optical blur, noise, thermal contrast,
   image orientation and occlusion, and distinguish simulated versus
   independently measured optical degradation.
 - Report precision, recall, F1 and AP separately as applicable, including
@@ -85,7 +89,7 @@ and [screened literature](../../../docs/experiments/literature-screening.md).
 
 ## Planned confirmatory study (not yet preregistered)
 
-The legacy native-sensor planning items in this section concern possible Tier B extensions. For the currently proposed Tier A endpoint, use the source-export footprint and dataset-relative claim conventions of the S09 v0.4.1 decision table above. No physical native-pixel claim is authorized.
+The legacy native-sensor planning items in this section concern possible Tier B extensions. For the currently proposed Tier A endpoint, use the source-export footprint and dataset-relative claim conventions of the S09 v0.4.2 decision table above. No physical native-pixel claim is authorized.
 
 - **Primary candidate:** equal-weight mean of within-acquisition LWIR small-minus-reference IoU-0.50 recall differences at a validation-locked FP/frame operating point. This is an observational association, not a causal effect of image resolution. Class, contrast, geometry and viewpoint balance must be assessed.
 - **Baselines:** LWIR-only fixed checkpoint for the single primary analysis, RGB-only as secondary; RGB/LWIR fusion belongs to P02. Artificial downsampling remains a separate software ablation, not measured physical low-resolution performance.
@@ -98,9 +102,7 @@ The legacy native-sensor planning items in this section concern possible Tier B 
 ## D1/D2/D10 decision sheet for author review (2026-11-03; UNFROZEN)
 
 This sheet resolves the *candidate interpretation* of the P01 primary
-question, not its scientific approval. No source-verified acquisition
-inventory, non-test pilot variance or independent method sign-off is
-available. It therefore **must not** be called preregistration.
+question, not its scientific approval. A source-annotation inventory is now available (see the manuscript), but authentic independent acquisition identity, non-test detector variance and independent inferential sign-off remain unresolved. It therefore **must not** be called preregistration.
 
 | ID | Candidate decision | Evidence still needed before freeze |
 | --- | --- | --- |
@@ -165,9 +167,11 @@ Changes after that point must be logged as deviations, not silently applied.
 
 ### Admission, selection and measurement rules
 
-1. Admit a dataset only after original source/version, legal use, sensor
-   modality (LWIR is not NIR), native-versus-cropped grid, optics/geometry,
-   annotation completeness, frame keys and source IDs have been audited
+1. For Tier A, verify original source/version, lawful use, LWIR modality,
+   declared export-grid coordinates, supplied-label conventions, frame keys
+   and available source IDs. Record unknown annotation completeness and
+   acquisition independence as limitations; native optics and independently
+   verified physical sampling are additional Tier B requirements. Apply these checks
    under [the shared evidence gate](../../../docs/experiments/datasets.md).
    Unverified metadata are **unknown**, never assumed valid.
 2. Before running any confirmatory detector evaluation, lock class mapping,
@@ -179,7 +183,7 @@ Changes after that point must be logged as deviations, not silently applied.
    Check exact and near-duplicate overlap, shared scenes across sensors,
    adjacent frames and source/device leakage. Record split hashes and
    reasons for exclusions before outcome analysis.
-4. Use all independently labelled negatives in FP/frame denominators.
+4. Use all eligible source-labelled frames in FP/frame denominators, including frames with no annotated eligible car; reference-negative does not mean independently verified object absence.
    Define the frame count, IoU matching, class policy, ignored regions,
    missing detections and zero-denominator behavior in the frozen protocol.
    If a method cannot meet the target FP/frame ceiling, report that
@@ -291,17 +295,17 @@ numerical operating-point freeze. The function
 `split_role="validation"` and rejects all other roles **before** parsing
 predictions; the role is only a caller declaration. The source admission
 ledger, source-to-P01 class map, original split SHA, independent group
-identity, and per-frame complete GT must still be verified outside the
-function. A role flag alone cannot prevent a dishonest or mistaken caller
+identity, and supplied-reference label conventions must still be verified outside the
+function. Physical label completeness is not presumed for Tier A. A role flag alone cannot prevent a dishonest or mistaken caller
 from passing held-out data. Test outcomes must not be inspected during
 calibration.
 
 | Candidate condition | Selector / downstream decision |
 | --- | --- |
 | Split declared `train`, `test`, blank or omitted | Reject before inspecting frame content; no threshold |
-| Missing source-verified labels or invalid/unknown groups | Stop at external eligibility gate; do not pass frames to selector |
+| Missing supplied-label lineage or invalid declared group keys | Stop at external eligibility gate; do not pass frames to selector |
 | Validation sample below provisional frame/group floor | `BLOCKED_VALIDATION_SIZE`; no cutoff |
-| Too few candidate complete-negative frames or negative groups | `BLOCKED_NEGATIVE_EXPOSURE`; no cutoff |
+| Too few reference-negative frames or groups containing reference-negative frames | `BLOCKED_NEGATIVE_EXPOSURE`; no cutoff |
 | No score threshold with observed FP/frame <= proposed 0.10 and nonzero TP | `BLOCKED_NO_TRUE_POSITIVES` or `BLOCKED_NO_FEASIBLE_THRESHOLD`; no cutoff |
 | Confidence ties around the budget boundary | Use `score >= threshold`: all predictions tied at the threshold are included; never partially retain a tie to meet budget |
 | First valid lowest cutoff in sorted distinct validation scores plus 0 and 1 | `CANDIDATE_ONLY`, with observed validation FP/frame, TP and acquisition-bootstrap 95% diagnostic |
@@ -473,8 +477,7 @@ mandatory freeze gates remain open.
 
 ### Decisions still required before freeze
 
-- [ ] Identify lawful original dataset release(s), sensor calibration,
-      complete labels and independent acquisition identifiers (#10, #36).
+- [ ] Identify lawful original dataset release(s), supplied-label conventions and export grid; establish independent acquisition identifiers for confirmatory inference and sensor calibration for Tier B (#10, #36).
 - [ ] Fix the numerical FP/frame ceiling, IoU, footprint bins, minimum
       within-bin target counts and independent-group power/precision criteria
       *without looking at held-out outcomes*.
@@ -482,7 +485,7 @@ mandatory freeze gates remain open.
       validation exposure and threshold candidate grid.
 - [ ] Audit one-sided t-test null-boundary calibration and synthetic power,
       two-sided CI coverage, paired-bin support/weighting, missingness and
-      ignore-region rules; freeze the sole primary test and multiplicity.
+      ignore-region rules; freeze the sole primary test and multiplicity if justified; otherwise prospectively retain DESCRIPTIVE_ONLY.
 - [ ] Obtain explicit author approval of the frozen protocol and store
       its commit SHA and date in [issue #35](https://github.com/MatPomGit/arc-rgbt/issues/35).
 - [ ] Obtain independent evidence GO before reporting physical limits
