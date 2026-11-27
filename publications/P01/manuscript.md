@@ -1,6 +1,6 @@
 # P01 manuscript working draft: introduction, methods and limitations
 
-**Version:** 0.1.15, 2026-11-26. **Status:** UNSENT, UNFROZEN, source-annotation census available; no detector-performance results.
+**Version:** 0.1.16, 2026-11-27. **Status:** UNSENT, UNFROZEN, source-annotation census available; no detector-performance results.
 This is manuscript prose for [#38](https://github.com/MatPomGit/arc-rgbt/issues/38), not a replacement for the [author decision packet](protocol/README.md). Numerical choices below are **candidates**, not an approved preregistration. Do not fill Results from simulations or software CI.
 
 ## Working title
@@ -115,6 +115,10 @@ The evaluator's held-out mode requires a prospective author-declared freeze reco
 
 **Detector-performance results not available.** A train/validation source-annotation inventory with source file hashes is recorded above, but lawful-use admission, compatible trained checkpoint, validation cutoff and real held-out detector outcomes remain unverified in this manuscript revision. Insert only hash-backed, reproducible empirical tables and plots after the applicable author decision and execution gates. Never substitute E00 simulated findings for real LWIR measurements.
 
+### Descriptive partition composition (pre-detector)
+
+The small, intermediate and reference footprint strata accounted for 10.46%, 24.11% and 65.42% of training targets, respectively, versus 6.88%, 23.80% and 69.31% of validation targets. The small-target share was 3.58 percentage points lower in validation (validation-to-training proportion ratio 0.658). Mean annotated cars per source frame were 6.85 and 6.24, respectively. Reference-negative frames represented 8.55% and 8.48% of the two partitions. Both contrast bins occurred in 122/133 (91.73%) training and 17/17 (100%) validation video-ID proxy groups. These descriptive quantities are derived from the source-annotation inventory above by dividing counts by their respective partition totals; no holdout was accessed. The calculations are also recorded in [the numerical derivation](https://github.com/MatPomGit/arc-rgbt/issues/38#issuecomment-7213474050).
+
 ### Prespecified empirical reporting structure (unpopulated)
 
 The eventual Results section will separate **validation calibration** from the **untouched held-out evaluation**. The following are reporting specifications, not observed data. Populate every field only from versioned machine outputs and retain an explicit `NOT_AVAILABLE` value when a denominator or provenance item is absent; never replace a missing observation with zero.
@@ -133,6 +137,8 @@ In the main text, distinguish the total number of source acquisitions from the n
 ## Discussion: prespecified interpretation limits
 
 The principal threat to interpretation is that source labels may be incomplete, so unmatched detections are not necessarily physical false alarms. The exported annotation footprint may differ from original sensor sampling because of cropping, scaling, interpolation and annotation geometry. Apparent target size can covary with class, contrast, occlusion, orientation, range and acquisition environment. Thus an observed association between footprint and recall would not isolate a causal optical mechanism.
+
+The lower small-target share in validation illustrates why aggregate recall alone may obscure size-dependent performance. Similar reference-negative frame proportions do not imply similar false-alert distributions, because the number and score distribution of unmatched predictions remain unknown. Differences in target composition also prevent interpreting an aggregate train–validation performance gap as a pure generalization effect. These census differences do not establish an inferential distribution shift or detector performance.
 
 A dataset-relative Tier A analysis may be scientifically reportable with a clearly delimited population and transparent descriptive interpretation. A Tier B assertion about native LWIR optics, detection range, causal resolution effects or real robot deployment requires separately verified sensor and acquisition evidence. Tier B remains **BLOCKED**. The study does not make claims about RGB/LWIR fusion, which belongs primarily to P02, or embedded power and latency, which belong to P03.
 
